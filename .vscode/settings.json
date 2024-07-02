@@ -1,0 +1,6 @@
+{   
+    // when running tests from the vscode ui, these tags get appended.
+    //   -v is for verbose output
+    //   -count=1 is to rerun the tests every time (disables caching)
+    "go.testFlags": ["-v", "-count=1",],
+}

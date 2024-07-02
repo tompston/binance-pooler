@@ -1,0 +1,9 @@
+[api]
+host = "localhost"
+port = 4444
+
+[mongo]
+host = "localhost"
+port = 27017                
+username = ""   # leave blank if no auth
+password = ""   # leave blank if no auth

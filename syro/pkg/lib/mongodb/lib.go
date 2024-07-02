@@ -1,0 +1,232 @@
+// Util functions on top of the mongo driver, which don't have a
+// reference to the current project.
+package mongodb
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+// NewConn creates a new connection to the mongodb database.
+func NewConn(host string, port int, username, password string) (*mongo.Client, error) {
+	opt := options.Client().
+		SetMaxPoolSize(20).                  // Set the maximum number of connections in the connection pool
+		SetMaxConnIdleTime(10 * time.Minute) // Close idle connections after the specified time
+
+	// If both the username and password exists, use it as the credentials. Else use the non-authenticated url.
+	var url string
+	if username != "" && password != "" {
+		opt.SetAuth(options.Credential{Username: username, Password: password})
+		url = fmt.Sprintf("mongodb://%s:%s@%s:%d", username, password, host, port)
+	} else {
+		url = fmt.Sprintf("mongodb://%s:%d", host, port)
+	}
+
+	opt.ApplyURI(url)
+
+	conn, err := mongo.Connect(context.Background(), opt)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := conn.Ping(context.Background(), nil); err != nil {
+		return nil, fmt.Errorf("failed to ping mongodb: %v", err)
+	}
+
+	return conn, nil
+}
+
+// The upsert option passed to mongodb query functions
+var UpsertOpt = options.Update().SetUpsert(true)
+
+func OrderDescending(field string) *options.FindOptions {
+	return options.Find().SetSort(bson.D{{Key: field, Value: -1}})
+}
+
+func OrderAscending(field string) *options.FindOptions {
+	return options.Find().SetSort(bson.D{{Key: field, Value: 1}})
+}
+
+// TimeRangeFilter returns a filter which matches documents where the given field
+// is between the given from and to times.
+func TimeRangeFilter(fielName string, from, to time.Time) bson.M {
+	return bson.M{fielName: bson.M{"$gte": from.UTC(), "$lte": to.UTC()}}
+}
+
+// GetLastDocumentWithTypes queries for a document and returns it, if it exists.
+//
+// Example
+//
+//	var row MyType
+//	err := mongodb.GetLastDocumentWithTypes(coll, bson.M{"start_date": -1}, &row)
+//	return row, err
+func GetLastDocumentWithTypes(coll *mongo.Collection, sort primitive.M, filter, results any) error {
+	err := coll.FindOne(context.Background(), filter, options.FindOne().SetSort(sort)).Decode(results)
+	return err
+}
+
+// GetAllDocumentsWithTypes queries for all documents and returns them,
+// if they exist. Create an empty slice of the type you want to get
+// the results in and pass it as the last parameter.
+func GetAllDocumentsWithTypes(coll *mongo.Collection, filter primitive.M, options *options.FindOptions, results any) error {
+	ctx := context.Background()
+	cur, err := coll.Find(ctx, filter, options)
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+
+	return cur.All(ctx, results)
+}
+
+func GetDocumentWithTypes(coll *mongo.Collection, filter primitive.M, options *options.FindOneOptions, results any) error {
+	err := coll.FindOne(context.Background(), filter, options).Decode(results)
+	return err
+}
+
+func GetAllDocuments(coll *mongo.Collection, filter primitive.M, options *options.FindOptions) ([]bson.M, error) {
+	ctx := context.Background()
+
+	cur, err := coll.Find(ctx, filter, options)
+	if err != nil {
+		return nil, fmt.Errorf("find: %v", err)
+	}
+	defer cur.Close(ctx)
+
+	var results []bson.M
+	for cur.Next(ctx) {
+		var result bson.M
+		err := cur.Decode(&result)
+		if err != nil {
+			return nil, fmt.Errorf("decode: %v", err)
+		}
+
+		convertDateTime(result)
+		results = append(results, result)
+	}
+
+	if err := cur.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %v", err)
+	}
+
+	return results, nil
+}
+
+func convertDateTime(data bson.M) {
+	for key, value := range data {
+		switch v := value.(type) {
+		case primitive.DateTime:
+			data[key] = v.Time().UTC()
+		case bson.M:
+			convertDateTime(v)
+		case []interface{}: // handle arrays
+			for i, item := range v {
+				if subDoc, ok := item.(bson.M); ok {
+					convertDateTime(subDoc)
+					v[i] = subDoc
+				}
+			}
+		}
+	}
+}
+
+// DeleteField deletes the specified field from all documents in the collection.
+func DeleteField(coll *mongo.Collection, fieldName string) error {
+	if fieldName == "" {
+		return fmt.Errorf("field name is empty")
+	}
+
+	update := bson.M{"$unset": bson.M{fieldName: ""}}
+
+	// Perform an update many operation to apply the update to all documents
+	if _, err := coll.UpdateMany(context.Background(), bson.M{}, update); err != nil {
+		return fmt.Errorf("failed to delete '%v' field: %v", fieldName, err)
+	}
+
+	fmt.Printf("Successfully deleted '%v' field from all documents.\n", fieldName)
+	return nil
+}
+
+func DeleteIndex(coll *mongo.Collection, indexName string) error {
+	_, err := coll.Indexes().DropOne(context.Background(), indexName)
+	return err
+}
+
+// QueryParams holds the parameters that are used to query the database for documents.
+type QueryParams struct {
+	Coll    *mongo.Collection
+	Filter  primitive.M
+	Options *options.FindOptions
+}
+
+func NewQueryParams(coll *mongo.Collection, filter primitive.M, options *options.FindOptions) *QueryParams {
+	return &QueryParams{coll, filter, options}
+}
+
+// GetDocumentsWithTypesFunc is the type for the getDocuments function
+type GetDocumentsWithTypesFunc[T any] func(QueryParams) ([]T, error)
+
+// GetDocuments is a helper function that queries the database for documents
+// and returns them as types of the data argument.
+func GetDocuments[T any](params QueryParams, data *[]T) error {
+	return GetAllDocumentsWithTypes(params.Coll, params.Filter, params.Options, data)
+}
+
+func DeleteByID(coll *mongo.Collection, id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = coll.DeleteOne(context.Background(), bson.M{"_id": objID})
+	return err
+}
+
+// Code for creating area filters based on the structure of collection documents
+// areaFilterType is an enum for the type of area filter
+type ValueFilterType int
+
+const (
+	ValueFilterForKeys   ValueFilterType = iota // value -> 0
+	ValueFilterForFields                        // value -> 1
+)
+
+// UpsertLog struct holds meta information about how long it took to upsert documents into a collection.
+type UpsertLog struct {
+	CollectionName  string    `json:"collection_name" bson:"collection_name"`         // name of the collection into which the rows were inserted
+	DbName          string    `json:"db_name" bson:"db_name"`                         // name of the database into which the rows were inserted
+	FirstStartTime  time.Time `json:"first_start_time" bson:"first_start_time"`       // first start time of the rows inserted
+	LastStartTime   time.Time `json:"last_start_time" bson:"last_start_time"`         // last start time of the rows inserted
+	NumUpsertedRows int       `json:"inserted_rows_count" bson:"inserted_rows_count"` // number of rows inserted
+	ElapsedTime     float64   `json:"elapsed_time" bson:"elapsed_time"`               // total time it took to upsert the rows (in seconds)
+}
+
+// NewLog returns a new Log instance which holds data about the upsert operation
+func NewUpsertLog(coll *mongo.Collection, firstStartTime, lastStartTime time.Time, numUpsertedRows int, operationDuration time.Time) *UpsertLog {
+	return &UpsertLog{
+		DbName:          coll.Database().Name(),
+		CollectionName:  coll.Name(),
+		FirstStartTime:  firstStartTime,
+		LastStartTime:   lastStartTime,
+		NumUpsertedRows: numUpsertedRows,
+		ElapsedTime:     time.Since(operationDuration).Seconds(),
+	}
+}
+
+// String returns a string representation of the Log struct
+func (l UpsertLog) String() string {
+	format := "2006-01-02 15:04:05"
+
+	destination := l.DbName + "." + l.CollectionName
+
+	return fmt.Sprintf(
+		"upserted %v rows in the %v coll from the period of %v to %v in %.2f sec",
+		l.NumUpsertedRows, destination, l.FirstStartTime.Format(format), l.LastStartTime.Format(format), l.ElapsedTime,
+	)
+}
