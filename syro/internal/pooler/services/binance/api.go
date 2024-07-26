@@ -316,30 +316,16 @@ func (api API) GetAllFutureSymbols() ([]market_model.FuturesAsset, error) {
 	return assets, nil
 }
 
-func parseFloat(v any) (float64, error) {
-	// switch v.(type) {
+func parseFloat(val any) (float64, error) {
+	switch v := val.(type) {
 
-	// case string:
-	// 	if f, ok := v.(string); ok {
-	// 		return strconv.ParseFloat(f, 64)
-	// 	}
+	case float64:
+		return v, nil
 
-	// case float64:
-	// 	if f, ok := v.(float64); ok {
-	// 		return f, nil
-	// 	}
+	case string:
+		return strconv.ParseFloat(v, 64)
 
-	// default:
-	// 	return 0, fmt.Errorf("invalid type")
-	// }
-
-	if val, ok := v.(string); ok {
-		return strconv.ParseFloat(val, 64)
+	default:
+		return 0, fmt.Errorf("invalid type")
 	}
-
-	if val, ok := v.(float64); ok {
-		return val, nil
-	}
-
-	return 0, fmt.Errorf("invalid type")
 }

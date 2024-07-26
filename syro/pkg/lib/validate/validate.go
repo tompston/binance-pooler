@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // EmptyStringsInStructExist checks if there are empty strings in a struct.
@@ -67,8 +65,9 @@ func StringsMatch(s1, s2 string) error {
 	return nil
 }
 
-// StringIncludes checks if the input string contains all of the strings in the array.
-// If the input string does not contain a strings from the array, an error is returned.
+// StringIncludes checks if the input string contains all of the strings in
+// the array. If the input string does not contain a strings from the
+// array, an error is returned.
 func StringIncludes(input string, arr []string) error {
 	for _, str := range arr {
 		if !strings.Contains(input, str) {
@@ -76,33 +75,6 @@ func StringIncludes(input string, arr []string) error {
 		}
 	}
 	return nil
-}
-
-func BsonMEqual(a, b bson.M) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for k := range a {
-		if !reflect.DeepEqual(a[k], b[k]) {
-			return false
-		}
-	}
-	return true
-}
-
-// BsonSlicesEqual checks if two slices of bson.M are equal
-func BsonSlicesEqual(a, b []bson.M) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if !BsonMEqual(a[i], b[i]) {
-			return false
-		}
-	}
-	return true
 }
 
 func ArraysMatch(expected, actual []string, verbose ...bool) error {
