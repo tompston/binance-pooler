@@ -53,5 +53,6 @@ chmod +x run.sh
 ### TODOS
 
 - [ ] Minimal ui for previewing the logs and crons
+- [ ] Api endpoint for storing event logs (so that they can be previewed)
 - [ ] write openapi spec for the api
 - [ ] test api endpoints

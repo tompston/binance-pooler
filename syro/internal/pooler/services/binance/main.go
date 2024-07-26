@@ -32,7 +32,7 @@ func New(app *app.App, maxParalellRequests int) *service {
 	return &service{app, NewAPI(), maxParalellRequests}
 }
 
-func (s *service) log() *logger.MongoLogger {
+func (s *service) log() logger.Logger {
 	return s.app.Logger().SetEvent("binance")
 }
 

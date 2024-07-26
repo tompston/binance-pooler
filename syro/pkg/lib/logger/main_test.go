@@ -160,13 +160,13 @@ func TestConsoleLogger(t *testing.T) {
 			t.Error("Settings should be nil")
 		}
 
-		if NewConsoleLogger(nil).SetEvent("my-event").Event != "my-event" {
+		if NewConsoleLogger(nil).SetEvent("my-event").GetEvent() != "my-event" {
 			t.Error("SetEvent failed")
 		}
 
 		if logger := NewConsoleLogger(nil).
 			SetSource("my-source").
-			SetEventID("my-event-id"); logger.Source != "my-source" && logger.EventID != "my-event-id" {
+			SetEventID("my-event-id"); logger.GetSource() != "my-source" && logger.GetEventID() != "my-event-id" {
 			t.Error("SetEventID failed")
 		}
 

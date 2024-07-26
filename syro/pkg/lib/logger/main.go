@@ -14,46 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Logger interface implements the methods for logging
-type Logger interface {
-	Error(msg error) error
-	Info(msg any) error
-	Debug(msg any) error
-	Warn(msg any) error
-	Trace(msg any) error
-
-	// GetSettings returns the settings for the logger, which are used when printing the log to the console.
-	GetSettings() *LoggerSettings
-
-	// LogExists method checks if the log with the provided filter exists.
-	LogExists(filter any) (bool, error)
-
-	// FindLogs method returns the logs that match the provided filter
-	FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error)
-}
-
-// LoggerSettings struct for storing the settings for the logger which are used when printing the log
-// to the console.
-type LoggerSettings struct {
-	Location   *time.Location
-	TimeFormat string
-}
-
-// DefaultLoggerSettings are the default settings for the logger, used if the settings are not provided
-// or location is nil.
-var DefaultLoggerSettings = &LoggerSettings{
-	Location:   time.UTC,
-	TimeFormat: "2006-01-02 15:04:05",
-}
-
-const (
-	ERROR = "ERROR"
-	INFO  = "INFO"
-	DEBUG = "DEBUG"
-	WARN  = "WARN"
-	TRACE = "TRACE"
-)
-
 // Log struct for storing the log data
 type Log struct {
 	// When the log was created (UTC)
@@ -90,6 +50,56 @@ func (log Log) String(logger Logger) string {
 	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v\n", time, log.Level, log.Source, log.Event, log.Data)
 }
 
+// Logger interface implements the methods for logging
+type Logger interface {
+	Error(msg error) error
+	Info(msg any) error
+	Debug(msg any) error
+	Warn(msg any) error
+	Trace(msg any) error
+
+	// GetSettings returns the settings for the logger, which are used when printing the log to the console.
+	GetSettings() *LoggerSettings
+	// LogExists method checks if the log with the provided filter exists.
+	LogExists(filter any) (bool, error)
+	// FindLogs method returns the logs that match the provided filter
+	FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error)
+	// SetSource sets the source of the log
+	SetSource(v string) Logger
+	// SetEvent sets the event of the log
+	SetEvent(v string) Logger
+	// SetEventID sets the event id of the log
+	SetEventID(v string) Logger
+	// GetSource returns the source of the log
+	GetSource() string
+	// GetEvent returns the event of the log
+	GetEvent() string
+	// GetEventID returns the event id of the log
+	GetEventID() string
+}
+
+// LoggerSettings struct for storing the settings for the logger which are used when printing the log
+// to the console.
+type LoggerSettings struct {
+	Location   *time.Location
+	TimeFormat string
+}
+
+// DefaultLoggerSettings are the default settings for the logger, used if the settings are not provided
+// or location is nil.
+var DefaultLoggerSettings = &LoggerSettings{
+	Location:   time.UTC,
+	TimeFormat: "2006-01-02 15:04:05",
+}
+
+const (
+	ERROR = "ERROR"
+	INFO  = "INFO"
+	DEBUG = "DEBUG"
+	WARN  = "WARN"
+	TRACE = "TRACE"
+)
+
 // Logger implementation for console
 type ConsoleLogger struct {
 	Settings *LoggerSettings
@@ -98,30 +108,28 @@ type ConsoleLogger struct {
 	EventID  string
 }
 
-func NewConsoleLogger(settings *LoggerSettings) *ConsoleLogger {
-	return &ConsoleLogger{Settings: settings}
-}
-
-func (logger *ConsoleLogger) GetSettings() *LoggerSettings {
-	return logger.Settings
-}
+func NewConsoleLogger(s *LoggerSettings) *ConsoleLogger    { return &ConsoleLogger{Settings: s} }
+func (logger *ConsoleLogger) GetSettings() *LoggerSettings { return logger.Settings }
+func (logger *ConsoleLogger) GetSource() string            { return logger.Source }
+func (logger *ConsoleLogger) GetEvent() string             { return logger.Event }
+func (logger *ConsoleLogger) GetEventID() string           { return logger.EventID }
 
 func (logger *ConsoleLogger) log(level string, data any) error {
 	fmt.Print(newLog(level, data, logger.Source, logger.Event, logger.EventID).String(logger))
 	return nil
 }
 
-func (logger *ConsoleLogger) SetSource(v string) *ConsoleLogger {
+func (logger *ConsoleLogger) SetSource(v string) Logger {
 	logger.Source = v
 	return logger
 }
 
-func (logger *ConsoleLogger) SetEvent(v string) *ConsoleLogger {
+func (logger *ConsoleLogger) SetEvent(v string) Logger {
 	logger.Event = v
 	return logger
 }
 
-func (logger *ConsoleLogger) SetEventID(v string) *ConsoleLogger {
+func (logger *ConsoleLogger) SetEventID(v string) Logger {
 	logger.EventID = v
 	return logger
 }
@@ -153,21 +161,22 @@ func NewMongoLogger(coll *mongo.Collection, settings *LoggerSettings) *MongoLogg
 	return &MongoLogger{Coll: coll, Settings: settings}
 }
 
-func (logger *MongoLogger) GetSettings() *LoggerSettings {
-	return logger.Settings
-}
+func (logger *MongoLogger) GetSettings() *LoggerSettings { return logger.Settings }
+func (logger *MongoLogger) GetSource() string            { return logger.Source }
+func (logger *MongoLogger) GetEvent() string             { return logger.Event }
+func (logger *MongoLogger) GetEventID() string           { return logger.EventID }
 
-func (logger *MongoLogger) SetSource(v string) *MongoLogger {
+func (logger *MongoLogger) SetSource(v string) Logger {
 	logger.Source = v
 	return logger
 }
 
-func (logger *MongoLogger) SetEvent(v string) *MongoLogger {
+func (logger *MongoLogger) SetEvent(v string) Logger {
 	logger.Event = v
 	return logger
 }
 
-func (logger *MongoLogger) SetEventID(v string) *MongoLogger {
+func (logger *MongoLogger) SetEventID(v string) Logger {
 	logger.EventID = v
 	return logger
 }
@@ -252,15 +261,12 @@ func (logger *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) (
 		SetLimit(limit).
 		SetSkip(skip)
 
-	var logs []Log
+	var docs []Log
 	cursor, err := logger.Coll.Find(context.Background(), queryFilter, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := cursor.All(context.Background(), &logs); err != nil {
-		return nil, err
-	}
-
-	return logs, nil
+	err = cursor.All(context.Background(), &docs)
+	return docs, err
 }

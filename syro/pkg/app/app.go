@@ -24,13 +24,13 @@ type App struct {
 	conf        *settings.TomlConfig
 	db          *db.Db
 	cronStorage scheduler.Storage
-	logger      *logger.MongoLogger
+	logger      logger.Logger
 }
 
 func (a *App) Conf() *settings.TomlConfig     { return a.conf }
 func (a *App) Db() *db.Db                     { return a.db }
 func (a *App) CronStorage() scheduler.Storage { return a.cronStorage }
-func (a *App) Logger() *logger.MongoLogger    { return a.logger }
+func (a *App) Logger() logger.Logger          { return a.logger }
 
 var Env = &settings.Env{
 	DefaultConfigPath: "./conf/config.dev.toml",
