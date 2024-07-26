@@ -42,32 +42,6 @@ func TestIsTodayOrInFuture(t *testing.T) {
 	}
 }
 
-func TestEndOfMonth(t *testing.T) {
-	var tests = []struct {
-		date time.Time
-		want time.Time
-	}{
-		{time.Date(2023, 1, 10, 0, 0, 0, 0, time.UTC), time.Date(2023, 1, 31, 0, 0, 0, 0, time.UTC)},
-		{time.Date(2023, 2, 10, 0, 0, 0, 0, time.UTC), time.Date(2023, 2, 28, 0, 0, 0, 0, time.UTC)}, // non-leap year
-		{time.Date(2024, 2, 10, 0, 0, 0, 0, time.UTC), time.Date(2024, 2, 29, 0, 0, 0, 0, time.UTC)}, // leap year
-		{time.Date(2023, 4, 10, 0, 0, 0, 0, time.UTC), time.Date(2023, 4, 30, 0, 0, 0, 0, time.UTC)},
-		{time.Date(2023, 4, 10, 0, 0, 0, 0, time.UTC), time.Date(2023, 4, 30, 0, 0, 0, 0, time.UTC)},
-		{time.Date(2019, 2, 10, 0, 0, 0, 0, time.UTC), time.Date(2019, 2, 28, 0, 0, 0, 0, time.UTC)},
-		{time.Date(1744, 4, 3, 0, 0, 0, 0, time.UTC), time.Date(1744, 4, 30, 0, 0, 0, 0, time.UTC)},
-		{time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC), time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)},
-		// add more test cases as needed
-	}
-
-	for _, test := range tests {
-		t.Run(test.date.Format("2006-01"), func(t *testing.T) {
-			got := EndOfMonth(test.date)
-			if !got.Equal(test.want) {
-				t.Errorf("EndOfMonth(%v) = %v, want %v", test.date.Format("2006-01-02"), got.Format("2006-01-02"), test.want.Format("2006-01-02"))
-			}
-		})
-	}
-}
-
 func TestMinSince(t *testing.T) {
 	// Define a struct for test cases
 	type testCase struct {
@@ -148,53 +122,6 @@ func TestFutureOffsetMillis(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := FutureOffsetMillis(tt.future); abs(int64(got)-tt.want) > epsilon {
 				t.Errorf("FutureOffsetMillis() = %v, want %v (within ±%v ms error margin)", got, tt.want, epsilon)
-			}
-		})
-	}
-}
-
-func TestRoundMillisToClosestHour(t *testing.T) {
-	tests := []struct {
-		name          string
-		milliseconds  int64
-		wantRoundedMs int64
-	}{
-		{
-			name:          "Exactly one hour",
-			milliseconds:  3600000,
-			wantRoundedMs: 3600000,
-		},
-		{
-			name:          "One and a half hour",
-			milliseconds:  5400000, // 1.5 hours
-			wantRoundedMs: 7200000, // should round up to 2 hours
-		},
-		{
-			name:          "Just under half an hour",
-			milliseconds:  1700000, // just under 0.5 hours
-			wantRoundedMs: 0,       // should round down to 0
-		},
-		{
-			name:          "Just over half an hour",
-			milliseconds:  2000000, // just over 0.5 hours
-			wantRoundedMs: 3600000, // should round up to 1 hour
-		},
-		{
-			name:          "7.3 -> 7",
-			milliseconds:  26280000, // just over 0.5 hours
-			wantRoundedMs: 25200000, // should round up to 1 hour
-		},
-		{
-			name:          "12.6 -> 13",
-			milliseconds:  45360000, // just over 0.5 hours
-			wantRoundedMs: 46800000, // should round up to 1 hour
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := RoundMillisToClosestHour(tt.milliseconds); got != tt.wantRoundedMs {
-				t.Errorf("RoundMillisToClosestHour() = %v, want %v", got, tt.wantRoundedMs)
 			}
 		})
 	}

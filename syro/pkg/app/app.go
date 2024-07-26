@@ -97,7 +97,6 @@ func (a *App) Exit(ctx context.Context) error {
 }
 
 // SetupTestEnvironment sets up a test environment for the app.
-// Acts as a util function for tests.
 func SetupTestEnvironment(t *testing.T, useProductionDb ...bool) (*App, func()) {
 	debugMode := true
 	if len(useProductionDb) == 1 && useProductionDb[0] {

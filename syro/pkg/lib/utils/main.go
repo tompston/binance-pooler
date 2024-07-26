@@ -12,11 +12,8 @@ func PrettyPrint(data string) (string, error) {
 	var i any
 
 	// Try to unmarshal as JSON first
-	if json.Unmarshal([]byte(data), &i) != nil {
-		// If JSON fails, try BSON
-		if bson.Unmarshal([]byte(data), &i) != nil {
-			return "", fmt.Errorf("failed to unmarshal data as JSON or BSON")
-		}
+	if err := json.Unmarshal([]byte(data), &i); err != nil {
+		return "", fmt.Errorf("failed to unmarshal as JSON: %w", err)
 	}
 
 	pretty, err := json.MarshalIndent(i, "", "  ")

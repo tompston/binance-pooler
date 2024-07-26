@@ -26,25 +26,6 @@ func DiffInMilliseconds(t1, t2 time.Time) int64 { return t2.Sub(t1).Milliseconds
 // and end time exceeds the allowed difference in hours.
 func ExceedsDiffInHours(t1, t2 time.Time, hours int) bool { return t2.Sub(t1).Hours() > float64(hours) }
 
-func IsFromYesterday(t time.Time) bool {
-	yesterday := time.Now().UTC().AddDate(0, 0, -1)
-	return t.Format("2006-01-02") == yesterday.Format("2006-01-02")
-}
-
-// EndOfMonth returns the last day of the month for the given date.
-func EndOfMonth(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location()).AddDate(0, 1, -1)
-}
-
-// StartOfMonth returns the first day of the month for the given date.
-func StartOfMonth(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location())
-}
-
-func EndOfDay(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 0, 0, date.UTC().Location())
-}
-
 // MinSince returns a string that represents the time passed since the input time
 func MinSince(t time.Time) string { return fmt.Sprintf("%.2f min", time.Since(t).Seconds()/60) }
 
@@ -65,31 +46,12 @@ func UtcOffsetInLocation(location string) (int, error) {
 	return offset / 3600, nil
 }
 
-func IsInNextMonth(t time.Time) bool {
-	now := time.Now().UTC()
-	nextMonth := now.AddDate(0, 1, 0)
-	return t.Year() == nextMonth.Year() && t.Month() == nextMonth.Month()
-}
-
 // Calculates the offset from the current time to a future time in milliseconds.
 // If the given time is not in the future, the result will be negative.
 func FutureOffsetMillis(future time.Time) int64 {
 	now := time.Now().UTC()
 	duration := future.Sub(now)
 	return int64(duration / time.Millisecond)
-}
-
-// Round the milliseconds to the closest hour.
-func RoundMillisToClosestHour(milliseconds int64) int64 {
-	hourInMilli := int64(3600000) // Number of milliseconds in an hour
-	// Calculate the half-hour mark to determine rounding direction
-	halfHourInMilli := hourInMilli / 2
-
-	// Adding half an hour worth of milliseconds before division to ensure rounding to nearest hour
-	if milliseconds >= 0 {
-		return (milliseconds + halfHourInMilli) / hourInMilli * hourInMilli
-	}
-	return (milliseconds - halfHourInMilli) / hourInMilli * hourInMilli
 }
 
 // See documentation for ExpandTime
