@@ -22,6 +22,9 @@ type Scheduler struct {
 	Storage Storage // Storage interface for monitoring the job execution (optional)
 }
 
+// TODO: return err if the cron is nil
+// TODO: add an name (string) to the scheduler, for cases where multiple
+// golang apps with different schedulers are running in the same environment.
 func NewScheduler(cron *cron.Cron, storage Storage) *Scheduler {
 	return &Scheduler{cron: cron, Storage: storage}
 }
@@ -57,6 +60,9 @@ type Job struct {
 	Freq string       // Frequency of the job in cron format
 	Name string       // Name of the job
 	Func func() error // Function to be executed by the job
+	// TODO: add these in the logic
+	OnError   func(error) // Optional. Function to be executed if the job returns an error
+	OnSuccess func()      // Optional. Function to be executed after the job executes without errors
 }
 
 type Storage interface {

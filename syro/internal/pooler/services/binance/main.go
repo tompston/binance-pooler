@@ -46,10 +46,18 @@ func (s *service) Run(sched *scheduler.Scheduler) {
 		s.log().Error(err)
 	}
 
-	if err := sched.Register(&scheduler.Job{
-		Name: "binance-futures-ohlc",
-		Freq: "@every 1m",
-		Func: func() error { return s.runFuturesOhlcScraper() }},
+	if err := sched.Register(
+		&scheduler.Job{
+			Name: "binance-futures-ohlc",
+			Freq: "@every 1m",
+			// TODO: there is a problem if the custom logger is defined inside the job with
+			// the EventID set to the job name. If the function returns error, it won't
+			// be associated with it.
+			Func: func() error { return s.runFuturesOhlcScraper() },
+			OnError: func(err error) {
+				fmt.Printf("error in binance-futures-ohlc job: %v\n", err)
+			},
+		},
 	); err != nil {
 		s.log().Error(err)
 	}
