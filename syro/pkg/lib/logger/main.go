@@ -78,15 +78,15 @@ type Logger interface {
 	GetEventID() string
 }
 
-// LoggerSettings struct for storing the settings for the logger which are used when printing the log
-// to the console.
+// LoggerSettings struct for storing the settings for the logger which are
+// used when printing the log to the console.
 type LoggerSettings struct {
 	Location   *time.Location
 	TimeFormat string
 }
 
-// DefaultLoggerSettings are the default settings for the logger, used if the settings are not provided
-// or location is nil.
+// DefaultLoggerSettings are the default settings for the logger, used if the
+// settings are not provided or location is nil.
 var DefaultLoggerSettings = &LoggerSettings{
 	Location:   time.UTC,
 	TimeFormat: "2006-01-02 15:04:05",

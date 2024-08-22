@@ -75,7 +75,7 @@ func TestCronRegistration(t *testing.T) {
 
 	t.Run("return err if job is nil", func(t *testing.T) {
 		sched := NewScheduler(cron.New(), nil)
-		err := sched.register(nil)
+		err := sched.addJob(nil)
 
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -89,7 +89,7 @@ func TestCronRegistration(t *testing.T) {
 	t.Run("return err if cron is nil", func(t *testing.T) {
 		sched := NewScheduler(nil, nil)
 
-		err := sched.register(&Job{
+		err := sched.addJob(&Job{
 			Freq: "@every 1m",
 			Name: "test",
 		})
@@ -106,7 +106,7 @@ func TestCronRegistration(t *testing.T) {
 	t.Run("return err if freq is nil", func(t *testing.T) {
 		sched := NewScheduler(cron.New(), nil)
 
-		err := sched.register(&Job{
+		err := sched.addJob(&Job{
 			Freq: "",
 		})
 
@@ -193,7 +193,7 @@ func TestMongoStorage(t *testing.T) {
 		const CRON_NAME = "cron-job-1"
 
 		// Register the job
-		if err := sched.register(&Job{
+		if err := sched.addJob(&Job{
 			Freq: "@every 1s",
 			Name: CRON_NAME,
 			Func: func() error {

@@ -43,7 +43,7 @@ func (s *Scheduler) Register(j *Job) error {
 		}
 	}
 
-	return s.register(j)
+	return s.addJob(j)
 }
 
 // Start starts the cron scheduler.
@@ -121,11 +121,11 @@ const (
 	JobStatusDone        JobStatus = "done"
 )
 
-// register adds a new job to the cron scheduler and wraps the job function with a
+// addJob adds a new job to the cron scheduler and wraps the job function with a
 // mutex lock to prevent the execution of the job if it is already running. If
 // the function recieves a valid implementation of the Storage interface then
 // this will also handle the registration and monitoring of the job.
-func (s *Scheduler) register(j *Job) error {
+func (s *Scheduler) addJob(j *Job) error {
 	if j == nil {
 		return fmt.Errorf("job cannot be nil")
 	}

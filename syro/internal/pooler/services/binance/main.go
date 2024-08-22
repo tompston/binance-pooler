@@ -36,6 +36,10 @@ func (s *service) log() logger.Logger {
 	return s.app.Logger().SetEvent("binance")
 }
 
+func (s *service) newJobLogger(jobName string) logger.Logger {
+	return s.app.Logger().SetEvent("binance").SetEventID(jobName)
+}
+
 // Run starts the cron jobs for the binance service
 func (s *service) Run(sched *scheduler.Scheduler) {
 	if err := s.setupFuturesAssets(); err != nil {
@@ -57,9 +61,7 @@ func (s *service) Tmp() {
 	}
 }
 
-func todoPrinter(v any) {
-	fmt.Println(v)
-}
+func todoPrinter(v any) { fmt.Println(v) }
 
 func (s *service) getFuturesAssets() ([]market_model.FuturesAsset, error) {
 	coll := s.app.Db().CryptoFuturesAssetColl()
