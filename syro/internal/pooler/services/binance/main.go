@@ -42,7 +42,7 @@ func (s *service) Run(sched *scheduler.Scheduler) {
 		s.log().Error(err)
 	}
 
-	if err := sched.Add(&scheduler.Job{
+	if err := sched.Register(&scheduler.Job{
 		Name: "binance-futures-ohlc",
 		Freq: "@every 1m",
 		Func: func() error { return s.runFuturesOhlcScraper() }},

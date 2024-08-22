@@ -26,8 +26,8 @@ func NewScheduler(cron *cron.Cron, storage Storage) *Scheduler {
 	return &Scheduler{cron: cron, Storage: storage}
 }
 
-// Add the cron job to the scheduler.
-func (s *Scheduler) Add(j *Job) error {
+// Register the cron job to the scheduler.
+func (s *Scheduler) Register(j *Job) error {
 	if s == nil {
 		return fmt.Errorf("scheduler cannot be nil")
 	}
@@ -50,9 +50,7 @@ func (s *Scheduler) Add(j *Job) error {
 //
 // NOTE: Need to specify for how long the scheduler should run after
 // calling this function (e.g. time.Sleep(1 * time.Hour) or forever)
-func (s *Scheduler) Start() {
-	s.cron.Start()
-}
+func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
 type Job struct {

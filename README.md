@@ -56,3 +56,11 @@ chmod +x run.sh
 - [ ] Api endpoint for storing event logs (so that they can be previewed)
 - [ ] write openapi spec for the api
 - [ ] test api endpoints
+
+- [ ] Extending the scheduler
+  - [ ] Add an optional desciption field.
+  - [ ] Add monitoring of the cpu / memory usage of the cron job.
+  - [ ] Add an util function for checking the consumption of global resources?
+  - [ ] Figure out if there's a way to implement a remote execution of the job (with auth)
+- [ ] Frontend
+  - [ ] Figure out how to host the admin view so that by using the syro package there would be an option to expose the admin view.
