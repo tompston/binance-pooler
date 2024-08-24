@@ -152,6 +152,8 @@ func (s *Scheduler) addJob(j *Job) error {
 		return fmt.Errorf("job function cannot be nil")
 	}
 
+	// fmt.Printf("adding job %v with frequency %v\n", j.Name, j.Freq)
+
 	name := j.Name
 	freq := j.Freq
 
@@ -192,6 +194,9 @@ func (s *Scheduler) addJob(j *Job) error {
 	if err != nil {
 		return err
 	}
+
+	// Add the job to the list of registered jobs
+	s.Jobs = append(s.Jobs, j)
 
 	return errors.ToErr()
 }

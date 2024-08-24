@@ -40,8 +40,7 @@ func (s *service) newJobLogger(jobName string) logger.Logger {
 	return s.app.Logger().SetEvent("binance").SetEventID(jobName)
 }
 
-// Run starts the cron jobs for the binance service
-func (s *service) Run(sched *scheduler.Scheduler) {
+func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	if err := s.setupFuturesAssets(); err != nil {
 		s.log().Error(err)
 	}
@@ -59,8 +58,10 @@ func (s *service) Run(sched *scheduler.Scheduler) {
 			},
 		},
 	); err != nil {
-		s.log().Error(err)
+		return err
 	}
+
+	return nil
 }
 
 func (s *service) Tmp() {

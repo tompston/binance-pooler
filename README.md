@@ -73,6 +73,7 @@ chmod +x run.sh
       JobName string
 
       HasExecuted bool
+      IsRunning bool
 
       ExecuteAt time.Time
       OnExecute func()

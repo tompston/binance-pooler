@@ -29,14 +29,16 @@ func main() {
 	cron := cron.New(cron.WithLocation(loc))
 	scheduler := scheduler.NewScheduler(cron, app.CronStorage())
 
-	binance.New(app, 3).Run(scheduler)
+	if err := binance.New(app, 3).AddJobs(scheduler); err != nil {
+		log.Fatalf("failed to add binance jobs: %v", err)
+	}
 
-	fmt.Printf("scheduler.Jobs: %v\n", scheduler.Jobs)
-	fmt.Printf("format string")
-	scheduler.Start()
-	select {} // run forever
+	// fmt.Printf("scheduler.Jobs: %#v\n", scheduler.Jobs)
+	// fmt.Printf("format string")
+	// scheduler.Start()
+	// select {} // run forever
 
 	for _, job := range scheduler.Jobs {
-		fmt.Println(job.Name)
+		fmt.Println(job.Freq, job.Name, job.Func)
 	}
 }
