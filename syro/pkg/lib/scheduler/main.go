@@ -1,7 +1,3 @@
-// Package job holds some util functions for cron jobs, which check if a cron
-// job is already running before starting it again. This is useful for jobs
-// that take a long time to run, and should not be run again if they are
-// already running. This is done to avoid possible concurrency issues.
 package scheduler
 
 import (
@@ -17,32 +13,21 @@ import (
 // registration of jobs and the optional storage of job status and
 // execution logs.
 type Scheduler struct {
-	// Source is used to identify the source of the job
-	Source string
-	// cron is the cron scheduler
-	cron *cron.Cron
-	// Jobs is a list of all registered jobs
-	Jobs []*Job
-	// Storage is an optional storage interface for the scheduler
-	Storage Storage
+	cron    *cron.Cron // cron is the cron scheduler which will run the jobs
+	Source  string     // Source is used to identify the source of the job
+	Jobs    []*Job     // Jobs is a list of all registered jobs
+	Storage Storage    // Storage is an optional storage interface for the scheduler
 }
 
-// TODO: return err if the cron is nil
 // TODO: add an name (string) to the scheduler, for cases where multiple
 // golang apps with different schedulers are running in the same environment.
-func NewScheduler(cron *cron.Cron) *Scheduler {
-	return &Scheduler{cron: cron}
+func NewScheduler(cron *cron.Cron, source string) *Scheduler {
+	return &Scheduler{cron: cron, Source: source}
 }
 
 // WithStorage sets the storage for the scheduler.
 func (s *Scheduler) WithStorage(storage Storage) *Scheduler {
 	s.Storage = storage
-	return s
-}
-
-// WithSource sets the source for the scheduler.
-func (s *Scheduler) WithSource(source string) *Scheduler {
-	s.Source = source
 	return s
 }
 
@@ -73,6 +58,7 @@ func (s *Scheduler) Register(j *Job) error {
 func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
+// TODO: shouldnt Job and JobInfo be the same struct?
 type Job struct {
 	Source      string       // Source of the job (like the name of application which registered the job)
 	Freq        string       // Frequency of the job in cron format

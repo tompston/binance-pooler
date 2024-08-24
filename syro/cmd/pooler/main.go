@@ -28,7 +28,7 @@ func main() {
 
 	cron := cron.New(cron.WithLocation(loc))
 	storage := app.CronStorage()
-	scheduler := scheduler.NewScheduler(cron).WithStorage(storage)
+	scheduler := scheduler.NewScheduler(cron, "go-pooler").WithStorage(storage)
 
 	if err := binance.New(app, 3).AddJobs(scheduler); err != nil {
 		log.Fatalf("failed to add binance jobs: %v", err)
