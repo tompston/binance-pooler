@@ -58,9 +58,9 @@ chmod +x run.sh
 - [ ] test api endpoints
 
 - [ ] Extending the scheduler
-  - [ ] Add an optional desciption field.
+  - [x] Add an optional desciption field.
   - [ ] Add an optional OnError callback function, which executes a specified function if the cron job fails.
-  - [ ] Add monitoring of the cpu / memory usage of the cron job.
+  - [ ] Add monitoring of the cpu / memory usage of the cron job?
   - [ ] Add an util function for checking the consumption of global resources?
   - [ ] Figure out if there's a way to implement remote executions of the jobs
 

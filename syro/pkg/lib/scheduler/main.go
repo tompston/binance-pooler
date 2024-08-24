@@ -56,16 +56,16 @@ func (s *Scheduler) Register(j *Job) error {
 func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
-// TODO: shouldnt Job and JobInfo be the same struct?
 type Job struct {
 	Source      string       // Source of the job (like the name of application which registered the job)
 	Freq        string       // Frequency of the job in cron format
 	Name        string       // Name of the job
 	Func        func() error // Function to be executed by the job
-	Description string       // Optional. Description of the job // TODO: test this
-	// TODO: add these in the logic
-	OnError   func(error) // Optional. Function to be executed if the job returns an error
-	OnSuccess func()      // Optional. Function to be executed after the job executes without errors
+	Description string       // Optional. Description of the job
+	// TODO: add these in the logic and test them
+	PostExecution func(error) // Optional. Combined version of OnError and OnSuccess functions.
+	OnSuccess     func()      // Optional. Function to be executed after the job executes without errors
+	OnError       func(error) // Optional. Function to be executed if the job returns an error
 }
 
 type Storage interface {
@@ -168,6 +168,10 @@ func (s *Scheduler) addJob(j *Job) error {
 	source := s.Source
 	descr := j.Description
 
+	// NOTE: there is a slight inefficiency in the data that is written by
+	// the query because the (source, name, freq, descr) params are
+	// written each time in order to update the status.
+
 	if s.Storage != nil {
 		if err := s.Storage.RegisterJob(source, name, freq, descr, JobStatusInitialized, nil); err != nil {
 			return err
@@ -189,6 +193,18 @@ func (s *Scheduler) addJob(j *Job) error {
 
 		// Passed in job function which should be executed by the cron job
 		err := j.Func()
+
+		if j.PostExecution != nil {
+			j.PostExecution(err)
+		}
+
+		if err != nil && j.OnError != nil {
+			j.OnError(err)
+		}
+
+		if err == nil && j.OnSuccess != nil {
+			j.OnSuccess()
+		}
 
 		if s.Storage != nil {
 			if err := s.Storage.RegisterExecution(newExecutionLog(source, name, now, err)); err != nil {

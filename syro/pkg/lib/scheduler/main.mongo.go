@@ -59,7 +59,6 @@ func (m *MongoStorage) AllJobs() ([]JobInfo, error) {
 // set the created_at field to the current time. If the job already exists,
 // update the updated_at field to the current time.
 func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobStatus, fnErr error) error {
-	opt := mongodb.UpsertOpt
 
 	set := bson.M{
 		"name":        name,
@@ -81,7 +80,7 @@ func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobS
 		"$set":         set,
 		"$setOnInsert": bson.M{"created_at": time.Now().UTC()},
 		"$currentDate": bson.M{"updated_at": true},
-	}, opt)
+	}, mongodb.UpsertOpt)
 
 	return err
 }

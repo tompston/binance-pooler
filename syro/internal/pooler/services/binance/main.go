@@ -52,7 +52,13 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 			// TODO: there is a problem if the custom logger is defined inside the job with
 			// the EventID set to the job name. If the function returns error, it won't
 			// be associated with it.
-			Func: func() error { return s.runFuturesOhlcScraper() },
+			Func: func() error {
+				if err := s.runFuturesOhlcScraper(); err != nil {
+					s.log().Error(err)
+					return err
+				}
+				return nil
+			},
 			OnError: func(err error) {
 				fmt.Printf("error in binance-futures-ohlc job: %v\n", err)
 			},
