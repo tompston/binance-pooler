@@ -57,9 +57,10 @@ func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
 type Job struct {
-	Freq string       // Frequency of the job in cron format
-	Name string       // Name of the job
-	Func func() error // Function to be executed by the job
+	Freq        string       // Frequency of the job in cron format
+	Name        string       // Name of the job
+	Func        func() error // Function to be executed by the job
+	Description string       // Optional. Description of the job // TODO: test this
 	// TODO: add these in the logic
 	OnError   func(error) // Optional. Function to be executed if the job returns an error
 	OnSuccess func()      // Optional. Function to be executed after the job executes without errors
@@ -170,7 +171,7 @@ func (s *Scheduler) addJob(j *Job) error {
 
 		if s.Storage != nil {
 			if err := s.Storage.RegisterJob(name, freq, JobStatusRunning, nil); err != nil {
-				errors.Add(err)
+				errors.Add(fmt.Errorf("failed to set job %v to running: %v", name, err))
 			}
 		}
 
@@ -181,11 +182,11 @@ func (s *Scheduler) addJob(j *Job) error {
 
 		if s.Storage != nil {
 			if err := s.Storage.RegisterExecution(newExecutionLog(name, now, err)); err != nil {
-				errors.Add(err)
+				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
 
 			if err := s.Storage.RegisterJob(name, freq, JobStatusDone, err); err != nil {
-				errors.Add(err)
+				errors.Add(fmt.Errorf("failed to set job %v to done: %v", name, err))
 			}
 		}
 
