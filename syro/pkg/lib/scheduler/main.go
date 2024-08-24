@@ -17,8 +17,13 @@ import (
 // registration of jobs and the optional storage of job status and
 // execution logs.
 type Scheduler struct {
-	cron    *cron.Cron
-	Jobs    []*Job
+	// Source is used to identify the source of the job
+	Source string
+	// cron is the cron scheduler
+	cron *cron.Cron
+	// Jobs is a list of all registered jobs
+	Jobs []*Job
+	// Storage is an optional storage interface for the scheduler
 	Storage Storage
 }
 
@@ -32,6 +37,12 @@ func NewScheduler(cron *cron.Cron) *Scheduler {
 // WithStorage sets the storage for the scheduler.
 func (s *Scheduler) WithStorage(storage Storage) *Scheduler {
 	s.Storage = storage
+	return s
+}
+
+// WithSource sets the source for the scheduler.
+func (s *Scheduler) WithSource(source string) *Scheduler {
+	s.Source = source
 	return s
 }
 
@@ -63,6 +74,7 @@ func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
 type Job struct {
+	Source      string       // Source of the job
 	Freq        string       // Frequency of the job in cron format
 	Name        string       // Name of the job
 	Func        func() error // Function to be executed by the job
@@ -76,7 +88,7 @@ type Storage interface {
 	// AllJobs returns a list of all registered jobs
 	AllJobs() ([]JobInfo, error)
 	// RegisterJob registers the details of the selected job
-	RegisterJob(name, frequency string, status JobStatus, err error) error
+	RegisterJob(source, name, frequency string, status JobStatus, err error) error
 	// RegisterExecution registers the execution of a job if the storage is specified
 	RegisterExecution(*ExecutionLog) error
 	// FindExecutions returns a list of job executions that match the filter
@@ -166,7 +178,7 @@ func (s *Scheduler) addJob(j *Job) error {
 	freq := j.Freq
 
 	if s.Storage != nil {
-		if err := s.Storage.RegisterJob(name, freq, JobStatusInitialized, nil); err != nil {
+		if err := s.Storage.RegisterJob(s.Source, name, freq, JobStatusInitialized, nil); err != nil {
 			return err
 		}
 	}
@@ -177,7 +189,7 @@ func (s *Scheduler) addJob(j *Job) error {
 	_, err := s.cron.AddJob(freq, newJobLock(func() {
 
 		if s.Storage != nil {
-			if err := s.Storage.RegisterJob(name, freq, JobStatusRunning, nil); err != nil {
+			if err := s.Storage.RegisterJob(s.Source, name, freq, JobStatusRunning, nil); err != nil {
 				errors.Add(fmt.Errorf("failed to set job %v to running: %v", name, err))
 			}
 		}
@@ -192,7 +204,7 @@ func (s *Scheduler) addJob(j *Job) error {
 				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
 
-			if err := s.Storage.RegisterJob(name, freq, JobStatusDone, err); err != nil {
+			if err := s.Storage.RegisterJob(s.Source, name, freq, JobStatusDone, err); err != nil {
 				errors.Add(fmt.Errorf("failed to set job %v to done: %v", name, err))
 			}
 		}

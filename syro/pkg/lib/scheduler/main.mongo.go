@@ -55,16 +55,17 @@ func (m *MongoStorage) AllJobs() ([]JobInfo, error) {
 	return docs, err
 }
 
-// Upsert the job name in the database. If the job does not exist, set the
-// created_at field to the current time. If the job already exists, update
-// the updated_at field to the current time.
-func (m *MongoStorage) RegisterJob(name, freq string, status JobStatus, fnErr error) error {
+// RegisterJob upsert the job name in the database. If the job does not exist,
+// set the created_at field to the current time. If the job already exists,
+// update the updated_at field to the current time.
+func (m *MongoStorage) RegisterJob(source, name, freq string, status JobStatus, fnErr error) error {
 	opt := mongodb.UpsertOpt
 
 	set := bson.M{
 		"name":      name,
 		"frequency": freq,
 		"status":    status,
+		"source":    source,
 	}
 
 	if fnErr != nil {
