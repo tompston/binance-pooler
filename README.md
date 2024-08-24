@@ -62,7 +62,26 @@ chmod +x run.sh
   - [ ] Add an optional OnError callback function, which executes a specified function if the cron job fails.
   - [ ] Add monitoring of the cpu / memory usage of the cron job.
   - [ ] Add an util function for checking the consumption of global resources?
-  - [ ] Figure out if there's a way to implement a remote execution of the job (with auth)
+  - [ ] Figure out if there's a way to implement a remote execution of the job
+
+    ```
+    QueueJob(jobName, executeAt, onExecute)
+
+    type QueuedJob struct {
+      CreatedAt time.Time
+      QueuedBy string
+      JobName string
+
+      HasExecuted bool
+
+      ExecuteAt time.Time
+      OnExecute func()
+      OnError func()
+      OnComplete func()
+    }
+
+    ```
+
   - [ ] How to map the logs of a cron job to the cron job itself? Meaning, clicking on the cron job in the frontend will show all of the logs from it.
 - [ ] Frontend
   - [ ] Figure out how to host the admin view so that by using the syro package there would be an option to expose the admin view.

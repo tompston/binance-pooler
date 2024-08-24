@@ -31,6 +31,12 @@ func main() {
 
 	binance.New(app, 3).Run(scheduler)
 
+	fmt.Printf("scheduler.Jobs: %v\n", scheduler.Jobs)
+	fmt.Printf("format string")
 	scheduler.Start()
 	select {} // run forever
+
+	for _, job := range scheduler.Jobs {
+		fmt.Println(job.Name)
+	}
 }
