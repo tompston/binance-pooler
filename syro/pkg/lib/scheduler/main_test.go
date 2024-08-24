@@ -78,7 +78,7 @@ func TestJobRunLocking(t *testing.T) {
 func TestCronRegistration(t *testing.T) {
 
 	t.Run("return err if job is nil", func(t *testing.T) {
-		sched := NewScheduler(cron.New(), nil)
+		sched := NewScheduler(cron.New())
 		err := sched.addJob(nil)
 
 		if err == nil {
@@ -91,7 +91,7 @@ func TestCronRegistration(t *testing.T) {
 	})
 
 	t.Run("return err if cron is nil", func(t *testing.T) {
-		sched := NewScheduler(nil, nil)
+		sched := NewScheduler(nil)
 
 		err := sched.addJob(&Job{
 			Freq: "@every 1m",
@@ -108,7 +108,7 @@ func TestCronRegistration(t *testing.T) {
 	})
 
 	t.Run("return err if freq is nil", func(t *testing.T) {
-		sched := NewScheduler(cron.New(), nil)
+		sched := NewScheduler(cron.New())
 
 		err := sched.addJob(&Job{
 			Freq: "",
@@ -192,7 +192,7 @@ func TestMongoStorage(t *testing.T) {
 
 		// c := cron.New()
 
-		sched := NewScheduler(cron.New(), storage)
+		sched := NewScheduler(cron.New()).WithStorage(storage)
 
 		const CRON_NAME = "cron-job-1"
 

@@ -19,14 +19,20 @@ import (
 type Scheduler struct {
 	cron    *cron.Cron
 	Jobs    []*Job
-	Storage Storage // Storage interface for monitoring the job execution (optional)
+	Storage Storage
 }
 
 // TODO: return err if the cron is nil
 // TODO: add an name (string) to the scheduler, for cases where multiple
 // golang apps with different schedulers are running in the same environment.
-func NewScheduler(cron *cron.Cron, storage Storage) *Scheduler {
-	return &Scheduler{cron: cron, Storage: storage}
+func NewScheduler(cron *cron.Cron) *Scheduler {
+	return &Scheduler{cron: cron}
+}
+
+// WithStorage sets the storage for the scheduler.
+func (s *Scheduler) WithStorage(storage Storage) *Scheduler {
+	s.Storage = storage
+	return s
 }
 
 // Register the cron job to the scheduler.
