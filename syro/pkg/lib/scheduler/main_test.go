@@ -1,5 +1,9 @@
 package scheduler
 
+// go test -timeout 30s syro/pkg/lib/scheduler -v -count=1
+
+// go test -timeout 30s syro/pkg/lib/scheduler -count=1
+
 import (
 	"context"
 	"fmt"
@@ -18,7 +22,7 @@ import (
 func TestJobRun(t *testing.T) {
 	counter := int32(0)
 	j := newJobLock(func() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		atomic.AddInt32(&counter, 1)
 	}, "testJob")
 
@@ -40,7 +44,7 @@ func TestJobRun(t *testing.T) {
 func TestJobRunLocking(t *testing.T) {
 	counter := int32(0)
 	j := newJobLock(func() {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		atomic.AddInt32(&counter, 1)
 	}, "testJob")
 
@@ -48,13 +52,13 @@ func TestJobRunLocking(t *testing.T) {
 	go j.Run()
 
 	// sleep for a moment to allow the first job to start running
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// second run
 	go j.Run()
 
 	// sleep for a moment to allow the second job to attempt to start
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	// At this point, the second job should have attempted to start and failed,
 	// so the counter should still be 0
@@ -63,7 +67,7 @@ func TestJobRunLocking(t *testing.T) {
 	}
 
 	// Wait for the first job to complete
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
 	// Now the counter should be 1
 	if atomic.LoadInt32(&counter) != 1 {
@@ -210,7 +214,7 @@ func TestMongoStorage(t *testing.T) {
 		sched.Start()
 
 		// sleep for a moment to allow the cron to run and register executions
-		time.Sleep(3 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		t.Run("test execution finder - find expected documents with correct field names", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(ExecutionFilter{}, 10, 0)
