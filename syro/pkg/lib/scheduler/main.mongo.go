@@ -96,7 +96,7 @@ func (m *MongoStorage) RegisterExecution(ex *ExecutionLog) error {
 }
 
 // FindExecutions returns a list of executions based on the filter
-func (m *MongoStorage) FindExecutions(filter ExecutionFilter, limit int64, skip int64) ([]ExecutionLog, error) {
+func (m *MongoStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error) {
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
@@ -132,8 +132,8 @@ func (m *MongoStorage) FindExecutions(filter ExecutionFilter, limit int64, skip 
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "initialized_at", Value: -1}}).
-		SetLimit(limit).
-		SetSkip(skip)
+		SetLimit(filter.Limit).
+		SetSkip(filter.Skip)
 
 	var docs []ExecutionLog
 	err := mongodb.GetAllDocumentsWithTypes(m.cronHistoryColl, queryFilter, opts, &docs)

@@ -92,8 +92,7 @@ type Storage interface {
 	// RegisterExecution registers the execution of a job if the storage is specified
 	RegisterExecution(*ExecutionLog) error
 	// FindExecutions returns a list of job executions that match the filter
-	// TODO: embed the limit and skip in the filter
-	FindExecutions(filter ExecutionFilter, limit int64, skip int64) ([]ExecutionLog, error)
+	FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error)
 }
 
 // JobInfo stores information about the registered job
@@ -121,6 +120,8 @@ type ExecutionLog struct {
 type ExecutionFilter struct {
 	From         time.Time    `json:"from" bson:"from"`
 	To           time.Time    `json:"to" bson:"to"`
+	Limit        int64        `json:"limit" bson:"limit"`
+	Skip         int64        `json:"skip" bson:"skip"`
 	ExecutionLog ExecutionLog `json:"execution_log" bson:"execution_log"`
 }
 

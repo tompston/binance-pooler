@@ -220,7 +220,9 @@ func TestMongoStorage(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		t.Run("test execution finder - find expected documents with correct field names", func(t *testing.T) {
-			execHistory, err := storage.FindExecutions(ExecutionFilter{}, 10, 0)
+			execHistory, err := storage.FindExecutions(ExecutionFilter{
+				Limit: 10,
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -257,7 +259,9 @@ func TestMongoStorage(t *testing.T) {
 		})
 
 		t.Run("test execution finder - limit works", func(t *testing.T) {
-			execHistory, err := storage.FindExecutions(ExecutionFilter{}, 1, 0)
+			execHistory, err := storage.FindExecutions(ExecutionFilter{
+				Limit: 1,
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -269,10 +273,11 @@ func TestMongoStorage(t *testing.T) {
 
 		t.Run("test execution finder - name filter works for non existing crons", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(ExecutionFilter{
+				Limit: 1,
 				ExecutionLog: ExecutionLog{
 					Name: "does-not-exist-qweqwe",
 				},
-			}, 1, 0)
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -284,10 +289,11 @@ func TestMongoStorage(t *testing.T) {
 
 		t.Run("test execution finder - name filter works existing crons", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(ExecutionFilter{
+				Limit: 1,
 				ExecutionLog: ExecutionLog{
 					Name: "does-not-exist-qweqwe",
 				},
-			}, 1, 0)
+			})
 			if err != nil {
 				t.Fatal(err)
 			}

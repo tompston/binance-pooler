@@ -115,12 +115,13 @@ func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := parseUrlParams(r)
+	_ = params
 
-	data, err := api.app.CronStorage().FindExecutions(*params, 100, 0)
-	if err != nil {
-		Response(w, 500, nil, err.Error())
-		return
-	}
+	// data, err := api.app.CronStorage().FindExecutions(*params, 100, 0)
+	// if err != nil {
+	// 	Response(w, 500, nil, err.Error())
+	// 	return
+	// }
 
-	Response(w, 200, data, "")
+	Response(w, 200, nil, "")
 }
