@@ -48,6 +48,7 @@ func NewMongoStorage(cronListColl, cronHistoryColl *mongo.Collection) (*MongoSto
 	}, nil
 }
 
+// TODO: refactor so that filter is a variadic parameter
 func (m *MongoStorage) AllJobs() ([]JobInfo, error) {
 	var docs []JobInfo
 	err := mongodb.GetAllDocumentsWithTypes(m.cronListColl, bson.M{}, nil, &docs)

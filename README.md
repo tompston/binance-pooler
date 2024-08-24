@@ -62,7 +62,7 @@ chmod +x run.sh
   - [ ] Add an optional OnError callback function, which executes a specified function if the cron job fails.
   - [ ] Add monitoring of the cpu / memory usage of the cron job.
   - [ ] Add an util function for checking the consumption of global resources?
-  - [ ] Figure out if there's a way to implement a remote execution of the job
+  - [ ] Figure out if there's a way to implement remote executions of the jobs
 
     ```
     QueueJob(jobName, executeAt, onExecute)

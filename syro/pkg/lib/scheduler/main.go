@@ -87,6 +87,7 @@ type Storage interface {
 type JobInfo struct {
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
+	Source          string    `json:"source" bson:"source"`
 	Name            string    `json:"name" bson:"name"`
 	Status          string    `json:"status" bson:"status"`
 	Frequency       string    `json:"frequency" bson:"frequency"`
