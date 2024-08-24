@@ -108,6 +108,10 @@ func (m *MongoStorage) FindExecutions(filter ExecutionFilter, limit int64, skip 
 		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
+	if filter.ExecutionLog.Source != "" {
+		queryFilter["source"] = filter.ExecutionLog.Source
+	}
+
 	if filter.ExecutionLog.Name != "" {
 		queryFilter["name"] = filter.ExecutionLog.Name
 	}

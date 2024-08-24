@@ -74,7 +74,7 @@ func (s *Scheduler) Start() { s.cron.Start() }
 
 // Job represents a cron job that can be registered with the cron scheduler.
 type Job struct {
-	Source      string       // Source of the job
+	Source      string       // Source of the job (like the name of application which registered the job)
 	Freq        string       // Frequency of the job in cron format
 	Name        string       // Name of the job
 	Func        func() error // Function to be executed by the job
@@ -92,6 +92,7 @@ type Storage interface {
 	// RegisterExecution registers the execution of a job if the storage is specified
 	RegisterExecution(*ExecutionLog) error
 	// FindExecutions returns a list of job executions that match the filter
+	// TODO: embed the limit and skip in the filter
 	FindExecutions(filter ExecutionFilter, limit int64, skip int64) ([]ExecutionLog, error)
 }
 
@@ -109,6 +110,7 @@ type JobInfo struct {
 
 // ExecutionLog stores information about the job execution
 type ExecutionLog struct {
+	Source        string        `json:"source" bson:"source"`
 	Name          string        `json:"name" bson:"name"`
 	InitializedAt time.Time     `json:"initialized_at" bson:"initialized_at"`
 	FinishedAt    time.Time     `json:"finished_at" bson:"finished_at"`
@@ -123,8 +125,9 @@ type ExecutionFilter struct {
 }
 
 // newExecutionLog creates a new ExecutionLog instance.
-func newExecutionLog(name string, initializedAt time.Time, err error) *ExecutionLog {
+func newExecutionLog(source, name string, initializedAt time.Time, err error) *ExecutionLog {
 	log := &ExecutionLog{
+		Source:        source,
 		Name:          name,
 		InitializedAt: initializedAt,
 		FinishedAt:    time.Now().UTC(),
@@ -176,9 +179,10 @@ func (s *Scheduler) addJob(j *Job) error {
 
 	name := j.Name
 	freq := j.Freq
+	source := s.Source
 
 	if s.Storage != nil {
-		if err := s.Storage.RegisterJob(s.Source, name, freq, JobStatusInitialized, nil); err != nil {
+		if err := s.Storage.RegisterJob(source, name, freq, JobStatusInitialized, nil); err != nil {
 			return err
 		}
 	}
@@ -200,7 +204,7 @@ func (s *Scheduler) addJob(j *Job) error {
 		err := j.Func()
 
 		if s.Storage != nil {
-			if err := s.Storage.RegisterExecution(newExecutionLog(name, now, err)); err != nil {
+			if err := s.Storage.RegisterExecution(newExecutionLog(source, name, now, err)); err != nil {
 				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
 
