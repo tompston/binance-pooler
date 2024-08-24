@@ -146,7 +146,7 @@ func TestMongoStorage(t *testing.T) {
 	const SOURCE = "test-source"
 
 	t.Run("test job registration", func(t *testing.T) {
-		if err := storage.RegisterJob(SOURCE, "cron-job-1", "@every 1m", JobStatusInitialized, nil); err != nil {
+		if err := storage.RegisterJob(SOURCE, "cron-job-1", "@every 1m", "my-description", JobStatusInitialized, nil); err != nil {
 			t.Fatal(err)
 		}
 
@@ -179,6 +179,7 @@ func TestMongoStorage(t *testing.T) {
 			`"error":""`,
 			`"exited_with_error":false`,
 			`"source":"test-source"`,
+			`"description":"my-description"`,
 		}
 
 		if err := validate.StringIncludes(decoded.BSON, expectedSubstrings); err != nil {
