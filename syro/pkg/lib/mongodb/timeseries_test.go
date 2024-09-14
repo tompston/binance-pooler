@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// go test -run ^TestTimeseries$ syro/pkg/models/shared/timeseries -v -count=1
 func TestTimeseries(t *testing.T) {
 	startTime := time.Date(2023, 9, 20, 10, 0, 0, 0, time.UTC)
 	endTime := startTime.Add(1 * time.Hour)
@@ -67,9 +66,7 @@ func TestTimeseries(t *testing.T) {
 	})
 }
 
-//	go test -run ^TestGapFinder$ syro/pkg/models/shared/timeseries -v -count=1
-//
-// GO_CONF_PATH="$(pwd)/conf/config.dev.toml" go test -run ^TestGapFinder$ syro/pkg/settings/db/mongodb/timeseries -v -count=1
+//	TODO: fix these tests
 // func TestGapFinder(t *testing.T) {
 // 	db, err := SetupMongdbTest()
 // 	if err != nil {
@@ -108,10 +105,14 @@ func TestTimeseries(t *testing.T) {
 // 			newRow(12, 2),
 // 		}
 // 		_, err := coll.InsertMany(context.Background(), records)
-// 		assert.Nil(t, err)
+// 		if err != nil {
+// 			t.Fatalf("failed to insert records: %v", err)
+// 		}
 
 // 		gaps, err := FindGaps(coll)
-// 		assert.Nil(t, err)
+// 		if err != nil {
+// 			t.Fatalf("failed to find gaps: %v", err)
+// 		}
 
 // 		// Validate the gaps
 // 		expectedGaps := map[int64][]GapInfo{
@@ -123,6 +124,10 @@ func TestTimeseries(t *testing.T) {
 // 			},
 // 		}
 
-// 		assert.Equal(t, expectedGaps, gaps)
+// 		// assert.Equal(t, expectedGaps, gaps)
+
+// 		if len(expectedGaps) != len(gaps) {
+// 			t.Fatalf("expected %d gaps but got %d", len(expectedGaps), len(gaps))
+// 		}
 // 	})
 // }

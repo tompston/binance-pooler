@@ -54,7 +54,7 @@ func TimeseriesIndexes() *IndexBuilder {
 
 // CreateTimeseriesIndexes creates indexes for interval and time fields
 func CreateTimeseriesIndexes(coll *mongo.Collection) error {
-	return NewIndexes().Add(START_TIME).Add("interval").Create(coll)
+	return TimeseriesIndexes().Create(coll)
 }
 
 type GapInfo struct {
@@ -81,6 +81,7 @@ func findGapsInIntervalGroup(records []TimeseriesFields) []GapInfo {
 			})
 		}
 	}
+
 	return gaps
 }
 

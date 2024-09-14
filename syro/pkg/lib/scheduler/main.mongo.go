@@ -66,6 +66,7 @@ func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobS
 		"status":      status,
 		"source":      source,
 		"description": descr,
+		"updated_at":  time.Now().UTC(),
 	}
 
 	if fnErr != nil {
@@ -79,7 +80,6 @@ func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobS
 	_, err := m.cronListColl.UpdateOne(context.Background(), bson.M{"name": name}, bson.M{
 		"$set":         set,
 		"$setOnInsert": bson.M{"created_at": time.Now().UTC()},
-		"$currentDate": bson.M{"updated_at": true},
 	}, mongodb.UpsertOpt)
 
 	return err
