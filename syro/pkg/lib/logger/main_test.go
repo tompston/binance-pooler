@@ -156,17 +156,17 @@ func TestLog(t *testing.T) {
 
 func TestConsoleLogger(t *testing.T) {
 	t.Run("test console logger", func(t *testing.T) {
-		if NewConsoleLogger(nil).GetSettings() != nil {
+		if NewConsoleLogger(nil).GetProps().Settings != nil {
 			t.Error("Settings should be nil")
 		}
 
-		if NewConsoleLogger(nil).SetEvent("my-event").GetEvent() != "my-event" {
+		if NewConsoleLogger(nil).SetEvent("my-event").GetProps().Event != "my-event" {
 			t.Error("SetEvent failed")
 		}
 
 		if logger := NewConsoleLogger(nil).
 			SetSource("my-source").
-			SetEventID("my-event-id"); logger.GetSource() != "my-source" && logger.GetEventID() != "my-event-id" {
+			SetEventID("my-event-id"); logger.GetProps().Source != "my-source" && logger.GetProps().EventID != "my-event-id" {
 			t.Error("SetEventID failed")
 		}
 

@@ -41,8 +41,10 @@ func (log Log) String(logger Logger) string {
 
 	// if the logger is not nil and has it has settings with a defined location, use them
 	if logger != nil {
-		if logger.GetSettings() != nil && logger.GetSettings().Location != nil {
-			settings = logger.GetSettings()
+		props := logger.GetProps()
+
+		if props.Settings != nil && props.Settings.Location != nil {
+			settings = props.Settings
 		}
 	}
 
@@ -58,8 +60,8 @@ type Logger interface {
 	Warn(msg any) error
 	Trace(msg any) error
 
-	// GetSettings returns the settings for the logger, which are used when printing the log to the console.
-	GetSettings() *LoggerSettings
+	// GetProps returns the properties of the logger
+	GetProps() LoggerProps
 	// LogExists method checks if the log with the provided filter exists.
 	LogExists(filter any) (bool, error)
 	// FindLogs method returns the logs that match the provided filter
@@ -70,12 +72,6 @@ type Logger interface {
 	SetEvent(v string) Logger
 	// SetEventID sets the event id of the log
 	SetEventID(v string) Logger
-	// GetSource returns the source of the log
-	GetSource() string
-	// GetEvent returns the event of the log
-	GetEvent() string
-	// GetEventID returns the event id of the log
-	GetEventID() string
 }
 
 // LoggerSettings struct for storing the settings for the logger which are
@@ -108,11 +104,22 @@ type ConsoleLogger struct {
 	EventID  string
 }
 
-func NewConsoleLogger(s *LoggerSettings) *ConsoleLogger    { return &ConsoleLogger{Settings: s} }
-func (logger *ConsoleLogger) GetSettings() *LoggerSettings { return logger.Settings }
-func (logger *ConsoleLogger) GetSource() string            { return logger.Source }
-func (logger *ConsoleLogger) GetEvent() string             { return logger.Event }
-func (logger *ConsoleLogger) GetEventID() string           { return logger.EventID }
+type LoggerProps struct {
+	Settings *LoggerSettings
+	Source   string
+	Event    string
+	EventID  string
+}
+
+func NewConsoleLogger(s *LoggerSettings) *ConsoleLogger { return &ConsoleLogger{Settings: s} }
+func (logger *ConsoleLogger) GetProps() LoggerProps {
+	return LoggerProps{
+		Settings: logger.Settings,
+		Source:   logger.Source,
+		Event:    logger.Event,
+		EventID:  logger.EventID,
+	}
+}
 
 func (logger *ConsoleLogger) log(level string, data any) error {
 	fmt.Print(newLog(level, data, logger.Source, logger.Event, logger.EventID).String(logger))
@@ -167,10 +174,14 @@ func NewMongoLogger(coll *mongo.Collection, settings *LoggerSettings) *MongoLogg
 	return &MongoLogger{Coll: coll, Settings: settings}
 }
 
-func (logger *MongoLogger) GetSettings() *LoggerSettings { return logger.Settings }
-func (logger *MongoLogger) GetSource() string            { return logger.Source }
-func (logger *MongoLogger) GetEvent() string             { return logger.Event }
-func (logger *MongoLogger) GetEventID() string           { return logger.EventID }
+func (logger *MongoLogger) GetProps() LoggerProps {
+	return LoggerProps{
+		Settings: logger.Settings,
+		Source:   logger.Source,
+		Event:    logger.Event,
+		EventID:  logger.EventID,
+	}
+}
 
 func (logger *MongoLogger) SetSource(v string) Logger {
 	logger.Source = v
