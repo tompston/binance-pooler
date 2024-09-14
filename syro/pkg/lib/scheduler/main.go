@@ -77,6 +77,9 @@ type Storage interface {
 	RegisterExecution(*ExecutionLog) error
 	// FindExecutions returns a list of job executions that match the filter
 	FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error)
+	// SetJobsToInactive updates the status of the jobs for the given source. This is
+	// useful when the app exits.
+	SetJobsToInactive(source string) error
 }
 
 // JobInfo stores information about the registered job
@@ -134,6 +137,7 @@ const (
 	JobStatusInitialized JobStatus = "initialized"
 	JobStatusRunning     JobStatus = "running"
 	JobStatusDone        JobStatus = "done"
+	JobStatusInactive    JobStatus = "inactive"
 )
 
 // addJob adds a new job to the cron scheduler and wraps the job function with a

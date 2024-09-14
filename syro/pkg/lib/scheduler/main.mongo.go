@@ -55,10 +55,23 @@ func (m *MongoStorage) AllJobs() ([]JobInfo, error) {
 	return docs, err
 }
 
-// RegisterJob upsert the job name in the database. If the job does not exist,
-// set the created_at field to the current time. If the job already exists,
+// TODO: test this function
+func (m *MongoStorage) SetJobsToInactive(source string) error {
+	filter := bson.M{"source": source}
+	update := bson.M{"$set": bson.M{"status": JobStatusInactive}}
+	_, err := m.cronListColl.UpdateMany(context.Background(), filter, update)
+	return err
+}
+
+// RegisterJob upsert the job name in the database based on the source
+// and the job name. If the job does not exist, set the created_at
+// field to the current time. If the job already exists,
 // update the updated_at field to the current time.
 func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobStatus, fnErr error) error {
+	filter := bson.M{
+		"source": source,
+		"name":   name,
+	}
 
 	set := bson.M{
 		"name":        name,
@@ -77,7 +90,7 @@ func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobS
 		set["error"] = ""
 	}
 
-	_, err := m.cronListColl.UpdateOne(context.Background(), bson.M{"name": name}, bson.M{
+	_, err := m.cronListColl.UpdateOne(context.Background(), filter, bson.M{
 		"$set":         set,
 		"$setOnInsert": bson.M{"created_at": time.Now().UTC()},
 	}, mongodb.UpsertOpt)
