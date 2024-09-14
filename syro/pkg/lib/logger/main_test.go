@@ -35,7 +35,7 @@ func TestLog(t *testing.T) {
 		t.Run("test json unmarshalling", func(t *testing.T) {
 			if err := validate.StringIncludes(decoded.JSON, []string{
 				`"level":"ERROR"`,
-				`data":"qweqwe"`,
+				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
 				`"event_id":""`,
@@ -62,7 +62,7 @@ func TestLog(t *testing.T) {
 		t.Run("test bson unmarshalling", func(t *testing.T) {
 			if err := validate.StringIncludes(decoded.BSON, []string{
 				`"time":{"$date":`,
-				`data":"qweqwe"`,
+				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
 				`"event_id":""`,
@@ -215,8 +215,8 @@ func TestMongoLogger(t *testing.T) {
 			t.Error(err)
 		}
 
-		if log.Data != "qwe" {
-			t.Error("The log data should be 'qwe'")
+		if log.Message != "qwe" {
+			t.Error("The log message should be 'qwe'")
 		}
 
 		if log.Level != DEBUG {
@@ -319,7 +319,7 @@ func TestMongoLogger(t *testing.T) {
 		// if all of the logs are not debug level and the data is not "this is a test"
 		// then the test failed
 		for _, log := range test1 {
-			if log.Level != DEBUG || log.Data != "this is a test" {
+			if log.Level != DEBUG || log.Message != "this is a test" {
 				t.Error("The logs are not correct")
 			}
 		}

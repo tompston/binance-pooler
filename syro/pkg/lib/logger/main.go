@@ -20,8 +20,8 @@ type Log struct {
 	Time time.Time `json:"time" bson:"time"`
 	// Log level
 	Level string `json:"level" bson:"level"`
-	// Logged value
-	Data any `json:"data" bson:"data"`
+	// Logged message
+	Message any `json:"message" bson:"message"`
 	// Source of the log (api, pooler, etc.)
 	Source string `json:"source" bson:"source"`
 	// Event of the log (request, response, etc.)
@@ -30,8 +30,8 @@ type Log struct {
 	EventID string `json:"event_id" bson:"event_id"`
 }
 
-func newLog(level string, data any, source, event, eventID string) Log {
-	return Log{Time: time.Now().UTC(), Level: level, Data: data, Source: source, Event: event, EventID: eventID}
+func newLog(level string, message any, source, event, eventID string) Log {
+	return Log{Time: time.Now().UTC(), Level: level, Message: message, Source: source, Event: event, EventID: eventID}
 }
 
 // String method converts the log to a string, using the provided logger settings.
@@ -47,7 +47,7 @@ func (log Log) String(logger Logger) string {
 	}
 
 	time := log.Time.In(settings.Location).Format(settings.TimeFormat)
-	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v\n", time, log.Level, log.Source, log.Event, log.Data)
+	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v\n", time, log.Level, log.Source, log.Event, log.Message)
 }
 
 // Logger interface implements the methods for logging
@@ -181,8 +181,8 @@ func (logger *MongoLogger) SetEventID(v string) Logger {
 	return logger
 }
 
-func (logger *MongoLogger) log(level string, data any) error {
-	log := newLog(level, data, logger.Source, logger.Event, logger.EventID)
+func (logger *MongoLogger) log(level string, msg any) error {
+	log := newLog(level, msg, logger.Source, logger.Event, logger.EventID)
 	_, err := logger.Coll.InsertOne(context.Background(), log)
 	fmt.Print(log.String(logger))
 	return err
