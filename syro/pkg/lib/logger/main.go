@@ -134,11 +134,17 @@ func (logger *ConsoleLogger) SetEventID(v string) Logger {
 	return logger
 }
 
-func (logger *ConsoleLogger) Error(v error) error { return logger.log(ERROR, v.Error()) }
-func (logger *ConsoleLogger) Info(v any) error    { return logger.log(INFO, v) }
-func (logger *ConsoleLogger) Debug(v any) error   { return logger.log(DEBUG, v) }
-func (logger *ConsoleLogger) Warn(v any) error    { return logger.log(WARN, v) }
-func (logger *ConsoleLogger) Trace(v any) error   { return logger.log(TRACE, v) }
+func (logger *ConsoleLogger) Info(msg any) error  { return logger.log(INFO, msg) }
+func (logger *ConsoleLogger) Debug(msg any) error { return logger.log(DEBUG, msg) }
+func (logger *ConsoleLogger) Warn(msg any) error  { return logger.log(WARN, msg) }
+func (logger *ConsoleLogger) Trace(msg any) error { return logger.log(TRACE, msg) }
+func (logger *ConsoleLogger) Error(err error) error {
+	if err == nil {
+		return logger.log(ERROR, "nil")
+	}
+
+	return logger.log(ERROR, err.Error())
+}
 
 func (logger *ConsoleLogger) LogExists(filter any) (bool, error) {
 	return false, fmt.Errorf("method cannot be used with ConsoleLogger")
@@ -204,11 +210,17 @@ func (logger *MongoLogger) LogExists(filter any) (bool, error) {
 	return log != (Log{}), nil
 }
 
-func (logger *MongoLogger) Error(v error) error { return logger.log(ERROR, v.Error()) }
-func (logger *MongoLogger) Info(v any) error    { return logger.log(INFO, v) }
-func (logger *MongoLogger) Debug(v any) error   { return logger.log(DEBUG, v) }
-func (logger *MongoLogger) Warn(v any) error    { return logger.log(WARN, v) }
-func (logger *MongoLogger) Trace(v any) error   { return logger.log(TRACE, v) }
+func (logger *MongoLogger) Info(msg any) error  { return logger.log(INFO, msg) }
+func (logger *MongoLogger) Debug(msg any) error { return logger.log(DEBUG, msg) }
+func (logger *MongoLogger) Warn(msg any) error  { return logger.log(WARN, msg) }
+func (logger *MongoLogger) Trace(msg any) error { return logger.log(TRACE, msg) }
+func (logger *MongoLogger) Error(err error) error {
+	if err == nil {
+		return logger.log(ERROR, "nil")
+	}
+
+	return logger.log(ERROR, err.Error())
+}
 
 func CreateMongoIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().
