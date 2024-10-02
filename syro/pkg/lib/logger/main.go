@@ -30,8 +30,8 @@ type Log struct {
 	EventID string `json:"event_id" bson:"event_id"`
 }
 
-func newLog(level string, message any, source, event, eventID string) Log {
-	return Log{Time: time.Now().UTC(), Level: level, Message: message, Source: source, Event: event, EventID: eventID}
+func newLog(level string, msg any, source, event, eventID string) Log {
+	return Log{Time: time.Now().UTC(), Level: level, Message: msg, Source: source, Event: event, EventID: eventID}
 }
 
 // String method converts the log to a string, using the provided logger settings.
@@ -122,8 +122,8 @@ func (logger *ConsoleLogger) GetProps() LoggerProps {
 }
 
 func (logger *ConsoleLogger) log(level string, data any) error {
-	fmt.Print(newLog(level, data, logger.Source, logger.Event, logger.EventID).String(logger))
-	return nil
+	_, err := fmt.Print(newLog(level, data, logger.Source, logger.Event, logger.EventID).String(logger))
+	return err
 }
 
 func (logger *ConsoleLogger) SetSource(v string) Logger {

@@ -5,32 +5,18 @@ import (
 	"time"
 )
 
+func StartOfNextDay(t time.Time) time.Time                { return StartOfDay(t).AddDate(0, 0, 1) }
+func IsTodayOrInFuture(t time.Time) bool                  { return t.UTC().After(StartOfDay(time.Now().UTC())) }
+func DiffInMilliseconds(t1, t2 time.Time) int64           { return t2.Sub(t1).Milliseconds() }
+func ExceedsDiffInHours(t1, t2 time.Time, hours int) bool { return t2.Sub(t1).Hours() > float64(hours) }
+func MinSince(t time.Time) string                         { return fmt.Sprintf("%.2f min", time.Since(t).Seconds()/60) }
+func SecSince(t time.Time) string                         { return fmt.Sprintf("%.2f sec", time.Since(t).Seconds()) }
+
 // StartOfDay converts the input time to the start of the day.
 func StartOfDay(t time.Time) time.Time {
 	t = t.UTC()
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 }
-
-func StartOfNextDay(t time.Time) time.Time {
-	return StartOfDay(t).AddDate(0, 0, 1)
-}
-
-func IsTodayOrInFuture(t time.Time) bool {
-	return t.UTC().After(StartOfDay(time.Now().UTC()))
-}
-
-// DiffInMilliseconds calculates the time difference between the start and end time in milliseconds
-func DiffInMilliseconds(t1, t2 time.Time) int64 { return t2.Sub(t1).Milliseconds() }
-
-// ExceedsDiffInHours checks if the time difference between the start
-// and end time exceeds the allowed difference in hours.
-func ExceedsDiffInHours(t1, t2 time.Time, hours int) bool { return t2.Sub(t1).Hours() > float64(hours) }
-
-// MinSince returns a string that represents the time passed since the input time
-func MinSince(t time.Time) string { return fmt.Sprintf("%.2f min", time.Since(t).Seconds()/60) }
-
-// SecSince returns a string that represents the time passed since the input time
-func SecSince(t time.Time) string { return fmt.Sprintf("%.2f sec", time.Since(t).Seconds()) }
 
 // UtcOffsetInLocation returns the UTC offset in hours for the given location.
 // Possible inputs:
@@ -73,9 +59,6 @@ func ExpandTime(start time.Time, duration time.Duration, count int, filterFunc f
 	}
 	return times
 }
-
-func MinToMillis(min int64) int64  { return min * 60 * 1000 }
-func MilisToMin(milis int64) int64 { return milis / 60000 }
 
 // Convert Unix milliseconds to time.Time value
 func UnixMillisToTime(unixMillis int64) time.Time {

@@ -61,52 +61,6 @@ func GetDocumentWithTypes(coll *mongo.Collection, filter primitive.M, options *o
 	return err
 }
 
-func GetAllDocuments(coll *mongo.Collection, filter primitive.M, options *options.FindOptions) ([]bson.M, error) {
-	ctx := context.Background()
-
-	cur, err := coll.Find(ctx, filter, options)
-	if err != nil {
-		return nil, fmt.Errorf("find: %v", err)
-	}
-	defer cur.Close(ctx)
-
-	var results []bson.M
-	for cur.Next(ctx) {
-		var result bson.M
-		err := cur.Decode(&result)
-		if err != nil {
-			return nil, fmt.Errorf("decode: %v", err)
-		}
-
-		convertDateTime(result)
-		results = append(results, result)
-	}
-
-	if err := cur.Err(); err != nil {
-		return nil, fmt.Errorf("cursor error: %v", err)
-	}
-
-	return results, nil
-}
-
-func convertDateTime(data bson.M) {
-	for key, value := range data {
-		switch v := value.(type) {
-		case primitive.DateTime:
-			data[key] = v.Time().UTC()
-		case bson.M:
-			convertDateTime(v)
-		case []interface{}: // handle arrays
-			for i, item := range v {
-				if subDoc, ok := item.(bson.M); ok {
-					convertDateTime(subDoc)
-					v[i] = subDoc
-				}
-			}
-		}
-	}
-}
-
 // DeleteField deletes the specified field from all documents in the collection.
 func DeleteField(coll *mongo.Collection, fieldName string) error {
 	if fieldName == "" {
@@ -139,9 +93,6 @@ type QueryParams struct {
 func NewQueryParams(coll *mongo.Collection, filter primitive.M, options *options.FindOptions) *QueryParams {
 	return &QueryParams{coll, filter, options}
 }
-
-// GetDocumentsWithTypesFunc is the type for the getDocuments function
-type GetDocumentsWithTypesFunc[T any] func(QueryParams) ([]T, error)
 
 // GetDocuments is a helper function that queries the database for documents
 // and returns them as types of the data argument.
