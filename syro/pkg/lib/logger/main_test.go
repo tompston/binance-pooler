@@ -164,9 +164,11 @@ func TestConsoleLogger(t *testing.T) {
 			t.Error("SetEvent failed")
 		}
 
-		if logger := NewConsoleLogger(nil).
+		lg := NewConsoleLogger(nil).
 			SetSource("my-source").
-			SetEventID("my-event-id"); logger.GetProps().Source != "my-source" && logger.GetProps().EventID != "my-event-id" {
+			SetEventID("my-event-id")
+
+		if lg.GetProps().Source != "my-source" && lg.GetProps().EventID != "my-event-id" {
 			t.Error("SetEventID failed")
 		}
 
@@ -251,6 +253,49 @@ func TestMongoLogger(t *testing.T) {
 
 		// fmt.Printf("decoded.JSON: %v\n", decoded.JSON)
 		// fmt.Printf("decoded.BSON: %v\n", decoded.BSON)
+	})
+
+	t.Run("test log fields", func(t *testing.T) {
+		coll := mongodb.Coll(conn, "test", "test_mongo_logger_with_fields")
+		if err := coll.Drop(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+
+		logger := NewMongoLogger(coll, nil)
+
+		var asd error
+
+		if err := logger.Debug("qwe", LogFields{
+			"key1": "value1",
+			"key2": 123,
+			"asd":  asd,
+		}); err != nil {
+			t.Error(err)
+		}
+
+		var log Log
+		if err := coll.FindOne(context.Background(), bson.M{}).Decode(&log); err != nil {
+			t.Error(err)
+		}
+
+		fmt.Printf("log.Fields: %v\n", log.Fields)
+		for k, v := range log.Fields {
+			fmt.Printf("k: %-10v v: %-10v type: %-10T\n", k, v, v)
+		}
+
+		// test if the expected fields are in the log
+		if log.Fields["key1"] != "value1" {
+			t.Error("The key1 field should be 'value1', got: ", log.Fields["key1"])
+		}
+
+		// NOTE: i'm not sure what to do in this case, tests fail without the int32 type
+		if log.Fields["key2"] != int32(123) {
+			t.Error("The key2 field should be 123, got: ", log.Fields["key2"])
+		}
+
+		if log.Fields["asd"] != nil {
+			t.Error("The asd field should be the same as the asd variable")
+		}
 	})
 
 	t.Run("test log creation", func(t *testing.T) {
