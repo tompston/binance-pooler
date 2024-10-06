@@ -66,14 +66,15 @@ func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := parseUrlParams(r)
+	_ = params
 
-	data, err := api.app.Logger().FindLogs(*params, 100, 0)
-	if err != nil {
-		Response(w, 500, nil, err.Error())
-		return
-	}
+	// data, err := api.app.Logger().FindLogs(*params, 100, 0)
+	// if err != nil {
+	// 	Response(w, 500, nil, err.Error())
+	// 	return
+	// }
 
-	Response(w, 200, data, "")
+	Response(w, 200, nil, "")
 }
 
 func (api *API) getCronJobs(w http.ResponseWriter, r *http.Request) {

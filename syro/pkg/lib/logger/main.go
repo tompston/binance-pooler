@@ -4,25 +4,19 @@ package logger
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
 // Log struct for storing the log data
 type Log struct {
-	// When the log was created (UTC)
-	Time time.Time `json:"time" bson:"time"`
-	// Log level
-	Level string `json:"level" bson:"level"`
-	// Logged message
-	Message string `json:"message" bson:"message"`
-	// Source of the log (api, pooler, etc.)
-	Source string `json:"source" bson:"source"`
-	// Event of the log (api-auth-request, binance-eth-pooler, etc.)
-	Event string `json:"event" bson:"event"`
-	// (not logged to the console)
-	EventID string `json:"event_id" bson:"event_id"`
-	// Optional fields
-	Fields LogFields `json:"fields" bson:"fields"`
+	Time    time.Time `json:"time" bson:"time"`         // Time of the log (UTC)
+	Level   string    `json:"level" bson:"level"`       // Log level
+	Message string    `json:"message" bson:"message"`   // Logged message
+	Source  string    `json:"source" bson:"source"`     // Source of the log (api, pooler, etc.)
+	Event   string    `json:"event" bson:"event"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
+	EventID string    `json:"event_id" bson:"event_id"` // (not logged to the console)
+	Fields  LogFields `json:"fields" bson:"fields"`     // Optional fields
 }
 
 type LogFields map[string]interface{}
@@ -58,15 +52,31 @@ func (log Log) String(logger Logger) string {
 		}
 	}
 
-	var logFields string
+	// Removing string length reduces ns/op from 933 - 718 (29% faster)
+
+	var b strings.Builder
+
+	b.WriteString(log.Time.In(settings.Location).Format(settings.TimeFormat))
+	b.WriteString("  ")
+	b.WriteString(log.Level)
+	b.WriteString("  ")
+	b.WriteString(fmt.Sprintf("%-12s", log.Source))
+	b.WriteString(fmt.Sprintf("%-12s", log.Event))
+	b.WriteString("  ")
+	b.WriteString(log.Message)
+
 	if log.Fields != nil {
 		for k, v := range log.Fields {
-			logFields += fmt.Sprintf(" %s=%v", k, v)
+			b.WriteString(" ")
+			b.WriteString(k)
+			b.WriteString("=")
+			b.WriteString(fmt.Sprintf("%v", v))
 		}
 	}
 
-	time := log.Time.In(settings.Location).Format(settings.TimeFormat)
-	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, logFields)
+	b.WriteString("\n")
+	return b.String()
+
 }
 
 // Logger interface implements the methods for logging
@@ -82,7 +92,7 @@ type Logger interface {
 	// LogExists method checks if the log with the provided filter exists.
 	LogExists(filter any) (bool, error)
 	// FindLogs method returns the logs that match the provided filter
-	FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error)
+	FindLogs(filter LogFilter) ([]Log, error)
 	// SetSource sets the source of the log
 	SetSource(v string) Logger
 	// SetEvent sets the event of the log
@@ -119,3 +129,47 @@ type LoggerProps struct {
 	Event    string
 	EventID  string
 }
+
+/*
+
+// String method converts the log to a string, using the provided logger settings.
+func (log Log) String(logger Logger) string {
+	// Use the default settings by default if the settings are not correct
+	settings := DefaultLoggerSettings
+
+	// if the logger is not nil and has it has settings with a defined location, use them
+	if logger != nil {
+		props := logger.GetProps()
+
+		if props.Settings != nil && props.Settings.Location != nil {
+			settings = props.Settings
+		}
+	}
+
+	var logFields string
+	for k, v := range log.Fields {
+		logFields += fmt.Sprintf(" %s=%v", k, v)
+	}
+
+	time := log.Time.In(settings.Location).Format(settings.TimeFormat)
+	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, logFields)
+
+	// Removing string length reduces ns/op from 933 - 718 (29% faster)
+	// return fmt.Sprintf(" %s   %s %s  %s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, logFields)
+
+	// var b strings.Builder
+
+	// if log.Fields != nil {
+	// 	for k, v := range log.Fields {
+	// 		b.WriteString(" ")
+	// 		b.WriteString(k)
+	// 		b.WriteString("=")
+	// 		b.WriteString(fmt.Sprintf("%v", v))
+	// 	}
+	// }
+
+	// time := log.Time.In(settings.Location).Format(settings.TimeFormat)
+	// return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, b.String())
+}
+
+*/

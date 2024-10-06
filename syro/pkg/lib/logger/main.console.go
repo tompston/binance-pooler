@@ -22,7 +22,7 @@ func (lg *ConsoleLogger) GetProps() LoggerProps {
 
 func (lg *ConsoleLogger) log(level, msg string, lf ...LogFields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
-	_, err := fmt.Print(log)
+	_, err := fmt.Print(log.String(lg))
 	return err
 }
 
@@ -58,6 +58,6 @@ func (lg *ConsoleLogger) LogExists(filter any) (bool, error) {
 	return false, fmt.Errorf("method cannot be used with ConsoleLogger")
 }
 
-func (lg *ConsoleLogger) FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error) {
+func (lg *ConsoleLogger) FindLogs(filter LogFilter) ([]Log, error) {
 	return nil, fmt.Errorf("method cannot be used with ConsoleLogger")
 }

@@ -96,13 +96,15 @@ func CreateMongoIndexes(coll *mongo.Collection) error {
 }
 
 type LogFilter struct {
-	From time.Time `json:"from"`
-	To   time.Time `json:"to"`
-	Log  Log       `json:"log" bson:"log"`
+	From  time.Time `json:"from"`
+	To    time.Time `json:"to"`
+	Limit int64     `json:"limit"`
+	Skip  int64     `json:"skip"`
+	Log   Log       `json:"log" bson:"log"`
 }
 
 // FindLogs returns logs that match the filter
-func (lg *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error) {
+func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 
 	queryFilter := bson.M{}
 
@@ -133,8 +135,8 @@ func (lg *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) ([]Lo
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "time", Value: -1}}). // sort by time field in descending order
-		SetLimit(limit).
-		SetSkip(skip)
+		SetLimit(filter.Limit).
+		SetSkip(filter.Skip)
 
 	var docs []Log
 	cursor, err := lg.Coll.Find(context.Background(), queryFilter, opts)

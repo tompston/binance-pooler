@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"log"
-	"syro/internal/pooler/services/binance"
 	"syro/pkg/app"
+	"syro/pkg/lib/logger"
 )
 
 // go run cmd/exec/main.go
@@ -15,6 +15,15 @@ func main() {
 	}
 	defer app.Exit(context.Background())
 
-	s := binance.New(app, 2)
-	s.Tmp()
+	// s := binance.New(app, 2)
+	// s.Tmp()
+
+	logger := logger.NewConsoleLogger(nil).
+		SetSource("main").
+		SetEvent("sub-main")
+
+	numLogs := 10
+	for i := 0; i < numLogs; i++ {
+		logger.Debug("this is a test")
+	}
 }

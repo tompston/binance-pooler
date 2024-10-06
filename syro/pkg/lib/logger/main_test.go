@@ -350,8 +350,10 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method ----
 		test1, err := logger.FindLogs(LogFilter{
-			Log: Log{EventID: "my-event-id"},
-		}, 100, 0)
+			Limit: 100,
+			Skip:  0,
+			Log:   Log{EventID: "my-event-id"},
+		})
 
 		if err != nil {
 			t.Error(err)
@@ -371,8 +373,10 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method with a limit ----
 		test2, err := logger.FindLogs(LogFilter{
-			Log: Log{EventID: "my-event-id"},
-		}, 5, 0)
+			Log:   Log{EventID: "my-event-id"},
+			Limit: 5,
+			Skip:  0,
+		})
 
 		if err != nil {
 			t.Error(err)
@@ -384,8 +388,9 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- other filters ----
 		test3, err := logger.FindLogs(LogFilter{
-			Log: Log{EventID: "this-event-does-not-exist"},
-		}, 10, 0)
+			Log:   Log{EventID: "this-event-does-not-exist"},
+			Limit: 10,
+		})
 
 		if err != nil {
 			t.Error(err)
@@ -397,47 +402,27 @@ func TestMongoLogger(t *testing.T) {
 	})
 }
 
-/*
-func BenchmarkLogging(b *testing.B) {
-	conn, err := mongodb.New("localhost", 27017, "", "")
-	if err != nil {
-		b.Fatal(err)
+func BenchmarkLogger(b *testing.B) {
+
+	logger := NewConsoleLogger(nil).SetSource("qwe")
+	_ = logger
+
+	// b.Run("log creation", func(b *testing.B) {
+	// 	logger.Debug("qwe", LogFields{"asd": "asd"})
+	// 	// for i := 0; i < b.N; i++ {
+	// 	// }
+	// })
+
+	meta := LogFields{"key1": "value1"}
+
+	// // _ = new
+	// _ = new.String(logger)
+
+	for i := 0; i < b.N; i++ {
+		new := newLog(ERROR, "qweqwe", "my-source", "my-event", "", meta)
+
+		new.String(logger)
+
+		// logger.Debug("qwe", LogFields{"asd": "qwe"})
 	}
-	defer conn.Disconnect(context.Background())
-
-	type L1 struct {
-		Time time.Time `json:"time" bson:"time"`
-	}
-
-	newL1 := func() *L1 { return &L1{Time: time.Now()} }
-
-	type L2 struct {
-		Time int `json:"_t" bson:"_t"`
-	}
-
-	newL2 := func() *L2 { return &L2{Time: int(time.Now().UnixMilli())} }
-
-	l1coll := mongodb.Coll(conn, "tmp_", "l1")
-
-	l2coll := mongodb.Coll(conn, "tmp_", "l2")
-
-	NUM_LOGS := 100_000
-
-	b.Run("log 1", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			for j := 0; j < NUM_LOGS; j++ {
-				l1coll.InsertOne(context.Background(), newL1())
-			}
-		}
-	})
-
-	b.Run("log 2", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			for j := 0; j < NUM_LOGS; j++ {
-				l2coll.InsertOne(context.Background(), newL2())
-			}
-		}
-	})
-
 }
-*/

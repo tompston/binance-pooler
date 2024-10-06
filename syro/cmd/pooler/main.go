@@ -39,7 +39,7 @@ func main() {
 	// scheduler.Start()
 	// select {} // run forever
 
-	for _, job := range scheduler.Jobs {
-		fmt.Println(job.Freq, job.Name, job.Func)
-	}
+	// for _, job := range scheduler.Jobs {
+	// 	fmt.Println(job.Freq, job.Name, job.Func)
+	// }
 }
