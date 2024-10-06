@@ -89,11 +89,11 @@ var DefaultLoggerSettings = &LoggerSettings{
 }
 
 const (
-	ERROR = "ERROR"
-	INFO  = "INFO"
-	DEBUG = "DEBUG"
-	WARN  = "WARN"
-	TRACE = "TRACE"
+	ERROR = "error"
+	INFO  = "info"
+	DEBUG = "debug"
+	WARN  = "warn"
+	TRACE = "trace"
 )
 
 // Logger implementation for console

@@ -34,7 +34,7 @@ func TestLog(t *testing.T) {
 
 		t.Run("test json unmarshalling", func(t *testing.T) {
 			if err := validate.StringIncludes(decoded.JSON, []string{
-				`"level":"ERROR"`,
+				`"level":"error"`,
 				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
@@ -96,7 +96,7 @@ func TestLog(t *testing.T) {
 			// remove the last 3 characters (seconds) from the formatted time
 			formattedTime = formattedTime[:len(formattedTime)-3]
 			if err := validate.StringIncludes(str, []string{
-				"ERROR",
+				"error",
 				"my-source",
 				"my-event",
 				"qweqwe",
@@ -128,9 +128,9 @@ func TestLog(t *testing.T) {
 		fmt.Printf("log: %v\n", log.String(logger))
 		logString := log.String(logger)
 
-		// get the string which is before the "ERROR" string, and check if it is the same as the
+		// get the string which is before the "error" string, and check if it is the same as the
 		// formatted time
-		parts := strings.SplitN(logString, "ERROR", 2)
+		parts := strings.SplitN(logString, "error", 2)
 		if len(parts) < 2 {
 			t.Fatalf("expected log string to have at least two parts, got: %v", logString)
 		}
@@ -220,7 +220,7 @@ func TestMongoLogger(t *testing.T) {
 		}
 
 		if log.Level != DEBUG {
-			t.Error("The log level should be DEBUG")
+			t.Error("The log level should be ", DEBUG)
 		}
 
 		if log.Source != "" {
@@ -351,3 +351,48 @@ func TestMongoLogger(t *testing.T) {
 		}
 	})
 }
+
+/*
+func BenchmarkLogging(b *testing.B) {
+	conn, err := mongodb.New("localhost", 27017, "", "")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer conn.Disconnect(context.Background())
+
+	type L1 struct {
+		Time time.Time `json:"time" bson:"time"`
+	}
+
+	newL1 := func() *L1 { return &L1{Time: time.Now()} }
+
+	type L2 struct {
+		Time int `json:"_t" bson:"_t"`
+	}
+
+	newL2 := func() *L2 { return &L2{Time: int(time.Now().UnixMilli())} }
+
+	l1coll := mongodb.Coll(conn, "tmp_", "l1")
+
+	l2coll := mongodb.Coll(conn, "tmp_", "l2")
+
+	NUM_LOGS := 100_000
+
+	b.Run("log 1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for j := 0; j < NUM_LOGS; j++ {
+				l1coll.InsertOne(context.Background(), newL1())
+			}
+		}
+	})
+
+	b.Run("log 2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for j := 0; j < NUM_LOGS; j++ {
+				l2coll.InsertOne(context.Background(), newL2())
+			}
+		}
+	})
+
+}
+*/

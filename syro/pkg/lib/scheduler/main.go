@@ -120,7 +120,6 @@ func newExecutionLog(source, name string, initializedAt time.Time, err error) *E
 		InitializedAt: initializedAt,
 		FinishedAt:    time.Now().UTC(),
 		ExecutionTime: time.Since(initializedAt),
-		// Error:         TernaryOp(err != nil, err.Error(), ""),
 	}
 
 	// Avoid panics if the error is nil
@@ -128,17 +127,8 @@ func newExecutionLog(source, name string, initializedAt time.Time, err error) *E
 		log.Error = err.Error()
 	}
 
-	// log.Error = TernaryOp(err != nil, err.Error(), "")
-
 	return log
 }
-
-// func TernaryOp[T any](condition bool, a, b T) T {
-// 	if condition {
-// 		return a
-// 	}
-// 	return b
-// }
 
 type JobStatus string
 

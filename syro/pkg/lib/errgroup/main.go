@@ -30,6 +30,7 @@ func (eg *ErrGroup) Len() int {
 	if eg == nil {
 		return 0
 	}
+
 	return len(*eg)
 }
 

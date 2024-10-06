@@ -1,7 +1,6 @@
 package fetcher
 
 import (
-	"archive/zip"
 	"bytes"
 	"fmt"
 	"io"
@@ -50,31 +49,7 @@ func Fetch(method, url string, headers map[string]string, requestBody ...[]byte)
 		return nil, fmt.Errorf("response returned empty body while requesting %v", url)
 	}
 
-	if res.Header == nil {
-
-	}
-
 	return &Response{body, res.Header, res.StatusCode}, err
-}
-
-// FetchZipFiles fetches an url which returns a zip file and returns the files.
-func FetchZipFiles(method, url string) ([]*zip.File, error) {
-	res, err := Fetch(method, url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	zipReader, err := zip.NewReader(bytes.NewReader(res.Body), int64(len(res.Body)))
-	if err != nil {
-		return nil, err
-	}
-
-	zipFiles := zipReader.File
-	if len(zipFiles) == 0 || zipFiles == nil {
-		return nil, fmt.Errorf("no files found in zip while fetching %v", url)
-	}
-
-	return zipFiles, nil
 }
 
 type Response struct {
