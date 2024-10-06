@@ -25,45 +25,44 @@ func NewMongoLogger(coll *mongo.Collection, settings *LoggerSettings) *MongoLogg
 	return &MongoLogger{Coll: coll, Settings: settings}
 }
 
-func (logger *MongoLogger) GetProps() LoggerProps {
+func (lg *MongoLogger) GetProps() LoggerProps {
 	return LoggerProps{
-		Settings: logger.Settings,
-		Source:   logger.Source,
-		Event:    logger.Event,
-		EventID:  logger.EventID,
+		Settings: lg.Settings,
+		Source:   lg.Source,
+		Event:    lg.Event,
+		EventID:  lg.EventID,
 	}
 }
 
-func (logger *MongoLogger) SetSource(v string) Logger {
-	logger.Source = v
-	return logger
+func (lg *MongoLogger) SetSource(v string) Logger {
+	lg.Source = v
+	return lg
 }
 
-func (logger *MongoLogger) SetEvent(v string) Logger {
-	logger.Event = v
-	return logger
+func (lg *MongoLogger) SetEvent(v string) Logger {
+	lg.Event = v
+	return lg
 }
 
-func (logger *MongoLogger) SetEventID(v string) Logger {
-	logger.EventID = v
-	return logger
+func (lg *MongoLogger) SetEventID(v string) Logger {
+	lg.EventID = v
+	return lg
 }
 
-// Todo: how to implement the saving of key-value pairs?
-func (logger *MongoLogger) log(level, msg string, lf ...LogFields) error {
-	log := newLog(level, msg, logger.Source, logger.Event, logger.EventID, lf...)
-	_, err := logger.Coll.InsertOne(context.Background(), log)
-	fmt.Print(log.String(logger))
+func (lg *MongoLogger) log(level, msg string, lf ...LogFields) error {
+	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
+	_, err := lg.Coll.InsertOne(context.Background(), log)
+	fmt.Print(log.String(lg))
 	return err
 }
 
-func (logger *MongoLogger) LogExists(filter any) (bool, error) {
+func (lg *MongoLogger) LogExists(filter any) (bool, error) {
 	if _, ok := filter.(bson.M); !ok {
 		return false, errors.New("filter must have a bson.M type")
 	}
 
 	var log Log
-	if err := logger.Coll.FindOne(context.Background(), filter).Decode(&log); err != nil {
+	if err := lg.Coll.FindOne(context.Background(), filter).Decode(&log); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
 		}
@@ -73,28 +72,17 @@ func (logger *MongoLogger) LogExists(filter any) (bool, error) {
 	return !log.Time.IsZero(), nil
 }
 
-func (logger *MongoLogger) Info(msg string, lf ...LogFields) error {
-	return logger.log(INFO, msg, lf...)
-}
+func (lg *MongoLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *MongoLogger) Debug(msg string, lf ...LogFields) error { return lg.log(DEBUG, msg, lf...) }
+func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *MongoLogger) Trace(msg string, lf ...LogFields) error { return lg.log(TRACE, msg, lf...) }
 
-func (logger *MongoLogger) Debug(msg string, lf ...LogFields) error {
-	return logger.log(DEBUG, msg, lf...)
-}
-
-func (logger *MongoLogger) Warn(msg string, lf ...LogFields) error {
-	return logger.log(WARN, msg, lf...)
-}
-
-func (logger *MongoLogger) Trace(msg string, lf ...LogFields) error {
-	return logger.log(TRACE, msg, lf...)
-}
-
-func (logger *MongoLogger) Error(err error, lf ...LogFields) error {
+func (lg *MongoLogger) Error(err error, lf ...LogFields) error {
 	if err == nil {
-		return logger.log(ERROR, "<nil>", lf...)
+		return lg.log(ERROR, "<nil>", lf...)
 	}
 
-	return logger.log(ERROR, err.Error(), lf...)
+	return lg.log(ERROR, err.Error(), lf...)
 }
 
 func CreateMongoIndexes(coll *mongo.Collection) error {
@@ -114,7 +102,7 @@ type LogFilter struct {
 }
 
 // FindLogs returns logs that match the filter
-func (logger *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error) {
+func (lg *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) ([]Log, error) {
 
 	queryFilter := bson.M{}
 
@@ -149,7 +137,7 @@ func (logger *MongoLogger) FindLogs(filter LogFilter, limit int64, skip int64) (
 		SetSkip(skip)
 
 	var docs []Log
-	cursor, err := logger.Coll.Find(context.Background(), queryFilter, opts)
+	cursor, err := lg.Coll.Find(context.Background(), queryFilter, opts)
 	if err != nil {
 		return nil, err
 	}
