@@ -16,12 +16,12 @@ type Log struct {
 	Source  string    `json:"source" bson:"source"`     // Source of the log (api, pooler, etc.)
 	Event   string    `json:"event" bson:"event"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
 	EventID string    `json:"event_id" bson:"event_id"` // (not logged to the console)
-	Fields  LogFields `json:"fields" bson:"fields"`     // Optional fields
+	Fields  Fields    `json:"fields" bson:"fields"`     // Optional fields
 }
 
-type LogFields map[string]interface{}
+type Fields map[string]interface{}
 
-func newLog(level string, msg, source, event, eventID string, fields ...LogFields) Log {
+func newLog(level string, msg, source, event, eventID string, fields ...Fields) Log {
 	log := Log{
 		Time:    time.Now().UTC(),
 		Level:   level,
@@ -81,11 +81,11 @@ func (log Log) String(logger Logger) string {
 
 // Logger interface implements the methods for logging
 type Logger interface {
-	Error(msg error, lf ...LogFields) error
-	Info(msg string, lf ...LogFields) error
-	Debug(msg string, lf ...LogFields) error
-	Warn(msg string, lf ...LogFields) error
-	Trace(msg string, lf ...LogFields) error
+	Error(msg error, lf ...Fields) error
+	Info(msg string, lf ...Fields) error
+	Debug(msg string, lf ...Fields) error
+	Warn(msg string, lf ...Fields) error
+	Trace(msg string, lf ...Fields) error
 
 	// GetProps returns the properties of the logger
 	GetProps() LoggerProps
@@ -146,16 +146,16 @@ func (log Log) String(logger Logger) string {
 		}
 	}
 
-	var logFields string
+	var Fields string
 	for k, v := range log.Fields {
-		logFields += fmt.Sprintf(" %s=%v", k, v)
+		Fields += fmt.Sprintf(" %s=%v", k, v)
 	}
 
 	time := log.Time.In(settings.Location).Format(settings.TimeFormat)
-	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, logFields)
+	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, Fields)
 
 	// Removing string length reduces ns/op from 933 - 718 (29% faster)
-	// return fmt.Sprintf(" %s   %s %s  %s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, logFields)
+	// return fmt.Sprintf(" %s   %s %s  %s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, Fields)
 
 	// var b strings.Builder
 

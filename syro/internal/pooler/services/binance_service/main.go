@@ -154,7 +154,7 @@ func (s *service) scrapeFuturesAssetList() error {
 		return err
 	}
 
-	s.log().Info("upserted binance fututes info", logger.LogFields{"log": log.String()})
+	s.log().Info("upserted binance fututes info", logger.Fields{"log": log})
 
 	return nil
 }
@@ -169,7 +169,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 	}
 
 	if len(gaps) == 0 {
-		s.log().Info(fmt.Sprintf("no gaps found for %v", id))
+		s.log().Info("no gaps found for futures ohlc", logger.Fields{"id": id})
 		return nil
 	}
 
@@ -216,7 +216,7 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().Add(-3 * 24 * time.Hour)
 		if latestStartTime.After(breakpoint) {
-			s.log().Info(fmt.Sprintf("latest ohlc for %v is up to date", id))
+			s.log().Info("latest ohlc for is up to date", logger.Fields{"id": id})
 			return nil
 		}
 	}
@@ -236,7 +236,7 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 		return err
 	}
 
-	s.log().Info("upserted binance fututes ohlc", logger.LogFields{"id": id, "log": log.String()})
+	s.log().Info("upserted binance fututes ohlc", logger.Fields{"id": id, "log": log.String()})
 
 	return nil
 }

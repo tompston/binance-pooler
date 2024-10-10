@@ -1,9 +1,5 @@
 package scheduler
 
-// go test -timeout 30s syro/pkg/lib/scheduler -v -count=1
-
-// go test -timeout 30s syro/pkg/lib/scheduler -count=1
-
 import (
 	"context"
 	"fmt"

@@ -265,7 +265,7 @@ func TestMongoLogger(t *testing.T) {
 
 		var asd error
 
-		if err := logger.Debug("qwe", LogFields{
+		if err := logger.Debug("qwe", Fields{
 			"key1": "value1",
 			"key2": 123,
 			"asd":  asd,
@@ -408,12 +408,12 @@ func BenchmarkLogger(b *testing.B) {
 	_ = logger
 
 	// b.Run("log creation", func(b *testing.B) {
-	// 	logger.Debug("qwe", LogFields{"asd": "asd"})
+	// 	logger.Debug("qwe", Fields{"asd": "asd"})
 	// 	// for i := 0; i < b.N; i++ {
 	// 	// }
 	// })
 
-	meta := LogFields{"key1": "value1"}
+	meta := Fields{"key1": "value1"}
 
 	// // _ = new
 	// _ = new.String(logger)
@@ -423,6 +423,6 @@ func BenchmarkLogger(b *testing.B) {
 
 		new.String(logger)
 
-		// logger.Debug("qwe", LogFields{"asd": "qwe"})
+		// logger.Debug("qwe", Fields{"asd": "qwe"})
 	}
 }

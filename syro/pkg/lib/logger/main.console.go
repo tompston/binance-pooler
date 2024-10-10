@@ -20,7 +20,7 @@ func (lg *ConsoleLogger) GetProps() LoggerProps {
 	}
 }
 
-func (lg *ConsoleLogger) log(level, msg string, lf ...LogFields) error {
+func (lg *ConsoleLogger) log(level, msg string, lf ...Fields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := fmt.Print(log.String(lg))
 	return err
@@ -41,12 +41,12 @@ func (lg *ConsoleLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *ConsoleLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
-func (lg *ConsoleLogger) Debug(msg string, lf ...LogFields) error { return lg.log(DEBUG, msg, lf...) }
-func (lg *ConsoleLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
-func (lg *ConsoleLogger) Trace(msg string, lf ...LogFields) error { return lg.log(TRACE, msg, lf...) }
+func (lg *ConsoleLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *ConsoleLogger) Debug(msg string, lf ...Fields) error { return lg.log(DEBUG, msg, lf...) }
+func (lg *ConsoleLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *ConsoleLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRACE, msg, lf...) }
 
-func (lg *ConsoleLogger) Error(err error, lf ...LogFields) error {
+func (lg *ConsoleLogger) Error(err error, lf ...Fields) error {
 	if err == nil {
 		return lg.log(ERROR, "<nil>", lf...)
 	}

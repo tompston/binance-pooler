@@ -49,7 +49,7 @@ func (lg *MongoLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *MongoLogger) log(level, msg string, lf ...LogFields) error {
+func (lg *MongoLogger) log(level, msg string, lf ...Fields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := lg.Coll.InsertOne(context.Background(), log)
 	fmt.Print(log.String(lg))
@@ -72,12 +72,12 @@ func (lg *MongoLogger) LogExists(filter any) (bool, error) {
 	return !log.Time.IsZero(), nil
 }
 
-func (lg *MongoLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
-func (lg *MongoLogger) Debug(msg string, lf ...LogFields) error { return lg.log(DEBUG, msg, lf...) }
-func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
-func (lg *MongoLogger) Trace(msg string, lf ...LogFields) error { return lg.log(TRACE, msg, lf...) }
+func (lg *MongoLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *MongoLogger) Debug(msg string, lf ...Fields) error { return lg.log(DEBUG, msg, lf...) }
+func (lg *MongoLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *MongoLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRACE, msg, lf...) }
 
-func (lg *MongoLogger) Error(err error, lf ...LogFields) error {
+func (lg *MongoLogger) Error(err error, lf ...Fields) error {
 	if err == nil {
 		return lg.log(ERROR, "<nil>", lf...)
 	}

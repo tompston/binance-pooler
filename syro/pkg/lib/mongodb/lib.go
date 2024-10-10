@@ -142,7 +142,11 @@ func NewUpsertLog(coll *mongo.Collection, firstStartTime, lastStartTime time.Tim
 }
 
 // String returns a string representation of the Log struct
-func (l UpsertLog) String() string {
+func (l *UpsertLog) String() string {
+	if l == nil {
+		return "<nil>"
+	}
+
 	format := "2006-01-02 15:04:05"
 
 	destination := l.DbName + "." + l.CollectionName

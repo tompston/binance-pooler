@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// go test -run ^TestApi$ syro/internal/pooler/services/binance -v -count=1
 func TestApi(t *testing.T) {
 	api := binance.NewAPI()
 	from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
