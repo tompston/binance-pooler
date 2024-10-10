@@ -1,5 +1,5 @@
 func (s *service) ScrapeTickers() error {
-	var tickers []market_model.CryptoSpotAssetDocument
+	var tickers []market_dto.CryptoSpotAssetDocument
 
 	coll := s.app.Db().CryptoSpotAssetColl()
 	opt := options.Find().SetSort(bson.M{"market_cap": -1})
@@ -15,7 +15,7 @@ func (s *service) ScrapeTickers() error {
 	const numWorkers = 5
 
 	// Create a channel for sending tickers to workers
-	tickerChan := make(chan market_model.CryptoSpotAssetDocument, len(tickers))
+	tickerChan := make(chan market_dto.CryptoSpotAssetDocument, len(tickers))
 
 	// Start worker goroutines
 	var wg sync.WaitGroup
@@ -44,7 +44,7 @@ func (s *service) ScrapeTickers() error {
 	return nil
 }
 
-func (s *service) scrapeHistoricalData(info market_model.CryptoSpotAssetDocument) error {
+func (s *service) scrapeHistoricalData(info market_dto.CryptoSpotAssetDocument) error {
 	var (
 		defaultStartTime   = time.Now().UTC().Add(-4 * 365 * 24 * time.Hour)
 		coinsColl          = s.app.Db().CryptoSpotAssetColl()
@@ -58,7 +58,7 @@ func (s *service) scrapeHistoricalData(info market_model.CryptoSpotAssetDocument
 	}
 
 	// If the field has not been set before, set it to defaultStartTime
-	defaultStartTime, err := market_model.SelectOrUpdateDefaultStartTime(
+	defaultStartTime, err := market_dto.SelectOrUpdateDefaultStartTime(
 		&info.Asset,
 		id,
 		defaultStartTime,
@@ -68,7 +68,7 @@ func (s *service) scrapeHistoricalData(info market_model.CryptoSpotAssetDocument
 		return err
 	}
 
-	t1, err := market_model.GetLatestOhlcStartTime(id, defaultStartTime, CryptoSpotOhlcColl, s.log().Debug)
+	t1, err := market_dto.GetLatestOhlcStartTime(id, defaultStartTime, CryptoSpotOhlcColl, s.log().Debug)
 	if err != nil {
 		return fmt.Errorf("error getting latest start time: %v", err)
 	}
@@ -89,10 +89,10 @@ func (s *service) scrapeHistoricalData(info market_model.CryptoSpotAssetDocument
 		nextStartTime := t2.Add(availableSinceIncrement)
 		s.log().Trace(fmt.Sprintf("no data found for %v from %v -> %v, setting the available_since to %v", id, t1, t2, nextStartTime.Format("2006-01-02")))
 
-		return market_model.UpdateAvailableSinceForAsset(s.app.Db().CryptoSpotAssetColl(), id, nextStartTime.UTC())
+		return market_dto.UpdateAvailableSinceForAsset(s.app.Db().CryptoSpotAssetColl(), id, nextStartTime.UTC())
 	}
 
-	if doc := market_model.UpsertOhlcRows(doc, CryptoSpotOhlcColl); doc != nil {
+	if doc := market_dto.UpsertOhlcRows(doc, CryptoSpotOhlcColl); doc != nil {
 		s.log().Info(doc.String() + " for " + id)
 	}
 

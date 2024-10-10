@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"syro/pkg/app/db"
 	"syro/pkg/app/settings"
+	"syro/pkg/dto"
 	"syro/pkg/lib/logger"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
-	"syro/pkg/models"
 	"testing"
 )
 
@@ -66,7 +66,7 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 		return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
 	}
 
-	if err := models.SetupMongoEnv(db); err != nil {
+	if err := dto.SetupMongoEnv(db); err != nil {
 		return nil, fmt.Errorf("failed to setup mongodb environment: %v", err)
 	}
 

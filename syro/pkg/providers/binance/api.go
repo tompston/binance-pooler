@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"syro/pkg/dto/market_dto"
 	"syro/pkg/lib/encoder"
 	"syro/pkg/lib/fetcher"
 	"syro/pkg/lib/timeset"
-	"syro/pkg/models/market_model"
 	"time"
 )
 
@@ -48,18 +48,18 @@ var (
 // // 1min query data
 // //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
 // //   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
-func (api API) GetSpotKline(id string, from, to time.Time, tf Timeframe) ([]market_model.OhlcRow, error) {
+func (api API) GetSpotKline(id string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
 	return api.requestKlineData("https://api.binance.com/api/v3/klines", id, from, to, tf)
 }
 
 // https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data#response-example
-func (api API) GetFutureKline(id string, from, to time.Time, tf Timeframe) ([]market_model.OhlcRow, error) {
+func (api API) GetFutureKline(id string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
 	return api.requestKlineData("https://fapi.binance.com/fapi/v1/klines", id, from, to, tf)
 }
 
 // Futures and Spot markets have the same data structure. The only difference
 // is the endpoint url.
-func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, timeframe Timeframe) ([]market_model.OhlcRow, error) {
+func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, timeframe Timeframe) ([]market_dto.OhlcRow, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id is required")
 	}
@@ -85,7 +85,7 @@ func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, t
 		return nil, err
 	}
 
-	var docs []market_model.OhlcRow
+	var docs []market_dto.OhlcRow
 
 	for _, d := range data {
 		kline, err := parseKineRow(id, d)
@@ -116,7 +116,7 @@ func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, t
 //			"1.23424865",           // Taker buy base asset volume
 //			"0"                     // Ignore.
 //	  ]
-func parseKineRow(id string, d []any) (*market_model.OhlcRow, error) {
+func parseKineRow(id string, d []any) (*market_dto.OhlcRow, error) {
 
 	if len(d) != 12 {
 		return nil, fmt.Errorf("expected 12 fields, got %d", len(d))
@@ -173,7 +173,7 @@ func parseKineRow(id string, d []any) (*market_model.OhlcRow, error) {
 
 	t2 := time.Unix(int64((endTime+500)/1000), 0)
 
-	row, err := market_model.NewOhlcRow(id, t1, t2, open, high, low, close, volume)
+	row, err := market_dto.NewOhlcRow(id, t1, t2, open, high, low, close, volume)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func parseKineRow(id string, d []any) (*market_model.OhlcRow, error) {
 	return row, nil
 }
 
-func (api API) GetAllFutureSymbols() ([]market_model.FuturesAsset, error) {
+func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 	type Response struct {
 		Timezone    string `json:"timezone"`
 		ServerTime  int64  `json:"serverTime"`
@@ -253,7 +253,7 @@ func (api API) GetAllFutureSymbols() ([]market_model.FuturesAsset, error) {
 		return nil, err
 	}
 
-	var assets []market_model.FuturesAsset
+	var assets []market_dto.FuturesAsset
 
 	for _, symbol := range data.Symbols {
 		id := symbol.Symbol
@@ -289,7 +289,7 @@ func (api API) GetAllFutureSymbols() ([]market_model.FuturesAsset, error) {
 			continue
 		}
 
-		asset := market_model.FuturesAsset{
+		asset := market_dto.FuturesAsset{
 			UpdatedAt:             time.Now().UTC(),
 			ID:                    id,
 			Source:                Source,

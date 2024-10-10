@@ -10,9 +10,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"syro/pkg/app"
+	"syro/pkg/dto/market_dto"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
-	"syro/pkg/models/market_model"
 	"syro/pkg/providers/binance"
 
 	"syro/pkg/lib/logger"
@@ -37,10 +37,6 @@ func (s *service) log() logger.Logger {
 	return s.app.Logger().SetEvent("binance")
 }
 
-func (s *service) newJobLogger(jobName string) logger.Logger {
-	return s.app.Logger().SetEvent("binance").SetEventID(jobName)
-}
-
 func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	if err := s.setupFuturesAssets(); err != nil {
 		s.log().Error(err)
@@ -60,9 +56,6 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 				}
 				return nil
 			},
-			OnError: func(err error) {
-				fmt.Printf("error in binance-futures-ohlc job: %v\n", err)
-			},
 		},
 	); err != nil {
 		return err
@@ -79,7 +72,7 @@ func (s *service) Tmp() {
 
 func todoPrinter(v any) { fmt.Println(v) }
 
-func (s *service) getFuturesAssets() ([]market_model.FuturesAsset, error) {
+func (s *service) getFuturesAssets() ([]market_dto.FuturesAsset, error) {
 	coll := s.app.Db().CryptoFuturesAssetColl()
 
 	filter := bson.M{"source": binance.Source, "status": "TRADING"}
@@ -87,7 +80,7 @@ func (s *service) getFuturesAssets() ([]market_model.FuturesAsset, error) {
 	opt := options.Find().
 		SetSort(bson.D{{Key: "onboard_date", Value: -1}})
 
-	var docs []market_model.FuturesAsset
+	var docs []market_dto.FuturesAsset
 	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
 	return docs, err
 }
@@ -156,9 +149,12 @@ func (s *service) scrapeFuturesAssetList() error {
 		return err
 	}
 
-	if doc := market_model.UpsertFuturesAssets(docs, coll); doc != nil {
-		s.log().Info("upserted binance fututes info " + doc.String())
+	log, err := market_dto.UpsertFuturesAssets(docs, coll)
+	if err != nil {
+		return err
 	}
+
+	s.log().Info("upserted binance fututes info", logger.LogFields{"log": log.String()})
 
 	return nil
 }
@@ -187,9 +183,12 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 				return err
 			}
 
-			if doc := market_model.UpsertOhlcRows(docs, coll); doc != nil {
-				s.log().Info(fmt.Sprintf("upserted binance fututes ohlc for %v: %v", id, doc.String()))
+			log, err := market_dto.UpsertOhlcRows(docs, coll)
+			if err != nil {
+				return err
 			}
+
+			s.log().Info(fmt.Sprintf("upserted binance fututes ohlc for %v: %v", id, log.String()))
 		}
 	}
 
@@ -197,7 +196,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 }
 
 func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error {
-	asset, err := market_model.GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
+	asset, err := market_dto.GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
 	if err != nil {
 		return err
 	}
@@ -208,7 +207,7 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 	}
 
 	coll := s.app.Db().CryptoFuturesOhlcColl()
-	latestStartTime, err := market_model.GetLatestOhlcStartTime(id, defaultStart, coll, todoPrinter)
+	latestStartTime, err := market_dto.GetLatestOhlcStartTime(id, defaultStart, coll, todoPrinter)
 	if err != nil {
 		return err
 	}
@@ -232,9 +231,12 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 		return err
 	}
 
-	if doc := market_model.UpsertOhlcRows(docs, coll); doc != nil {
-		s.log().Info(fmt.Sprintf("upserted binance fututes ohlc for %v: %v", id, doc.String()))
+	log, err := market_dto.UpsertOhlcRows(docs, coll)
+	if err != nil {
+		return err
 	}
+
+	s.log().Info("upserted binance fututes ohlc", logger.LogFields{"id": id, "log": log.String()})
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package market_model
+package market_dto
 
 import (
 	"context"
@@ -33,9 +33,9 @@ type FuturesAsset struct {
 	OrderTypes            []string  `json:"order_types" bson:"order_types"`
 }
 
-func UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) *mongodb.UpsertLog {
+func UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
-		return nil
+		return nil, fmt.Errorf("no data to upsert")
 	}
 
 	upsertFn := func(row FuturesAsset) error {
@@ -48,18 +48,15 @@ func UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) *mongodb.U
 		return err
 	}
 
-	numUpsertedRows := 0
 	start := time.Now()
 
 	for _, row := range data {
 		if err := upsertFn(row); err != nil {
-			fmt.Printf("error inserting row: %v\n", err)
-		} else {
-			numUpsertedRows++
+			return nil, err
 		}
 	}
 
-	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, numUpsertedRows, start)
+	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
 }
 
 func GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesAsset, error) {

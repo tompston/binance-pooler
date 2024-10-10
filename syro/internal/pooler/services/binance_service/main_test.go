@@ -3,7 +3,7 @@ package binance_service
 import (
 	"fmt"
 	syro "syro/pkg/app"
-	"syro/pkg/models/market_model"
+	"syro/pkg/dto/market_dto"
 	"syro/pkg/providers/binance"
 	"testing"
 	"time"
@@ -72,9 +72,12 @@ func TestService(t *testing.T) {
 			t.Fatalf(err.Error())
 		}
 
-		if doc := market_model.UpsertOhlcRows(docs, coll); doc != nil {
-			fmt.Printf("doc.String(): %v\n", doc.String())
+		log, err := market_dto.UpsertOhlcRows(docs, coll)
+		if err != nil {
+			t.Fatalf(err.Error())
 		}
+
+		fmt.Printf("log.String(): %v\n", log.String())
 	})
 
 	t.Run("scrapeFuturesOhlcForIdTest", func(t *testing.T) {

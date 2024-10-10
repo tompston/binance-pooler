@@ -1,4 +1,4 @@
-package market_model
+package market_dto
 
 import (
 	"context"
@@ -46,6 +46,10 @@ type OhlcRow struct {
 
 // Pretty print the OhlcRow for debugging
 func (o *OhlcRow) String() string {
+	if o == nil {
+		return "<nil>"
+	}
+
 	return fmt.Sprintf("id: %v, time: %v, interval: %v, o: %v, h: %v, l: %v, c: %v, v: %v",
 		o.ID, o.StartTime, o.Interval, o.Open, o.High, o.Low, o.Close, o.Volume)
 }
@@ -70,9 +74,9 @@ func NewOhlcRow(id string, startTime, endTime time.Time, open, high, low, close,
 func (r *OhlcRow) SetBaseAssetVolume(vol float64) { r.BaseAssetVolume = &vol }
 func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 
-func UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) *mongodb.UpsertLog {
+func UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
-		return nil
+		return nil, fmt.Errorf("no data to upsert")
 	}
 
 	upsertFn := func(row OhlcRow) error {
@@ -85,18 +89,15 @@ func UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) *mongodb.UpsertLog {
 		return err
 	}
 
-	numUpsertedRows := 0
 	start := time.Now()
 
 	for _, row := range data {
 		if err := upsertFn(row); err != nil {
-			fmt.Printf("error inserting row: %v\n", err)
-		} else {
-			numUpsertedRows++
+			return nil, err
 		}
 	}
 
 	return mongodb.NewUpsertLog(coll,
 		data[0].StartTime, data[len(data)-1].StartTime,
-		numUpsertedRows, start)
+		len(data), start), nil
 }
