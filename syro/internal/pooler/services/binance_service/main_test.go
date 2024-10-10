@@ -1,21 +1,22 @@
-package binance
+package binance_service
 
 import (
 	"fmt"
 	syro "syro/pkg/app"
 	"syro/pkg/models/market_model"
+	"syro/pkg/providers/binance"
 	"testing"
 	"time"
 )
 
 // go test -run ^TestApi$ syro/internal/pooler/services/binance -v -count=1
 func TestApi(t *testing.T) {
-	api := NewAPI()
+	api := binance.NewAPI()
 	from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 	to := from.Add(time.Hour * 1)
 
 	t.Run("GetFutureKline", func(t *testing.T) {
-		dbrows, err := api.GetFutureKline("batusdt", from, to, TIMEFRAME_15M)
+		dbrows, err := api.GetFutureKline("batusdt", from, to, binance.Timeframe15M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -41,8 +42,8 @@ func TestApi(t *testing.T) {
 
 		reqPeriod := 60
 
-		api := NewAPI()
-		doc, err := api.GetSpotKline("ethusdt", t1, t2, TIMEFRAME_1M)
+		api := binance.NewAPI()
+		doc, err := api.GetSpotKline("ethusdt", t1, t2, binance.Timeframe1M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -60,13 +61,13 @@ func TestService(t *testing.T) {
 	defer cleanup()
 
 	t.Run("GetFutureKlineTest", func(t *testing.T) {
-		api := NewAPI()
+		api := binance.NewAPI()
 		coll := app.Db().TestCollection("crypto_futures_ohlc_service_test")
 		from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 		to := from.Add(time.Hour * 4)
 		id := "batusdt"
 
-		docs, err := api.GetFutureKline(id, from, to, TIMEFRAME_15M)
+		docs, err := api.GetFutureKline(id, from, to, binance.Timeframe15M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -87,7 +88,7 @@ func TestService(t *testing.T) {
 
 		id := "BTCUSDT"
 
-		if err := s.scrapeFuturesOhlcForId(id, TIMEFRAME_15M); err != nil {
+		if err := s.scrapeFuturesOhlcForId(id, binance.Timeframe15M); err != nil {
 			t.Fatalf(err.Error())
 		}
 	})

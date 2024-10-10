@@ -78,7 +78,7 @@ func (s *service) scrapeHistoricalData(info market_model.CryptoSpotAssetDocument
 
 	api := NewAPI(_MAX_REQ_PERIOD_IN_MIN)
 
-	doc, err := api.GetSpotKline(id, t1, t2, TIMEFRAME_1M)
+	doc, err := api.GetSpotKline(id, t1, t2, Timeframe1M)
 	if err != nil {
 		return fmt.Errorf("error scraping ohlc data for %v: %v", id, err)
 	}

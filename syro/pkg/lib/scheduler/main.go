@@ -69,6 +69,10 @@ type Job struct {
 }
 
 type Storage interface {
+	// SetOptions sets the storage options
+	SetOptions(StorageOptions) Storage
+	// GetStorageOptions returns the storage options
+	GetStorageOptions() StorageOptions
 	// AllJobs returns a list of all registered jobs
 	AllJobs() ([]JobInfo, error)
 	// RegisterJob registers the details of the selected job
@@ -79,6 +83,10 @@ type Storage interface {
 	FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error)
 	// SetJobsToInactive updates the status of the jobs for the given source. This is useful when the app exits.
 	SetJobsToInactive(source string) error
+}
+
+type StorageOptions struct {
+	LogRuntime bool
 }
 
 // JobInfo stores information about the registered job
@@ -112,7 +120,6 @@ type ExecutionFilter struct {
 	ExecutionLog ExecutionLog `json:"execution_log" bson:"execution_log"`
 }
 
-// newExecutionLog creates a new ExecutionLog instance.
 func newExecutionLog(source, name string, initializedAt time.Time, err error) *ExecutionLog {
 	log := &ExecutionLog{
 		Source:        source,

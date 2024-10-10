@@ -17,6 +17,10 @@ func (eg *ErrGroup) Add(err error) {
 // Error implements the error interface. It returns a concatenated string of all
 // non-nil ErrGroup, each separated by a semicolon.
 func (eg *ErrGroup) Error() string {
+	if eg == nil {
+		return ""
+	}
+
 	var errStrings []string
 	for _, err := range *eg {
 		if err != nil {

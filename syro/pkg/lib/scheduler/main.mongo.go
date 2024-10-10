@@ -14,6 +14,7 @@ import (
 
 // MongoStorage implementation of the Storage interface
 type MongoStorage struct {
+	Options         StorageOptions
 	cronListColl    *mongo.Collection
 	cronHistoryColl *mongo.Collection
 }
@@ -46,6 +47,15 @@ func NewMongoStorage(cronListColl, cronHistoryColl *mongo.Collection) (*MongoSto
 		cronListColl:    cronListColl,
 		cronHistoryColl: cronHistoryColl,
 	}, nil
+}
+
+func (m *MongoStorage) SetOptions(opt StorageOptions) Storage {
+	m.Options = opt
+	return m
+}
+
+func (m *MongoStorage) GetStorageOptions() StorageOptions {
+	return m.Options
 }
 
 // TODO: refactor so that filter is a variadic parameter

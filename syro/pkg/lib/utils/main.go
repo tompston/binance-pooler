@@ -37,11 +37,13 @@ func DecodeStructToStrings(v any) (*DecodedStrings, error) {
 		return nil, err
 	}
 
-	return &DecodedStrings{JSON: string(json), BSON: string(bson)}, nil
+	return &DecodedStrings{
+		JSON: string(json),
+		BSON: string(bson)}, nil
 }
 
 func LogIfArgExists(msg any, loggerFn []func(any)) {
-	if len(loggerFn) == 1 {
+	if len(loggerFn) == 1 && loggerFn[0] != nil {
 		loggerFn[0](msg)
 	}
 }

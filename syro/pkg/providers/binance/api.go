@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const SOURCE = "binance"
+const Source = "binance"
 
 type API struct{}
 
@@ -38,11 +38,11 @@ func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
 const minInMillis = 60 * 1000
 
 var (
-	TIMEFRAME_1M  = Timeframe{"1m", 1 * minInMillis}
-	TIMEFRAME_5M  = Timeframe{"5m", 5 * minInMillis}
-	TIMEFRAME_15M = Timeframe{"15m", 15 * minInMillis}
-	TIMEFRAME_30M = Timeframe{"30m", 30 * minInMillis}
-	TIMEFRAME_1H  = Timeframe{"1h", 60 * minInMillis}
+	Timeframe1M  = Timeframe{"1m", 1 * minInMillis}
+	Timeframe5M  = Timeframe{"5m", 5 * minInMillis}
+	Timeframe15M = Timeframe{"15m", 15 * minInMillis}
+	Timeframe30M = Timeframe{"30m", 30 * minInMillis}
+	Timeframe1H  = Timeframe{"1h", 60 * minInMillis}
 )
 
 // // 1min query data
@@ -292,7 +292,7 @@ func (api API) GetAllFutureSymbols() ([]market_model.FuturesAsset, error) {
 		asset := market_model.FuturesAsset{
 			UpdatedAt:             time.Now().UTC(),
 			ID:                    id,
-			Source:                SOURCE,
+			Source:                Source,
 			ContractType:          symbol.ContractType,
 			DeliveryDate:          deliveryDate,
 			OnboardDate:           onboardDate,

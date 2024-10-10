@@ -36,5 +36,6 @@ func (c *Tasklock) Run(command string, fn func(), identifier ...string) bool {
 		fn()
 		c.runningCommands.Delete(key) // Remove the command from the running list after completion
 	}()
+
 	return true
 }

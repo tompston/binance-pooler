@@ -1,4 +1,4 @@
-package binance
+package binance_service
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
 	"syro/pkg/models/market_model"
+	"syro/pkg/providers/binance"
 
 	"syro/pkg/lib/logger"
 )
@@ -24,12 +25,12 @@ const (
 
 type service struct {
 	app                 *app.App
-	api                 API
+	api                 binance.API
 	maxParalellRequests int
 }
 
 func New(app *app.App, maxParalellRequests int) *service {
-	return &service{app, NewAPI(), maxParalellRequests}
+	return &service{app, binance.NewAPI(), maxParalellRequests}
 }
 
 func (s *service) log() logger.Logger {
@@ -71,7 +72,7 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 }
 
 func (s *service) Tmp() {
-	if err := s.scrapeFuturesOhlcForId("BTCUSDT", TIMEFRAME_15M); err != nil {
+	if err := s.scrapeFuturesOhlcForId("BTCUSDT", binance.Timeframe15M); err != nil {
 		s.log().Error(err)
 	}
 }
@@ -81,7 +82,7 @@ func todoPrinter(v any) { fmt.Println(v) }
 func (s *service) getFuturesAssets() ([]market_model.FuturesAsset, error) {
 	coll := s.app.Db().CryptoFuturesAssetColl()
 
-	filter := bson.M{"source": SOURCE, "status": "TRADING"}
+	filter := bson.M{"source": binance.Source, "status": "TRADING"}
 
 	opt := options.Find().
 		SetSort(bson.D{{Key: "onboard_date", Value: -1}})
@@ -95,7 +96,7 @@ func (s *service) getFuturesAssets() ([]market_model.FuturesAsset, error) {
 func (s *service) setupFuturesAssets() error {
 	coll := s.app.Db().CryptoFuturesAssetColl()
 
-	filter := bson.M{"source": SOURCE}
+	filter := bson.M{"source": binance.Source}
 	count, err := coll.CountDocuments(context.Background(), filter)
 	if err != nil {
 		return err
@@ -129,12 +130,12 @@ func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
 			time.Sleep(apiRequestSleep)
 
 			if len(fillgaps) == 1 && fillgaps[0] {
-				if err := s.fillGapsForId(id, TIMEFRAME_15M); err != nil {
+				if err := s.fillGapsForId(id, binance.Timeframe15M); err != nil {
 					s.log().Error(err)
 				}
 
 			} else {
-				if err := s.scrapeFuturesOhlcForId(id, TIMEFRAME_15M); err != nil {
+				if err := s.scrapeFuturesOhlcForId(id, binance.Timeframe15M); err != nil {
 					s.log().Error(err)
 				}
 			}
@@ -162,7 +163,7 @@ func (s *service) scrapeFuturesAssetList() error {
 	return nil
 }
 
-func (s *service) fillGapsForId(id string, tf Timeframe) error {
+func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 
 	coll := s.app.Db().CryptoFuturesOhlcColl()
 	filter := bson.M{"id": id, "interval": tf.Milis}
@@ -195,7 +196,7 @@ func (s *service) fillGapsForId(id string, tf Timeframe) error {
 	return nil
 }
 
-func (s *service) scrapeFuturesOhlcForId(id string, tf Timeframe) error {
+func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error {
 	asset, err := market_model.GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
 	if err != nil {
 		return err
