@@ -33,7 +33,7 @@ type FuturesAsset struct {
 	OrderTypes            []string  `json:"order_types" bson:"order_types"`
 }
 
-func UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -59,13 +59,13 @@ func UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.
 	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
 }
 
-func GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesAsset, error) {
+func (m *Mongo) GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesAsset, error) {
 	var doc FuturesAsset
 	filter := bson.M{"id": id}
 	err := coll.FindOne(context.Background(), filter).Decode(&doc)
 	return doc, err
 }
 
-func CreateFuturesAssetIndexes(coll *mongo.Collection) error {
+func (m *Mongo) CreateFuturesAssetIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().Add("id").Add("source").Create(coll)
 }

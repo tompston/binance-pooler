@@ -46,9 +46,6 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 		&scheduler.Job{
 			Name: "binance-futures-ohlc",
 			Freq: "@every 1m",
-			// TODO: there is a problem if the custom logger is defined inside the job with
-			// the EventID set to the job name. If the function returns error, it won't
-			// be associated with it.
 			Func: func() error {
 				if err := s.runFuturesOhlcScraper(); err != nil {
 					s.log().Error(err)
@@ -69,8 +66,6 @@ func (s *service) Tmp() {
 		s.log().Error(err)
 	}
 }
-
-func todoPrinter(v any) { fmt.Println(v) }
 
 func (s *service) getFuturesAssets() ([]market_dto.FuturesAsset, error) {
 	coll := s.app.Db().CryptoFuturesAssetColl()
@@ -149,7 +144,7 @@ func (s *service) scrapeFuturesAssetList() error {
 		return err
 	}
 
-	log, err := market_dto.UpsertFuturesAssets(docs, coll)
+	log, err := market_dto.NewMongoInterface().UpsertFuturesAssets(docs, coll)
 	if err != nil {
 		return err
 	}
@@ -183,7 +178,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 				return err
 			}
 
-			log, err := market_dto.UpsertOhlcRows(docs, coll)
+			log, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
 			if err != nil {
 				return err
 			}
@@ -196,7 +191,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 }
 
 func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error {
-	asset, err := market_dto.GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
+	asset, err := market_dto.NewMongoInterface().GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
 	if err != nil {
 		return err
 	}
@@ -207,7 +202,7 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 	}
 
 	coll := s.app.Db().CryptoFuturesOhlcColl()
-	latestStartTime, err := market_dto.GetLatestOhlcStartTime(id, defaultStart, coll, todoPrinter)
+	latestStartTime, err := market_dto.NewMongoInterface().GetLatestOhlcStartTime(id, defaultStart, coll, nil)
 	if err != nil {
 		return err
 	}
@@ -231,7 +226,7 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 		return err
 	}
 
-	log, err := market_dto.UpsertOhlcRows(docs, coll)
+	log, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
 	if err != nil {
 		return err
 	}

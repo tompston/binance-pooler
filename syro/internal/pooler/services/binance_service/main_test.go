@@ -54,10 +54,11 @@ func TestApi(t *testing.T) {
 
 }
 
-// GO_CONF_PATH="$(pwd)/conf/config.dev.toml" go test -run ^TestService$ syro/internal/pooler/services//binance -v -count=1
 func TestService(t *testing.T) {
 	app, cleanup := syro.SetupTestEnvironment(t)
 	defer cleanup()
+
+	mongoInterface := market_dto.NewMongoInterface()
 
 	t.Run("GetFutureKlineTest", func(t *testing.T) {
 		api := binance.NewAPI()
@@ -71,7 +72,7 @@ func TestService(t *testing.T) {
 			t.Fatalf(err.Error())
 		}
 
-		log, err := market_dto.UpsertOhlcRows(docs, coll)
+		log, err := mongoInterface.UpsertOhlcRows(docs, coll)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}

@@ -13,7 +13,9 @@ import (
 // indexes for collections
 func SetupMongoEnv(db *db.Db) error {
 
-	if err := market_dto.CreateFuturesAssetIndexes(db.CryptoFuturesAssetColl()); err != nil {
+	mongoInterface := market_dto.NewMongoInterface()
+
+	if err := mongoInterface.CreateFuturesAssetIndexes(db.CryptoFuturesAssetColl()); err != nil {
 		return fmt.Errorf("failed to create indexes for %v: %v", db.CryptoFuturesAssetColl().Name(), err)
 	}
 
@@ -22,7 +24,7 @@ func SetupMongoEnv(db *db.Db) error {
 		db.CryptoFuturesOhlcColl()}
 
 	for _, coll := range olhcColls {
-		if err := market_dto.CreateOhlcIndexes(coll); err != nil {
+		if err := mongoInterface.CreateOhlcIndexes(coll); err != nil {
 			return fmt.Errorf("failed to create indexes for %v: %v", coll.Name(), err)
 		}
 	}

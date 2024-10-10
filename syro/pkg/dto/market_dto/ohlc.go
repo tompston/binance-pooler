@@ -23,17 +23,6 @@ func NewOHLC(open, high, low, close, volume float64) *OHLC {
 	return &OHLC{Open: open, High: high, Low: low, Close: close, Volume: volume}
 }
 
-func CreateOhlcIndexes(coll *mongo.Collection) error {
-	return mongodb.TimeseriesIndexes().
-		Add("id").
-		Add(mongodb.START_TIME, "id").
-		Create(coll)
-}
-
-func GetLatestOhlcStartTime(id string, defaultStartTime time.Time, coll *mongo.Collection, loggerFn func(any)) (time.Time, error) {
-	return mongodb.GetLatestStartTime(defaultStartTime, coll, bson.M{"id": id}, false, loggerFn)
-}
-
 // timeseries data stored in the db
 type OhlcRow struct {
 	mongodb.TimeseriesFields `bson:",inline"`
@@ -74,7 +63,18 @@ func NewOhlcRow(id string, startTime, endTime time.Time, open, high, low, close,
 func (r *OhlcRow) SetBaseAssetVolume(vol float64) { r.BaseAssetVolume = &vol }
 func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 
-func UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (m *Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
+	return mongodb.TimeseriesIndexes().
+		Add("id").
+		Add(mongodb.START_TIME, "id").
+		Create(coll)
+}
+
+func (m *Mongo) GetLatestOhlcStartTime(id string, defaultStartTime time.Time, coll *mongo.Collection, loggerFn func(any)) (time.Time, error) {
+	return mongodb.GetLatestStartTime(defaultStartTime, coll, bson.M{"id": id}, false, loggerFn)
+}
+
+func (m *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}

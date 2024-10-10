@@ -1,6 +1,5 @@
 package mongodb
 
-// GO_CONF_PATH="$(pwd)/conf/config.dev.toml" go test -run ^TestIndexCreator$ syro/pkg/settings/db/mongodb -v -count=1
 // func TestIndexCreator(t *testing.T) {
 // 	db, err := SetupMongdbTest()
 // 	if err != nil {

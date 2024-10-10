@@ -1,4 +1,4 @@
-package yahoo
+package yahoo_service
 
 import (
 	"fmt"
