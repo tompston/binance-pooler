@@ -7,7 +7,6 @@ import (
 	"syro/pkg/dto/market_dto"
 	"syro/pkg/lib/encoder"
 	"syro/pkg/lib/fetcher"
-	"syro/pkg/lib/timeset"
 	"time"
 )
 
@@ -45,9 +44,9 @@ var (
 	Timeframe1H  = Timeframe{"1h", 60 * minInMillis}
 )
 
-// // 1min query data
-// //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-// //   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
+// 1min query data
+//   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+//   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
 func (api API) GetSpotKline(id string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
 	return api.requestKlineData("https://api.binance.com/api/v3/klines", id, from, to, tf)
 }
@@ -181,139 +180,6 @@ func parseKineRow(id string, d []any) (*market_dto.OhlcRow, error) {
 	row.SetBaseAssetVolume(baseVol)
 	row.SetNumberOfTrades(int64(numTrades))
 	return row, nil
-}
-
-func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
-	type Response struct {
-		Timezone    string `json:"timezone"`
-		ServerTime  int64  `json:"serverTime"`
-		FuturesType string `json:"futuresType"`
-		RateLimits  []struct {
-			RateLimitType string `json:"rateLimitType"`
-			Interval      string `json:"interval"`
-			IntervalNum   int    `json:"intervalNum"`
-			Limit         int    `json:"limit"`
-		} `json:"rateLimits"`
-		ExchangeFilters []interface{} `json:"exchangeFilters"`
-		Assets          []struct {
-			Asset             string `json:"asset"`
-			MarginAvailable   bool   `json:"marginAvailable"`
-			AutoAssetExchange string `json:"autoAssetExchange"`
-		} `json:"assets"`
-		Symbols []struct {
-			Symbol                string   `json:"symbol"`
-			Pair                  string   `json:"pair"`
-			ContractType          string   `json:"contractType"`
-			DeliveryDate          int64    `json:"deliveryDate"`
-			OnboardDate           int64    `json:"onboardDate"`
-			Status                string   `json:"status"`
-			MaintMarginPercent    string   `json:"maintMarginPercent"`
-			RequiredMarginPercent string   `json:"requiredMarginPercent"`
-			BaseAsset             string   `json:"baseAsset"`
-			QuoteAsset            string   `json:"quoteAsset"`
-			MarginAsset           string   `json:"marginAsset"`
-			PricePrecision        int      `json:"pricePrecision"`
-			QuantityPrecision     int      `json:"quantityPrecision"`
-			BaseAssetPrecision    int      `json:"baseAssetPrecision"`
-			QuotePrecision        int      `json:"quotePrecision"`
-			UnderlyingType        string   `json:"underlyingType"`
-			UnderlyingSubType     []string `json:"underlyingSubType"`
-			SettlePlan            int      `json:"settlePlan"`
-			TriggerProtect        string   `json:"triggerProtect"`
-			LiquidationFee        string   `json:"liquidationFee"`
-			MarketTakeBound       string   `json:"marketTakeBound"`
-			MaxMoveOrderLimit     float64  `json:"maxMoveOrderLimit"`
-			Filters               []struct {
-				FilterType        string `json:"filterType"`
-				MaxPrice          string `json:"maxPrice,omitempty"`
-				MinPrice          string `json:"minPrice,omitempty"`
-				TickSize          string `json:"tickSize,omitempty"`
-				StepSize          string `json:"stepSize,omitempty"`
-				MinQty            string `json:"minQty,omitempty"`
-				MaxQty            string `json:"maxQty,omitempty"`
-				Limit             int    `json:"limit,omitempty"`
-				Notional          string `json:"notional,omitempty"`
-				MultiplierUp      string `json:"multiplierUp,omitempty"`
-				MultiplierDown    string `json:"multiplierDown,omitempty"`
-				MultiplierDecimal string `json:"multiplierDecimal,omitempty"`
-			} `json:"filters"`
-			OrderTypes  []string `json:"orderTypes"`
-			TimeInForce []string `json:"timeInForce"`
-		} `json:"symbols"`
-	}
-
-	url := "https://fapi.binance.com/fapi/v1/exchangeInfo"
-	res, err := fetcher.Fetch("GET", url, fetcher.JsonHeader, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var data Response
-	if err := encoder.JSON.Unmarshal(res.Body, &data); err != nil {
-		return nil, err
-	}
-
-	var assets []market_dto.FuturesAsset
-
-	for _, symbol := range data.Symbols {
-		id := symbol.Symbol
-		if id == "" {
-			continue
-		}
-
-		deliveryDate := timeset.UnixMillisToTime(symbol.DeliveryDate)
-		onboardDate := timeset.UnixMillisToTime(symbol.OnboardDate)
-
-		maintMarginPercent, err := parseFloat(symbol.MaintMarginPercent)
-		if err != nil {
-			continue
-		}
-
-		requiredMargin, err := parseFloat(symbol.RequiredMarginPercent)
-		if err != nil {
-			continue
-		}
-
-		triggerProtect, err := parseFloat(symbol.TriggerProtect)
-		if err != nil {
-			continue
-		}
-
-		liquidationFee, err := parseFloat(symbol.LiquidationFee)
-		if err != nil {
-			continue
-		}
-
-		marketTakeBound, err := parseFloat(symbol.MarketTakeBound)
-		if err != nil {
-			continue
-		}
-
-		asset := market_dto.FuturesAsset{
-			UpdatedAt:             time.Now().UTC(),
-			ID:                    id,
-			Source:                Source,
-			ContractType:          symbol.ContractType,
-			DeliveryDate:          deliveryDate,
-			OnboardDate:           onboardDate,
-			Status:                symbol.Status,
-			MaintMarginPercent:    maintMarginPercent,
-			RequiredMarginPercent: requiredMargin,
-			BaseAsset:             symbol.BaseAsset,
-			QuoteAsset:            symbol.QuoteAsset,
-			MarginAsset:           symbol.MarginAsset,
-			UnderlyingType:        symbol.UnderlyingType,
-			TriggerProtect:        triggerProtect,
-			LiquidationFee:        liquidationFee,
-			MarketTakeBound:       marketTakeBound,
-			MaxMoveOrderLimit:     symbol.MaxMoveOrderLimit,
-			OrderTypes:            symbol.OrderTypes,
-		}
-
-		assets = append(assets, asset)
-	}
-
-	return assets, nil
 }
 
 func parseFloat(val any) (float64, error) {

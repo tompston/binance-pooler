@@ -61,3 +61,9 @@ futures.json
 
 
 !config.dev.toml
+
+cpu.prof
+cpu.txt
+flame.svg
+
+exchangeInfo.json

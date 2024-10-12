@@ -51,7 +51,6 @@ func TestApi(t *testing.T) {
 			t.Fatalf("expected 60 rows, got %d", len(doc))
 		}
 	})
-
 }
 
 func TestService(t *testing.T) {

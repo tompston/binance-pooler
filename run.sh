@@ -31,6 +31,16 @@ case $FIRST_ARG in
     cd syro && go run cmd/exec/main.go
     ;;
 
+"flamegraph")
+    cd syro
+    go build -o out cmd/flamegraph/main.go
+    ./out
+
+    # create and open the flamegraph svg
+    go tool pprof -raw -output=cpu.txt ./out cpu.prof
+    stackcollapse-go.pl cpu.txt | flamegraph.pl > flame.svg && open flame.svg
+    ;;
+
 "test")
     case $SECOND_ARG in
     "go")

@@ -1,7 +1,6 @@
 package binance_service
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -39,6 +38,10 @@ func (s *service) log() logger.Logger {
 
 func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	if err := s.setupFuturesAssets(); err != nil {
+		s.log().Error(err)
+	}
+
+	if err := s.setupSpotAssets(); err != nil {
 		s.log().Error(err)
 	}
 
@@ -80,25 +83,6 @@ func (s *service) getFuturesAssets() ([]market_dto.FuturesAsset, error) {
 	return docs, err
 }
 
-// If the db does not have any futures assets, scrape the list from the binance api
-func (s *service) setupFuturesAssets() error {
-	coll := s.app.Db().CryptoFuturesAssetColl()
-
-	filter := bson.M{"source": binance.Source}
-	count, err := coll.CountDocuments(context.Background(), filter)
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
-		s.log().Info("no futures assets found, scraping data")
-		return s.scrapeFuturesAssetList()
-	}
-
-	s.log().Info(fmt.Sprintf("futures assets already exist in %v collection, skipping setup", coll.Name()))
-	return nil
-}
-
 func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
 	assets, err := s.getFuturesAssets()
 	if err != nil {
@@ -132,24 +116,6 @@ func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
 	}
 
 	wg.Wait()
-
-	return nil
-}
-
-func (s *service) scrapeFuturesAssetList() error {
-	coll := s.app.Db().CryptoFuturesAssetColl()
-
-	docs, err := s.api.GetAllFutureSymbols()
-	if err != nil {
-		return err
-	}
-
-	log, err := market_dto.NewMongoInterface().UpsertFuturesAssets(docs, coll)
-	if err != nil {
-		return err
-	}
-
-	s.log().Info("upserted binance fututes info", logger.Fields{"log": log})
 
 	return nil
 }
