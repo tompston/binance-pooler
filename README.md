@@ -2,7 +2,7 @@
 
 Timeseries data scraper example, implementing the ideas mentioned in [this tutorial](https://tompston.pages.dev/writing/2024-06-29-everything-about-timeseries-data-scraping).
 
-Scrapes futures data from binance api and stores it in a mongodb database.
+Scrapes spot data from binance api and stores it in a mongodb database.
 
 Additional features:
 

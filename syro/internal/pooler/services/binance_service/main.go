@@ -37,9 +37,9 @@ func (s *service) log() logger.Logger {
 }
 
 func (s *service) AddJobs(sched *scheduler.Scheduler) error {
-	if err := s.setupFuturesAssets(); err != nil {
-		s.log().Error(err)
-	}
+	// if err := s.setupFuturesAssets(); err != nil {
+	// 	s.log().Error(err)
+	// }
 
 	if err := s.setupSpotAssets(); err != nil {
 		s.log().Error(err)
@@ -47,10 +47,10 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 
 	if err := sched.Register(
 		&scheduler.Job{
-			Name: "binance-futures-ohlc",
+			Name: "binance-spot-ohlc",
 			Freq: "@every 1m",
 			Func: func() error {
-				if err := s.runFuturesOhlcScraper(); err != nil {
+				if err := s.runOhlcScraper(); err != nil {
 					s.log().Error(err)
 					return err
 				}
@@ -64,27 +64,20 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	return nil
 }
 
-func (s *service) Tmp() {
-	if err := s.scrapeFuturesOhlcForId("BTCUSDT", binance.Timeframe15M); err != nil {
-		s.log().Error(err)
-	}
-}
+// func (s *service) Tmp() {
+// 	if err := s.scrapeOhlcForID("BTCUSDT", binance.Timeframe15M); err != nil {
+// 		s.log().Error(err)
+// 	}
+// }
 
-func (s *service) getFuturesAssets() ([]market_dto.FuturesAsset, error) {
-	coll := s.app.Db().CryptoFuturesAssetColl()
+func (s *service) runOhlcScraper(fillgaps ...bool) error {
 
-	filter := bson.M{"source": binance.Source, "status": "TRADING"}
-
-	opt := options.Find().
-		SetSort(bson.D{{Key: "onboard_date", Value: -1}})
-
-	var docs []market_dto.FuturesAsset
-	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
-	return docs, err
-}
-
-func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
-	assets, err := s.getFuturesAssets()
+	assets, err := market_dto.NewMongoInterface().GetSpotAssets(
+		s.app.Db().CryptoSpotAssetColl(),
+		bson.M{"source": binance.Source, "status": "TRADING"},
+		// options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
+		options.Find().SetLimit(50),
+	)
 	if err != nil {
 		return err
 	}
@@ -107,7 +100,7 @@ func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
 				}
 
 			} else {
-				if err := s.scrapeFuturesOhlcForId(id, binance.Timeframe15M); err != nil {
+				if err := s.scrapeOhlcForID(id, binance.Timeframe15M); err != nil {
 					s.log().Error(err)
 				}
 			}
@@ -122,7 +115,7 @@ func (s *service) runFuturesOhlcScraper(fillgaps ...bool) error {
 
 func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 
-	coll := s.app.Db().CryptoFuturesOhlcColl()
+	coll := s.app.Db().CryptoSpotOhlcColl()
 	filter := bson.M{"id": id, "interval": tf.Milis}
 	gaps, err := mongodb.FindGaps(coll, filter)
 	if err != nil {
@@ -156,18 +149,20 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 	return nil
 }
 
-func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error {
-	asset, err := market_dto.NewMongoInterface().GetFuturesAssetByID(s.app.Db().CryptoFuturesAssetColl(), id)
-	if err != nil {
-		return err
-	}
+func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
+	// asset, err := market_dto.NewMongoInterface().GetSpotAssetByID(s.app.Db().CryptoSpotAssetColl(), id)
+	// if err != nil {
+	// 	return err
+	// }
 
-	defaultStart := asset.OnboardDate
-	if defaultStart.IsZero() {
-		return fmt.Errorf("onboard date is zero for asset %v", id)
-	}
+	// defaultStart := asset.OnboardDate
+	// if defaultStart.IsZero() {
+	// 	return fmt.Errorf("onboard date is zero for asset %v", id)
+	// }
 
-	coll := s.app.Db().CryptoFuturesOhlcColl()
+	defaultStart := time.Now().AddDate(-4, 0, 0)
+
+	coll := s.app.Db().CryptoSpotOhlcColl()
 	latestStartTime, err := market_dto.NewMongoInterface().GetLatestOhlcStartTime(id, defaultStart, coll, nil)
 	if err != nil {
 		return err
@@ -187,14 +182,14 @@ func (s *service) scrapeFuturesOhlcForId(id string, tf binance.Timeframe) error 
 	from := latestStartTime.Add(-overlay)
 	to := from.Add(tf.GetMaxReqPeriod())
 
-	docs, err := s.api.GetFutureKline(id, from, to, tf)
+	docs, err := s.api.GetSpotKline(id, from, to, tf)
 	if err != nil {
 		return err
 	}
 
 	log, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
 	if err != nil {
-		return err
+		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", id, tf.UrlParam, err)
 	}
 
 	s.log().Info("upserted binance fututes ohlc", logger.Fields{"id": id, "log": log.String()})

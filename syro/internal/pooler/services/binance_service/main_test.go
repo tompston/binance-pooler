@@ -79,7 +79,7 @@ func TestService(t *testing.T) {
 		fmt.Printf("log.String(): %v\n", log.String())
 	})
 
-	t.Run("scrapeFuturesOhlcForIdTest", func(t *testing.T) {
+	t.Run("scrapeOhlcForIDTest", func(t *testing.T) {
 
 		s := New(app, 1)
 
@@ -90,7 +90,7 @@ func TestService(t *testing.T) {
 
 		id := "BTCUSDT"
 
-		if err := s.scrapeFuturesOhlcForId(id, binance.Timeframe15M); err != nil {
+		if err := s.scrapeOhlcForID(id, binance.Timeframe15M); err != nil {
 			t.Fatalf(err.Error())
 		}
 	})

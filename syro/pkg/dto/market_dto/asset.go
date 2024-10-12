@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type FuturesAsset struct {
@@ -57,6 +58,12 @@ func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection)
 	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
 }
 
+func (m *Mongo) GetFuturesAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]FuturesAsset, error) {
+	var docs []FuturesAsset
+	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
+	return docs, err
+}
+
 func (m *Mongo) GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesAsset, error) {
 	var doc FuturesAsset
 	filter := bson.M{"id": id}
@@ -65,7 +72,7 @@ func (m *Mongo) GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesA
 }
 
 func (m *Mongo) CreateAssetIndexes(coll *mongo.Collection) error {
-	return mongodb.NewIndexes().Add("id").Add("source").Create(coll)
+	return mongodb.NewIndexes().Add("id").Add("source", "status").Create(coll)
 }
 
 type SpotAsset struct {
@@ -115,6 +122,12 @@ func (m *Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mon
 	}
 
 	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
+}
+
+func (m *Mongo) GetSpotAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]SpotAsset, error) {
+	var docs []SpotAsset
+	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
+	return docs, err
 }
 
 func (m *Mongo) GetSpotAssetByID(coll *mongo.Collection, id string) (SpotAsset, error) {

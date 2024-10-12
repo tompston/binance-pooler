@@ -66,7 +66,7 @@ func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 func (m *Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
 	return mongodb.TimeseriesIndexes().
 		Add("id").
-		Add(mongodb.START_TIME, "id").
+		Add(mongodb.START_TIME, "id", "interval").
 		Create(coll)
 }
 
@@ -74,30 +74,25 @@ func (m *Mongo) GetLatestOhlcStartTime(id string, defaultStartTime time.Time, co
 	return mongodb.GetLatestStartTime(defaultStartTime, coll, bson.M{"id": id}, false, loggerFn)
 }
 
-func (m *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (db *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
 
-	upsertFn := func(row OhlcRow) error {
+	var models []mongo.WriteModel
+	for _, row := range data {
 		if row.ID == "" {
-			return fmt.Errorf("id is empty")
+			return nil, fmt.Errorf("id is empty")
 		}
 
 		filter := bson.M{"id": row.ID, mongodb.START_TIME: row.StartTime, "interval": row.Interval}
-		_, err := coll.UpdateOne(context.Background(), filter, bson.M{"$set": row}, mongodb.UpsertOpt)
-		return err
+		update := bson.M{"$set": row}
+		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
 	}
 
 	start := time.Now()
 
-	for _, row := range data {
-		if err := upsertFn(row); err != nil {
-			return nil, err
-		}
-	}
-
-	return mongodb.NewUpsertLog(coll,
-		data[0].StartTime, data[len(data)-1].StartTime,
-		len(data), start), nil
+	_, err := coll.BulkWrite(context.Background(), models)
+	log := mongodb.NewUpsertLog(coll, data[0].StartTime, data[len(data)-1].StartTime, len(data), start)
+	return log, err
 }
