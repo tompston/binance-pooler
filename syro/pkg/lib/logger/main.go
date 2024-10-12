@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-// Log struct for storing the log data
+// Log struct for storing the log data. Event, EventID, and Fields are optional.
 type Log struct {
-	Time    time.Time `json:"time" bson:"time"`         // Time of the log (UTC)
-	Level   string    `json:"level" bson:"level"`       // Log level
-	Message string    `json:"message" bson:"message"`   // Logged message
-	Source  string    `json:"source" bson:"source"`     // Source of the log (api, pooler, etc.)
-	Event   string    `json:"event" bson:"event"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
-	EventID string    `json:"event_id" bson:"event_id"` // (not logged to the console)
-	Fields  Fields    `json:"fields" bson:"fields"`     // Optional fields
+	Time    time.Time `json:"time" bson:"time"`                             // Time of the log (UTC)
+	Level   string    `json:"level" bson:"level"`                           // Log level
+	Message string    `json:"message" bson:"message"`                       // Logged message
+	Source  string    `json:"source,omitempty" bson:"source,omitempty"`     // Source of the log (api, pooler, etc.)
+	Event   string    `json:"event,omitempty" bson:"event,omitempty"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
+	EventID string    `json:"event_id,omitempty" bson:"event_id,omitempty"` // (not logged to the console)
+	Fields  Fields    `json:"fields,omitempty" bson:"fields,omitempty"`     // Optional fields
 }
 
 type Fields map[string]interface{}

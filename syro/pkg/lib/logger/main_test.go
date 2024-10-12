@@ -19,7 +19,7 @@ func TestLog(t *testing.T) {
 	t.Run("test log creation", func(t *testing.T) {
 		// logger := NewConsoleLogger(nil)
 
-		log := newLog(ERROR, "qweqwe", "my-source", "my-event", "")
+		log := newLog(ERROR, "qweqwe", "my-source", "my-event", "my-event-id")
 
 		decoded, err := utils.DecodeStructToStrings(log)
 		if err != nil {
@@ -38,7 +38,7 @@ func TestLog(t *testing.T) {
 				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
-				`"event_id":""`,
+				`"event_id":"my-event-id"`,
 				`"time":`,
 			}); err != nil {
 				t.Fatal(err)
@@ -65,7 +65,7 @@ func TestLog(t *testing.T) {
 				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
-				`"event_id":""`,
+				`"event_id":"my-event-id"`,
 			}); err != nil {
 				t.Fatal(err)
 			}
@@ -105,6 +105,32 @@ func TestLog(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
+	})
+
+	t.Run("test omit empty fields", func(t *testing.T) {
+
+		log := newLog(ERROR, "", "", "", "")
+
+		decoded, err := utils.DecodeStructToStrings(log)
+		if err != nil {
+			t.Error(err)
+		}
+
+		shouldNotExistField := []string{
+			"source",
+			"event",
+			"event_id",
+		}
+
+		for _, field := range shouldNotExistField {
+			if strings.Contains(decoded.JSON, field) {
+				t.Errorf("The field %v should not exist", field)
+			}
+
+			if strings.Contains(decoded.BSON, field) {
+				t.Errorf("The field %v should not exist", field)
+			}
+		}
 	})
 
 	t.Run("test custom settings", func(t *testing.T) {
