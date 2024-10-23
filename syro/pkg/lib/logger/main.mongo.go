@@ -100,7 +100,7 @@ type LogFilter struct {
 	To    time.Time `json:"to"`
 	Limit int64     `json:"limit"`
 	Skip  int64     `json:"skip"`
-	Log   Log       `json:"log" bson:"log"`
+	Log   Log       `json:"log"`
 }
 
 // FindLogs returns logs that match the filter

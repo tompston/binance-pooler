@@ -85,6 +85,8 @@ func (s *service) runOhlcScraper(fillgaps ...bool) error {
 	sem := make(chan struct{}, s.maxParalellRequests)
 	var wg sync.WaitGroup
 
+	s.log().Debug("* running ohlc scraper", logger.Fields{"count": len(assets)})
+
 	for _, asset := range assets {
 		sem <- struct{}{}
 		wg.Add(1)
