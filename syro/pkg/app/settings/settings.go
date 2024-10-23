@@ -70,6 +70,9 @@ type TomlConfig struct {
 		Username string `toml:"username"`
 		Password string `toml:"password"`
 	} `toml:"mongo"`
+	Postgres struct {
+		ConnString string `toml:"conn_string"`
+	} `toml:"postgres"`
 }
 
 // NewConfig loads a toml config file with the specified path.

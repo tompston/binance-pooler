@@ -25,6 +25,10 @@ func NewMongoLogger(coll *mongo.Collection, settings *LoggerSettings) *MongoLogg
 	return &MongoLogger{Coll: coll, Settings: settings}
 }
 
+func (lg *MongoLogger) GetTableName() string {
+	return lg.Coll.Name()
+}
+
 func (lg *MongoLogger) GetProps() LoggerProps {
 	return LoggerProps{
 		Settings: lg.Settings,

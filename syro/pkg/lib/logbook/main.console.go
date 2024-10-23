@@ -20,6 +20,8 @@ func (lg *ConsoleLogger) GetProps() LoggerProps {
 	}
 }
 
+func (lg *ConsoleLogger) GetTableName() string { return "none" }
+
 func (lg *ConsoleLogger) log(level, msg string, lf ...Fields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := fmt.Print(log.String(lg))

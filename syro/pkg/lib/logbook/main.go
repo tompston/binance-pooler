@@ -61,7 +61,7 @@ func (log Log) String(logger Logger) string {
 
 	b.WriteString(log.Time.In(settings.Location).Format(settings.TimeFormat))
 	b.WriteString("  ")
-	b.WriteString(log.Level)
+	b.WriteString(fmt.Sprintf("%-6s", log.Level))
 	b.WriteString("  ")
 	b.WriteString(fmt.Sprintf("%-12s", log.Source))
 	b.WriteString(fmt.Sprintf("%-12s", log.Event))
@@ -90,6 +90,8 @@ type Logger interface {
 	Warn(msg string, lf ...Fields) error
 	Trace(msg string, lf ...Fields) error
 
+	// GetTableName returns the name of the table where the logs are stored
+	GetTableName() string
 	// GetProps returns the properties of the logger
 	GetProps() LoggerProps
 	// LogExists method checks if the log with the provided filter exists.
@@ -132,47 +134,3 @@ type LoggerProps struct {
 	Event    string
 	EventID  string
 }
-
-/*
-
-// String method converts the log to a string, using the provided logger settings.
-func (log Log) String(logger Logger) string {
-	// Use the default settings by default if the settings are not correct
-	settings := DefaultLoggerSettings
-
-	// if the logger is not nil and has it has settings with a defined location, use them
-	if logger != nil {
-		props := logger.GetProps()
-
-		if props.Settings != nil && props.Settings.Location != nil {
-			settings = props.Settings
-		}
-	}
-
-	var Fields string
-	for k, v := range log.Fields {
-		Fields += fmt.Sprintf(" %s=%v", k, v)
-	}
-
-	time := log.Time.In(settings.Location).Format(settings.TimeFormat)
-	return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, Fields)
-
-	// Removing string length reduces ns/op from 933 - 718 (29% faster)
-	// return fmt.Sprintf(" %s   %s %s  %s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, Fields)
-
-	// var b strings.Builder
-
-	// if log.Fields != nil {
-	// 	for k, v := range log.Fields {
-	// 		b.WriteString(" ")
-	// 		b.WriteString(k)
-	// 		b.WriteString("=")
-	// 		b.WriteString(fmt.Sprintf("%v", v))
-	// 	}
-	// }
-
-	// time := log.Time.In(settings.Location).Format(settings.TimeFormat)
-	// return fmt.Sprintf(" %s   %-6s %-10s  %-16s  %v %v\n", time, log.Level, log.Source, log.Event, log.Message, b.String())
-}
-
-*/
