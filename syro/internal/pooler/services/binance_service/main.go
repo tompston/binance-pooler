@@ -41,7 +41,7 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	// }
 
 	if err := s.setupSpotAssets(); err != nil {
-		s.log().Error(err)
+		s.log().Error(err.Error())
 	}
 
 	if err := sched.Register(
@@ -50,7 +50,7 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 			Freq: "@every 1m",
 			Func: func() error {
 				if err := s.runOhlcScraper(); err != nil {
-					s.log().Error(err)
+					s.log().Error(err.Error())
 					return err
 				}
 				return nil
@@ -97,12 +97,12 @@ func (s *service) runOhlcScraper(fillgaps ...bool) error {
 
 			if len(fillgaps) == 1 && fillgaps[0] {
 				if err := s.fillGapsForId(id, binance.Timeframe15M); err != nil {
-					s.log().Error(err)
+					s.log().Error(err.Error())
 				}
 
 			} else {
 				if err := s.scrapeOhlcForID(id, binance.Timeframe15M); err != nil {
-					s.log().Error(err)
+					s.log().Error(err.Error())
 				}
 			}
 

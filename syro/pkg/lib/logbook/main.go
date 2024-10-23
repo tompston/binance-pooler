@@ -84,7 +84,7 @@ func (log Log) String(logger Logger) string {
 
 // Logger interface implements the methods for logging
 type Logger interface {
-	Error(msg error, lf ...Fields) error
+	Error(msg string, lf ...Fields) error
 	Info(msg string, lf ...Fields) error
 	Debug(msg string, lf ...Fields) error
 	Warn(msg string, lf ...Fields) error

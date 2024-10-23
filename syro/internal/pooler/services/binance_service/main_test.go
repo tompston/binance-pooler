@@ -85,7 +85,7 @@ func TestService(t *testing.T) {
 
 		// need to setup assets first, so that they can be found in the db
 		if err := s.setupFuturesAssets(); err != nil {
-			s.log().Error(err)
+			s.log().Error(err.Error())
 		}
 
 		id := "BTCUSDT"

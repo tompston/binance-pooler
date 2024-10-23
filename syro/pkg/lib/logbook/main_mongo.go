@@ -76,18 +76,11 @@ func (lg *MongoLogger) LogExists(filter any) (bool, error) {
 	return !log.Time.IsZero(), nil
 }
 
-func (lg *MongoLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
 func (lg *MongoLogger) Debug(msg string, lf ...Fields) error { return lg.log(DEBUG, msg, lf...) }
-func (lg *MongoLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
 func (lg *MongoLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRACE, msg, lf...) }
-
-func (lg *MongoLogger) Error(err error, lf ...Fields) error {
-	if err == nil {
-		return lg.log(ERROR, "<nil>", lf...)
-	}
-
-	return lg.log(ERROR, err.Error(), lf...)
-}
+func (lg *MongoLogger) Error(msg string, lf ...Fields) error { return lg.log(ERROR, msg, lf...) }
+func (lg *MongoLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *MongoLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
 
 func CreateMongoIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().
