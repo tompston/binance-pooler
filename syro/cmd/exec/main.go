@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"syro/pkg/app"
-	"syro/pkg/lib/logger"
+	"syro/pkg/lib/logbook"
 )
 
 // go run cmd/exec/main.go
@@ -18,7 +18,7 @@ func main() {
 	// s := binance.New(app, 2)
 	// s.Tmp()
 
-	logger := logger.NewConsoleLogger(nil).
+	logger := logbook.NewConsoleLogger(nil).
 		SetSource("main").
 		SetEvent("sub-main")
 

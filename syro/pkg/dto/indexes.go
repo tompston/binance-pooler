@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"syro/pkg/app/db"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/logger"
+	"syro/pkg/lib/logbook"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -33,7 +33,7 @@ func SetupMongoEnv(db *db.Db) error {
 		}
 	}
 
-	if err := logger.CreateMongoIndexes(db.LogsCollection()); err != nil {
+	if err := logbook.CreateMongoIndexes(db.LogsCollection()); err != nil {
 		return fmt.Errorf("failed to create indexes for %v: %v", db.LogsCollection().Name(), err)
 	}
 

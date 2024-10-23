@@ -1,6 +1,9 @@
-// Package logger provides a logging interface for the project.
-// Two implementations are provided: ConsoleLogger and MongoLogger.
-package logger
+// Package logbook provides a logging interface for the project. Two
+// implementations are provided: ConsoleLogger and MongoLogger.
+// The package is not called something predictable like
+// "logger" because there can be conflicts with other
+// packages + logbooks are an actual thing (https://en.wikipedia.org/wiki/Logbook_(nautical))
+package logbook
 
 import (
 	"fmt"

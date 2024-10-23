@@ -6,7 +6,7 @@ import (
 	"syro/pkg/app/db"
 	"syro/pkg/app/settings"
 	"syro/pkg/dto"
-	"syro/pkg/lib/logger"
+	"syro/pkg/lib/logbook"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
 	"testing"
@@ -24,13 +24,13 @@ type App struct {
 	conf        *settings.TomlConfig
 	db          *db.Db
 	cronStorage scheduler.Storage
-	logger      logger.Logger
+	logger      logbook.Logger
 }
 
 func (a *App) Conf() *settings.TomlConfig     { return a.conf }
 func (a *App) Db() *db.Db                     { return a.db }
 func (a *App) CronStorage() scheduler.Storage { return a.cronStorage }
-func (a *App) Logger() logger.Logger          { return a.logger }
+func (a *App) Logger() logbook.Logger         { return a.logger }
 
 var Env = &settings.Env{
 	DefaultConfigPath: "./conf/config.dev.toml",
@@ -77,7 +77,7 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 		return nil, fmt.Errorf("failed to create cron storage: %v", err)
 	}
 
-	logger := logger.NewMongoLogger(db.LogsCollection(), nil)
+	logger := logbook.NewMongoLogger(db.LogsCollection(), nil)
 
 	return &App{
 		conf:        conf,

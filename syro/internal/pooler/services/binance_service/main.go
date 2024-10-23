@@ -10,11 +10,10 @@ import (
 
 	"syro/pkg/app"
 	"syro/pkg/dto/market_dto"
+	"syro/pkg/lib/logbook"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
 	"syro/pkg/providers/binance"
-
-	"syro/pkg/lib/logger"
 )
 
 const (
@@ -32,7 +31,7 @@ func New(app *app.App, maxParalellRequests int) *service {
 	return &service{app, binance.NewAPI(), maxParalellRequests}
 }
 
-func (s *service) log() logger.Logger {
+func (s *service) log() logbook.Logger {
 	return s.app.Logger().SetEvent("binance")
 }
 
@@ -85,7 +84,7 @@ func (s *service) runOhlcScraper(fillgaps ...bool) error {
 	sem := make(chan struct{}, s.maxParalellRequests)
 	var wg sync.WaitGroup
 
-	s.log().Debug("* running ohlc scraper", logger.Fields{"count": len(assets)})
+	s.log().Debug("* running ohlc scraper", logbook.Fields{"count": len(assets)})
 
 	for _, asset := range assets {
 		sem <- struct{}{}
@@ -125,7 +124,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 	}
 
 	if len(gaps) == 0 {
-		s.log().Info("no gaps found for futures ohlc", logger.Fields{"id": id})
+		s.log().Info("no gaps found for futures ohlc", logbook.Fields{"id": id})
 		return nil
 	}
 
@@ -174,7 +173,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().Add(-3 * 24 * time.Hour)
 		if latestStartTime.After(breakpoint) {
-			s.log().Info("latest ohlc for is up to date", logger.Fields{"id": id})
+			s.log().Info("latest ohlc for is up to date", logbook.Fields{"id": id})
 			return nil
 		}
 	}
@@ -194,7 +193,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", id, tf.UrlParam, err)
 	}
 
-	s.log().Info("upserted binance fututes ohlc", logger.Fields{"id": id, "log": log.String()})
+	s.log().Info("upserted binance fututes ohlc", logbook.Fields{"id": id, "log": log.String()})
 
 	return nil
 }

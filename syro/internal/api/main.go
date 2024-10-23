@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"syro/pkg/app"
-	"syro/pkg/lib/logger"
+	"syro/pkg/lib/logbook"
 	"syro/pkg/lib/scheduler"
 	"time"
 
@@ -45,7 +45,7 @@ func (api *API) Routes() {
 }
 
 func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
-	parseUrlParams := func(r *http.Request) *logger.LogFilter {
+	parseUrlParams := func(r *http.Request) *logbook.LogFilter {
 		// NOTE: errors in the parser are ignored because the validity
 		// of the date is checked in the logger.FindLogs method.
 		from := r.URL.Query().Get("from")
@@ -54,10 +54,10 @@ func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
 		to := r.URL.Query().Get("to")
 		toTime, _ := time.Parse(time.RFC3339, to)
 
-		return &logger.LogFilter{
+		return &logbook.LogFilter{
 			From: fromTime,
 			To:   toTime,
-			Log: logger.Log{
+			Log: logbook.Log{
 				Level:   r.URL.Query().Get("level"),
 				Message: r.URL.Query().Get("message"),
 				Source:  r.URL.Query().Get("source"),
