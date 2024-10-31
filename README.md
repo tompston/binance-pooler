@@ -52,6 +52,7 @@ chmod +x run.sh
 
 ### TODOS
 
+- [ ] store the log level as either a char or a smallint in the db for compression
 - [ ] ideas from https://medium.com/@tjholowaychuk/apex-log-e8d9627f4a9a
 - [ ] Minimal ui for previewing the logs and crons
 - [ ] Api endpoint for storing event logs (so that they can be previewed)

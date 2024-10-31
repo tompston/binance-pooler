@@ -58,7 +58,7 @@ func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
 			From: fromTime,
 			To:   toTime,
 			Log: logbook.Log{
-				Level:   r.URL.Query().Get("level"),
+				// Level:   r.URL.Query().Get("level"),
 				Message: r.URL.Query().Get("message"),
 				Source:  r.URL.Query().Get("source"),
 				Event:   r.URL.Query().Get("event"),

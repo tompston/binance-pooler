@@ -14,7 +14,7 @@ import (
 // Log struct for storing the log data. Event, EventID, and Fields are optional.
 type Log struct {
 	Time    time.Time `json:"time" bson:"time"`                             // Time of the log (UTC)
-	Level   string    `json:"level" bson:"level"`                           // Log level
+	Level   Level     `json:"level" bson:"level"`                           // Log level
 	Message string    `json:"message" bson:"message"`                       // Logged message
 	Source  string    `json:"source,omitempty" bson:"source,omitempty"`     // Source of the log (api, pooler, etc.)
 	Event   string    `json:"event,omitempty" bson:"event,omitempty"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
@@ -22,9 +22,37 @@ type Log struct {
 	Fields  Fields    `json:"fields,omitempty" bson:"fields,omitempty"`     // Optional fields
 }
 
+type Level int16
+
+const (
+	TRACE Level = 0
+	DEBUG Level = 1
+	INFO  Level = 2
+	WARN  Level = 3
+	ERROR Level = 4
+	FATAL Level = 5
+)
+
+func (l Level) Prettify() string {
+	switch l {
+	case ERROR:
+		return "error"
+	case INFO:
+		return "info"
+	case DEBUG:
+		return "debug"
+	case WARN:
+		return "warn"
+	case TRACE:
+		return "trace"
+	default:
+		return "unknown"
+	}
+}
+
 type Fields map[string]interface{}
 
-func newLog(level string, msg, source, event, eventID string, fields ...Fields) Log {
+func newLog(level Level, msg, source, event, eventID string, fields ...Fields) Log {
 	log := Log{
 		Time:    time.Now().UTC(),
 		Level:   level,
@@ -61,7 +89,7 @@ func (log Log) String(logger Logger) string {
 
 	b.WriteString(log.Time.In(settings.Location).Format(settings.TimeFormat))
 	b.WriteString("  ")
-	b.WriteString(fmt.Sprintf("%-6s", log.Level))
+	b.WriteString(fmt.Sprintf("%-6s", log.Level.Prettify()))
 	b.WriteString("  ")
 	b.WriteString(fmt.Sprintf("%-12s", log.Source))
 	b.WriteString(fmt.Sprintf("%-12s", log.Event))
@@ -119,14 +147,6 @@ var DefaultLoggerSettings = &LoggerSettings{
 	Location:   time.UTC,
 	TimeFormat: "2006-01-02 15:04:05",
 }
-
-const (
-	ERROR = "error"
-	INFO  = "info"
-	DEBUG = "debug"
-	WARN  = "warn"
-	TRACE = "trace"
-)
 
 type LoggerProps struct {
 	Settings *LoggerSettings

@@ -53,7 +53,7 @@ func (lg *MongoLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *MongoLogger) log(level, msg string, lf ...Fields) error {
+func (lg *MongoLogger) log(level Level, msg string, lf ...Fields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := lg.Coll.InsertOne(context.Background(), log)
 	fmt.Print(log.String(lg))
@@ -114,9 +114,10 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
-	if filter.Log.Level != "" {
-		queryFilter["level"] = filter.Log.Level
-	}
+	// TODO: how to handle this?
+	// if filter.Log.Level >= 0 {
+	// 	queryFilter["level"] = filter.Log.Level
+	// }
 
 	if filter.Log.Source != "" {
 		queryFilter["source"] = filter.Log.Source

@@ -34,7 +34,7 @@ func TestLog(t *testing.T) {
 
 		t.Run("test json unmarshalling", func(t *testing.T) {
 			if err := validate.StringIncludes(decoded.JSON, []string{
-				`"level":"error"`,
+				`"level":4`,
 				`message":"qweqwe"`,
 				`"source":"my-source"`,
 				`"event":"my-event"`,
