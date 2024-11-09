@@ -16,6 +16,22 @@ type API struct{}
 
 func NewAPI() API { return API{} }
 
+var TopPairs = []string{
+	"BTCUSDT",
+	"ETHUSDT",
+	"SOLOUSDT",
+	"BNBUSDT",
+	"XPRTUSDT",
+	"DOGEUSDT",
+	"ADAUSDT",
+	"TRXUSDT",
+	"AVAXUSDT",
+	"SOLUSDT",
+	"LINKUSDT",
+	"DOTUSDT",
+	"LTCUSDT",
+}
+
 type Timeframe struct {
 	UrlParam string
 	Milis    int64
@@ -79,7 +95,7 @@ func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, t
 	url := fmt.Sprintf("%v?symbol=%s&interval=%v&startTime=%d&endTime=%d&limit=%d",
 		baseUrl, urlSymbol, timeframe.UrlParam, t1, t2, limit)
 
-	res, err := fetcher.Fetch("GET", url, fetcher.JsonHeader, nil)
+	res, err := fetcher.Fetch("GET", url, fetcher.JsonHeader)
 	if err != nil {
 		return nil, err
 	}

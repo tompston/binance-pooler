@@ -15,8 +15,8 @@ func main() {
 	}
 	defer app.Exit(context.Background())
 
-	s := binance_service.New(app, 1)
-	s.Tmp()
+	s := binance_service.New(app, 1).WithDebugMode()
+	s.Tmp(true)
 
 	// t1 := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
 	// t2 := time.Date(2021, 4, 1, 0, 0, 0, 0, time.UTC)

@@ -45,6 +45,8 @@ func (l Level) Prettify() string {
 		return "warn"
 	case TRACE:
 		return "trace"
+	case FATAL:
+		return "fatal"
 	default:
 		return "unknown"
 	}
@@ -117,6 +119,7 @@ type Logger interface {
 	Debug(msg string, lf ...Fields) error
 	Warn(msg string, lf ...Fields) error
 	Trace(msg string, lf ...Fields) error
+	Fatal(msg string, lf ...Fields) error
 
 	// GetTableName returns the name of the table where the logs are stored
 	GetTableName() string

@@ -48,6 +48,7 @@ func (lg *ConsoleLogger) Trace(msg string, lf ...Fields) error { return lg.log(T
 func (lg *ConsoleLogger) Error(msg string, lf ...Fields) error { return lg.log(ERROR, msg, lf...) }
 func (lg *ConsoleLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
 func (lg *ConsoleLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *ConsoleLogger) Fatal(msg string, lf ...Fields) error { return lg.log(FATAL, msg, lf...) }
 
 func (lg *ConsoleLogger) LogExists(filter any) (bool, error) {
 	return false, fmt.Errorf("method cannot be used with ConsoleLogger")

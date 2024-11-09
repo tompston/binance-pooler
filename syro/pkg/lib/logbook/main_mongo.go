@@ -81,6 +81,7 @@ func (lg *MongoLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRA
 func (lg *MongoLogger) Error(msg string, lf ...Fields) error { return lg.log(ERROR, msg, lf...) }
 func (lg *MongoLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
 func (lg *MongoLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *MongoLogger) Fatal(msg string, lf ...Fields) error { return lg.log(FATAL, msg, lf...) }
 
 func CreateMongoIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().

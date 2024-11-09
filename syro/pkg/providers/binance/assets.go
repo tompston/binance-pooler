@@ -67,7 +67,7 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 		} `json:"symbols"`
 	}
 
-	res, err := fetcher.Fetch("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo", fetcher.JsonHeader, nil)
+	res, err := fetcher.Fetch("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo", fetcher.JsonHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 		} `json:"symbols"`
 	}
 
-	res, err := fetcher.Fetch("GET", "https://api.binance.com/api/v3/exchangeInfo", fetcher.JsonHeader, nil)
+	res, err := fetcher.Fetch("GET", "https://api.binance.com/api/v3/exchangeInfo", fetcher.JsonHeader)
 	if err != nil {
 		return nil, err
 	}

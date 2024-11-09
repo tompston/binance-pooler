@@ -115,7 +115,7 @@ func GetStockData(stockSymbol string, from, to time.Time, interval RequestInterv
 		} `json:"chart"`
 	}
 
-	res, err := fetcher.Fetch("GET", url, headers, nil)
+	res, err := fetcher.Fetch("GET", url, headers)
 	if err != nil {
 		return err
 	}
