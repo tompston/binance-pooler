@@ -67,6 +67,8 @@ case $FIRST_ARG in
         --exclude-dir=docs \
         --exclude-dir=node_modules \
         --exclude-dir=scripts \
+        --exclude-dir=py \
+        --exclude-dir=.venv \
         .
     ;;
 

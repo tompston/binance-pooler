@@ -52,9 +52,14 @@ chmod +x run.sh
 
 ### TODOS
 
-- [ ] store the log level as either a char or a smallint in the db for compression
+- [ ] backend view for the
+  - [ ] logs
+  - [ ] cron job executions and state
+  - [ ] user athentication?
+- [ ] simple tracing extension for the logger?
+- [ ] interface based kv store
+- [x] store the log level as either a char or a smallint in the db for compression
 - [ ] ideas from https://medium.com/@tjholowaychuk/apex-log-e8d9627f4a9a
-- [ ] Minimal ui for previewing the logs and crons
 - [ ] Api endpoint for storing event logs (so that they can be previewed)
 - [ ] Extending the scheduler
   - [x] Add an optional desciption field.
@@ -63,13 +68,11 @@ chmod +x run.sh
   - [ ] Figure out if there's a way to implement remote executions of the jobs
   - [ ] How to map the logs of a cron job to the cron job itself? Meaning, clicking on the cron job in the frontend will show all of the logs from it.
 - [ ] Frontend
-
   - [ ] Figure out how to host the admin view so that by using the syro package there would be an option to expose the admin view.
-
   - [ ] https://play.axiom.co/axiom-play-qf1k/datasets
   - [ ] https://medium.com/@tjholowaychuk/apex-logs-public-beta-48c683464054
 
-<!-- 
+<!--
 
 
 psql -d postgres

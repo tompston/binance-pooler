@@ -13,6 +13,7 @@ import (
 	"syro/pkg/lib/logbook"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/scheduler"
+	"syro/pkg/lib/timeset"
 	"syro/pkg/providers/binance"
 )
 
@@ -63,11 +64,15 @@ func (s *service) AddJobs(sched *scheduler.Scheduler) error {
 	return nil
 }
 
-// func (s *service) Tmp() {
-// 	if err := s.scrapeOhlcForID("BTCUSDT", binance.Timeframe15M); err != nil {
-// 		s.log().Error(err)
-// 	}
-// }
+func (s *service) Tmp() {
+	// if err := s.scrapeOhlcForID("BTCUSDT", binance.Timeframe15M); err != nil {
+	// s.log().Error(err)
+	// }
+
+	if err := s.runOhlcScraper(true); err != nil {
+		s.log().Error(err.Error())
+	}
+}
 
 func (s *service) runOhlcScraper(fillgaps ...bool) error {
 
@@ -128,22 +133,54 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 		return nil
 	}
 
-	for _, gap := range gaps {
+	for interval, gap := range gaps {
+
+		_ = interval
+
+		s.log().Debug(
+			"found gaps for interval",
+			logbook.Fields{"id": id, "interval": interval, "gaps": len(gap)},
+		)
 
 		for _, g := range gap {
-			from := g.StartOfGap
-			to := g.EndOfGap
-			docs, err := s.api.GetFutureKline(id, from, to, tf)
+
+			s.log().Info("filling gap", logbook.Fields{"id": id, "gap": g.String()})
+
+			gapChunks := timeset.ChunkTimeRange(g.StartOfGap, g.EndOfGap, timeset.MilisToDuration(interval), 500, 10)
+
+			s.log().Debug("period chunks", logbook.Fields{"chunks": len(gapChunks)})
+
+			for chunkIdx, chunk := range gapChunks {
+
+				s.log().Debug(" - requesting chunk", logbook.Fields{"chunk": chunkIdx, "from": chunk.From, "to": chunk.To, "id": id})
+
+				docs, err := s.api.GetFutureKline(id, chunk.From, chunk.To, tf)
+				if err != nil {
+					return err
+				}
+
+				upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
+				if err != nil {
+					return err
+				}
+
+				s.log().Info("upserted binance fututes ohlc",
+					logbook.Fields{"id": id, "log": upsertLog.String()})
+			}
+
+			docs, err := s.api.GetFutureKline(id, g.EndOfGap, g.StartOfGap, tf)
 			if err != nil {
 				return err
 			}
 
-			log, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
+			upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
 			if err != nil {
 				return err
 			}
 
-			s.log().Info(fmt.Sprintf("upserted binance fututes ohlc for %v: %v", id, log.String()))
+			s.log().Info("upserted binance fututes ohlc",
+				logbook.Fields{"id": id, "log": upsertLog.String()})
+
 		}
 	}
 

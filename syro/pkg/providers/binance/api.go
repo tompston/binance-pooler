@@ -21,19 +21,6 @@ type Timeframe struct {
 	Milis    int64
 }
 
-// GetMaxReqPeriod returns the maximum period that can be requested from the
-// binance api, based on the requested resolution of the data. The api has a
-// limit of 1000 data points per request.
-func (tf Timeframe) GetMaxReqPeriod() time.Duration {
-	return time.Duration(0.97*float64(tf.Milis)*1000) * time.Millisecond
-}
-
-// CalculateOverlay returns the time duration that should be added to the
-// start time of the request in order to avoid gaps in the data.
-func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
-	return time.Duration(numEntries*tf.Milis) * time.Millisecond
-}
-
 const minInMillis = 60 * 1000
 
 var (
@@ -43,6 +30,24 @@ var (
 	Timeframe30M = Timeframe{"30m", 30 * minInMillis}
 	Timeframe1H  = Timeframe{"1h", 60 * minInMillis}
 )
+
+// GetMaxReqPeriod returns the maximum period that can be requested from the
+// binance api, based on the requested resolution of the data. The api has a
+// limit of 1000 data points per request.
+func (tf Timeframe) GetMaxReqPeriod() time.Duration {
+	return time.Duration(0.97*float64(tf.Milis)*1000) * time.Millisecond
+}
+
+type PeriodChunk struct {
+	From time.Time
+	To   time.Time
+}
+
+// CalculateOverlay returns the time duration that should be added to the
+// start time of the request in order to avoid gaps in the data.
+func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
+	return time.Duration(numEntries*tf.Milis) * time.Millisecond
+}
 
 // 1min query data
 //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data

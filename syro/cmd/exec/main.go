@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"syro/internal/pooler/services/binance_service"
 	"syro/pkg/app"
-	"syro/pkg/lib/logbook"
 )
 
 // go run cmd/exec/main.go
@@ -15,15 +15,15 @@ func main() {
 	}
 	defer app.Exit(context.Background())
 
-	// s := binance.New(app, 2)
-	// s.Tmp()
+	s := binance_service.New(app, 1)
+	s.Tmp()
 
-	logger := logbook.NewConsoleLogger(nil).
-		SetSource("main").
-		SetEvent("sub-main")
+	// t1 := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
+	// t2 := time.Date(2021, 4, 1, 0, 0, 0, 0, time.UTC)
+	// interval := timeset.MilisToDuration(900000)
 
-	numLogs := 10
-	for i := 0; i < numLogs; i++ {
-		logger.Debug("this is a test")
-	}
+	// timeset.ChunkTimeRange(t1, t2, interval, 900, 10)
+	// for _, chunk := range gapChunks {
+	// 	log.Printf("chunk: %s - %s", chunk.From, chunk.To)
+	// }
 }
