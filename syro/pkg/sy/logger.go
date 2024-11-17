@@ -21,7 +21,7 @@ type Log struct {
 	Source  string    `json:"source,omitempty" bson:"source,omitempty"`     // Source of the log (api, pooler, etc.)
 	Event   string    `json:"event,omitempty" bson:"event,omitempty"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
 	EventID string    `json:"event_id,omitempty" bson:"event_id,omitempty"` // (not logged to the console)
-	Fields  Fields    `json:"fields,omitempty" bson:"fields,omitempty"`     // Optional fields
+	Fields  LogFields `json:"fields,omitempty" bson:"fields,omitempty"`     // Optional fields
 }
 
 type Level int16
@@ -54,9 +54,9 @@ func (l Level) Prettify() string {
 	}
 }
 
-type Fields map[string]interface{}
+type LogFields map[string]interface{}
 
-func newLog(level Level, msg, source, event, eventID string, fields ...Fields) Log {
+func newLog(level Level, msg, source, event, eventID string, fields ...LogFields) Log {
 	log := Log{
 		Time:    time.Now().UTC(),
 		Level:   level,
@@ -116,12 +116,12 @@ func (log Log) String(logger Logger) string {
 
 // Logger interface implements the methods for logging
 type Logger interface {
-	Error(msg string, lf ...Fields) error
-	Info(msg string, lf ...Fields) error
-	Debug(msg string, lf ...Fields) error
-	Warn(msg string, lf ...Fields) error
-	Trace(msg string, lf ...Fields) error
-	Fatal(msg string, lf ...Fields) error
+	Error(msg string, lf ...LogFields) error
+	Info(msg string, lf ...LogFields) error
+	Debug(msg string, lf ...LogFields) error
+	Warn(msg string, lf ...LogFields) error
+	Trace(msg string, lf ...LogFields) error
+	Fatal(msg string, lf ...LogFields) error
 
 	GetTableName() string                     // GetTableName returns the name of the table where the logs are stored
 	FindLogs(filter LogFilter) ([]Log, error) // FindLogs returns the logs that match the provided filter
@@ -194,7 +194,7 @@ func (lg *MongoLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *MongoLogger) log(level Level, msg string, lf ...Fields) error {
+func (lg *MongoLogger) log(level Level, msg string, lf ...LogFields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := lg.Coll.InsertOne(context.Background(), log)
 	fmt.Print(log.String(lg))
@@ -217,12 +217,12 @@ func (lg *MongoLogger) LogExists(filter any) (bool, error) {
 	return !log.Time.IsZero(), nil
 }
 
-func (lg *MongoLogger) Debug(msg string, lf ...Fields) error { return lg.log(DEBUG, msg, lf...) }
-func (lg *MongoLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRACE, msg, lf...) }
-func (lg *MongoLogger) Error(msg string, lf ...Fields) error { return lg.log(ERROR, msg, lf...) }
-func (lg *MongoLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
-func (lg *MongoLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
-func (lg *MongoLogger) Fatal(msg string, lf ...Fields) error { return lg.log(FATAL, msg, lf...) }
+func (lg *MongoLogger) Debug(msg string, lf ...LogFields) error { return lg.log(DEBUG, msg, lf...) }
+func (lg *MongoLogger) Trace(msg string, lf ...LogFields) error { return lg.log(TRACE, msg, lf...) }
+func (lg *MongoLogger) Error(msg string, lf ...LogFields) error { return lg.log(ERROR, msg, lf...) }
+func (lg *MongoLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *MongoLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
 
 func CreateMongoIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().
@@ -311,7 +311,7 @@ func (lg *ConsoleLogger) GetProps() LoggerProps {
 
 func (lg *ConsoleLogger) GetTableName() string { return "none" }
 
-func (lg *ConsoleLogger) log(level Level, msg string, lf ...Fields) error {
+func (lg *ConsoleLogger) log(level Level, msg string, lf ...LogFields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := fmt.Print(log.String(lg))
 	return err
@@ -332,12 +332,12 @@ func (lg *ConsoleLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *ConsoleLogger) Debug(msg string, lf ...Fields) error { return lg.log(DEBUG, msg, lf...) }
-func (lg *ConsoleLogger) Trace(msg string, lf ...Fields) error { return lg.log(TRACE, msg, lf...) }
-func (lg *ConsoleLogger) Error(msg string, lf ...Fields) error { return lg.log(ERROR, msg, lf...) }
-func (lg *ConsoleLogger) Info(msg string, lf ...Fields) error  { return lg.log(INFO, msg, lf...) }
-func (lg *ConsoleLogger) Warn(msg string, lf ...Fields) error  { return lg.log(WARN, msg, lf...) }
-func (lg *ConsoleLogger) Fatal(msg string, lf ...Fields) error { return lg.log(FATAL, msg, lf...) }
+func (lg *ConsoleLogger) Debug(msg string, lf ...LogFields) error { return lg.log(DEBUG, msg, lf...) }
+func (lg *ConsoleLogger) Trace(msg string, lf ...LogFields) error { return lg.log(TRACE, msg, lf...) }
+func (lg *ConsoleLogger) Error(msg string, lf ...LogFields) error { return lg.log(ERROR, msg, lf...) }
+func (lg *ConsoleLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
+func (lg *ConsoleLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
+func (lg *ConsoleLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
 
 func (lg *ConsoleLogger) LogExists(filter any) (bool, error) {
 	return false, fmt.Errorf("method cannot be used with ConsoleLogger")

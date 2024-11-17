@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"syro/pkg/app/db"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/sy"
+	"syro/pkg/sy"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )

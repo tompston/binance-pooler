@@ -7,7 +7,7 @@ import (
 	"syro/pkg/app/settings"
 	"syro/pkg/dto"
 	"syro/pkg/lib/mongodb"
-	"syro/pkg/lib/sy"
+	"syro/pkg/sy"
 	"testing"
 )
 

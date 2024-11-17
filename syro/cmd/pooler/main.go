@@ -6,7 +6,7 @@ import (
 	"log"
 	"syro/internal/pooler/services/binance_service"
 	"syro/pkg/app"
-	"syro/pkg/lib/sy"
+	"syro/pkg/sy"
 	"time"
 
 	"github.com/robfig/cron/v3"

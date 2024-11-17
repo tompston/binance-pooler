@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/sy"
 	"syro/pkg/providers/binance"
+	"syro/pkg/sy"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -33,7 +33,7 @@ func (s *service) setupFuturesAssets() error {
 			return err
 		}
 
-		s.log().Info("upserted binance fututes info", sy.Fields{"log": log})
+		s.log().Info("upserted binance fututes info", sy.LogFields{"log": log})
 
 		return nil
 	}
@@ -63,7 +63,7 @@ func (s *service) setupSpotAssets() error {
 			return err
 		}
 
-		s.log().Info("upserted binance spot info", sy.Fields{"log": log})
+		s.log().Info("upserted binance spot info", sy.LogFields{"log": log})
 
 		return nil
 	}

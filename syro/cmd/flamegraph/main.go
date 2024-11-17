@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
-	"syro/pkg/lib/sy"
+	"syro/pkg/sy"
 	"syro/pkg/sy/timeset"
 
 	"time"
