@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"syro/pkg/lib/mongodb"
-	"syro/pkg/lib/utils"
-	"syro/pkg/lib/validate"
+	"syro/pkg/lib/sy/utils"
+	"syro/pkg/lib/sy/validate"
 	"testing"
 	"time"
 

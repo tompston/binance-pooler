@@ -3,8 +3,8 @@ package mongodb
 import (
 	"encoding/json"
 	"fmt"
-	"syro/pkg/lib/utils"
-	"syro/pkg/lib/validate"
+	"syro/pkg/lib/sy/utils"
+	"syro/pkg/lib/sy/validate"
 	"testing"
 	"time"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"syro/pkg/app/settings"
 	"syro/pkg/lib/mongodb"
-	"syro/pkg/lib/validate"
+	"syro/pkg/lib/sy/validate"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )

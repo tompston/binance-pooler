@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"syro/pkg/lib/sy/timeset"
-	"syro/pkg/lib/utils"
+	"syro/pkg/lib/sy/utils"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
