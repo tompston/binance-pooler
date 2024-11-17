@@ -36,17 +36,9 @@ chmod +x run.sh
 │   ├── conf              # config files
 │   ├── internal
 │   │   ├── api           # api implementation
-│   │   └── pooler        # scraper implementations
+│   │   └── pooler        # data pooler implementations
 │   └── pkg
 │       ├── app           # main app struct and config
-│       ├── lib
-│       │   ├── encoder   # faster marshalling and unmarshalling of json
-│       │   ├── errgroup  # package for grouping errors
-│       │   ├── fetcher   # utlil for doing http requests
-│       │   ├── logger    # logger package, using interfaces
-│       │   ├── messenger # sending messages to telegram or google chat groups
-│       │   ├── mongodb   # mongodb utils
-│       │   ├── scheduler # cron scheduler + tracker
 │       └── dto           # shared types of the parsed data
 ```
 
