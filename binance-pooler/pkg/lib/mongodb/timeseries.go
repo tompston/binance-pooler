@@ -164,7 +164,7 @@ func FindGaps(coll *mongo.Collection, customFilter ...bson.M) (map[int64][]GapIn
 // it is set to the start of today, so that the service would refetch the data from
 // the start of today. This is done because most of the scraped data sources
 // update the data of today constantly.
-func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter bson.M, setToStartOfToday bool, logger_fn ...func(any)) (time.Time, error) {
+func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter bson.M, setToStartOfToday bool, loggerFn ...func(any)) (time.Time, error) {
 
 	sort := bson.M{START_TIME: -1}
 
@@ -175,7 +175,7 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 		// default start date and no errors.
 		if strings.Contains(err.Error(), "no documents in result") {
 			msg := noRecordsFoundMsg(coll.Name(), defaultStart, filter)
-			utils.LogIfArgExists(msg, logger_fn)
+			utils.LogIfArgExists(msg, loggerFn)
 			return defaultStart, nil
 		}
 
@@ -194,7 +194,7 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 	// majority of sources don't have all of the data for today available for most of the day.
 	if setToStartOfToday && timeset.IsTodayOrInFuture(startTime) {
 		msg := lastDocStartTimeIsTodayMsg(startTime, coll.Name())
-		utils.LogIfArgExists(msg, logger_fn)
+		utils.LogIfArgExists(msg, loggerFn)
 		startOfToday := timeset.StartOfDay(time.Now())
 		return startOfToday, err
 	}

@@ -44,7 +44,7 @@ chmod +x run.sh
 
 ### TODOS
 
-- [ ] backend view for the
+- [ ] backend view for
   - [ ] logs
   - [ ] cron job executions and state
   - [ ] user athentication?

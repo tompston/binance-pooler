@@ -73,20 +73,27 @@ type TimeChunk struct {
 	To   time.Time
 }
 
-func ChunkTimeRange(from, to time.Time, interval time.Duration, maxReqPeriods, overlayPeriods int, withDebug ...bool) []TimeChunk {
+func ChunkTimeRange(from, to time.Time, interval time.Duration, maxReqPeriods, overlayPeriods int, withDebug ...bool) ([]TimeChunk, error) {
+	if from.After(to) {
+		return nil, fmt.Errorf("from date is after to date")
+	}
+
+	if interval <= 0 {
+		return nil, fmt.Errorf("interval must be greater than 0")
+	}
+
 	var chunks []TimeChunk
 	maxDuration := interval * time.Duration(maxReqPeriods) // Maximum duration of each chunk
 	overlayTime := interval * time.Duration(overlayPeriods)
-	_ = overlayTime
 
 	debugEnabled := len(withDebug) == 1 && withDebug[0]
 
 	if debugEnabled {
-		fmt.Printf("maxDuration: %v\n", maxDuration.Hours()/24)
-		fmt.Printf("overlayTime: %v\n", overlayTime.Hours()/24)
+		fmt.Printf("maxDuration: %v, overlayTime: %v\n",
+			maxDuration.Hours()/24, overlayTime.Hours()/24)
 	}
 
-	format := "2006-01-02 15:04:05"
+	const format = "2006-01-02 15:04:05"
 
 	for start := from; start.Before(to); {
 		end := start.Add(maxDuration)
@@ -104,5 +111,5 @@ func ChunkTimeRange(from, to time.Time, interval time.Duration, maxReqPeriods, o
 		}
 	}
 
-	return chunks
+	return chunks, nil
 }

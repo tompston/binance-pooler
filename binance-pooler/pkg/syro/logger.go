@@ -16,7 +16,7 @@ import (
 // Log struct for storing the log data. Event, EventID, and Fields are optional.
 type Log struct {
 	Time    time.Time `json:"time" bson:"time"`                             // Time of the log (UTC)
-	Level   Level     `json:"level" bson:"level"`                           // Log level
+	Level   LogLevel  `json:"level" bson:"level"`                           // Log level
 	Message string    `json:"message" bson:"message"`                       // Logged message
 	Source  string    `json:"source,omitempty" bson:"source,omitempty"`     // Source of the log (api, pooler, etc.)
 	Event   string    `json:"event,omitempty" bson:"event,omitempty"`       // Event of the log (api-auth-request, binance-eth-pooler, etc.)
@@ -24,18 +24,18 @@ type Log struct {
 	Fields  LogFields `json:"fields,omitempty" bson:"fields,omitempty"`     // Optional fields
 }
 
-type Level int16
+type LogLevel int16
 
 const (
-	TRACE Level = 0
-	DEBUG Level = 1
-	INFO  Level = 2
-	WARN  Level = 3
-	ERROR Level = 4
-	FATAL Level = 5
+	TRACE LogLevel = 0
+	DEBUG LogLevel = 1
+	INFO  LogLevel = 2
+	WARN  LogLevel = 3
+	ERROR LogLevel = 4
+	FATAL LogLevel = 5
 )
 
-func (l Level) Prettify() string {
+func (l LogLevel) Prettify() string {
 	switch l {
 	case ERROR:
 		return "error"
@@ -56,7 +56,7 @@ func (l Level) Prettify() string {
 
 type LogFields map[string]interface{}
 
-func newLog(level Level, msg, source, event, eventID string, fields ...LogFields) Log {
+func newLog(level LogLevel, msg, source, event, eventID string, fields ...LogFields) Log {
 	log := Log{
 		Time:    time.Now().UTC(),
 		Level:   level,
@@ -194,7 +194,7 @@ func (lg *MongoLogger) SetEventID(v string) Logger {
 	return lg
 }
 
-func (lg *MongoLogger) log(level Level, msg string, lf ...LogFields) error {
+func (lg *MongoLogger) log(level LogLevel, msg string, lf ...LogFields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := lg.Coll.InsertOne(context.Background(), log)
 	fmt.Print(log.String(lg))
@@ -242,7 +242,7 @@ type LogFilter struct {
 	Source  string    `json:"source"`
 	Event   string    `json:"event"`
 	EventID string    `json:"event_id"`
-	Level   *Level    `json:"level"`
+	Level   *LogLevel `json:"level"`
 }
 
 // FindLogs returns logs that match the filter
@@ -311,7 +311,7 @@ func (lg *ConsoleLogger) GetProps() LoggerProps {
 
 func (lg *ConsoleLogger) GetTableName() string { return "none" }
 
-func (lg *ConsoleLogger) log(level Level, msg string, lf ...LogFields) error {
+func (lg *ConsoleLogger) log(level LogLevel, msg string, lf ...LogFields) error {
 	log := newLog(level, msg, lg.Source, lg.Event, lg.EventID, lf...)
 	_, err := fmt.Print(log.String(lg))
 	return err

@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// PrettyPrint formats a decoded json or bson string
+// PrettyPrint formats a decoded json string
 func PrettyPrint(data string) (string, error) {
 	var i any
 

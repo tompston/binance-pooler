@@ -16,9 +16,7 @@ import (
 	"binance-pooler/pkg/syro/timeset"
 )
 
-const (
-	apiRequestSleep = 500 * time.Millisecond
-)
+const apiRequestSleep = 500 * time.Millisecond
 
 type service struct {
 	app                 *app.App
@@ -71,10 +69,6 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 }
 
 func (s *service) Tmp(fill bool) {
-	// if err := s.scrapeOhlcForID("BTCUSDT", binance.Timeframe15M); err != nil {
-	// s.log().Error(err)
-	// }
-
 	if err := s.runOhlcScraper(fill); err != nil {
 		s.log().Error(err.Error())
 	}
@@ -157,7 +151,10 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 
 			// The gaps might exceed the 1k limit of the api, that's why we chunk the time range
 			// into smaller pieces and request them one by one.
-			gapChunks := timeset.ChunkTimeRange(g.StartOfGap, g.EndOfGap, timeset.MilisToDuration(interval), 500, 10)
+			gapChunks, err := timeset.ChunkTimeRange(g.StartOfGap, g.EndOfGap, timeset.MilisToDuration(interval), 500, 10)
+			if err != nil {
+				return err
+			}
 
 			s.log().Debug("period chunks", syro.LogFields{"chunks": len(gapChunks), "id": id})
 
