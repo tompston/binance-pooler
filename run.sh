@@ -19,20 +19,20 @@ case $FIRST_ARG in
 
 "pooler")
     echo " * Starting the pooler"
-    cd syro && reflex -r '\.go' -s -- sh -c "go run cmd/pooler/main.go"
+    cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/pooler/main.go"
     ;;
 
 "api")
     echo " * Starting the api"
-    cd syro && reflex -r '\.go' -s -- sh -c "go run cmd/api/main.go"
+    cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/api/main.go"
     ;;
 
 "exec")
-    cd syro && go run cmd/exec/main.go
+    cd binance-pooler && go run cmd/exec/main.go
     ;;
 
 "flamegraph")
-    cd syro
+    cd binance-pooler
     go build -o out cmd/flamegraph/main.go
     ./out
 
@@ -47,7 +47,7 @@ case $FIRST_ARG in
         echo " * Running Go tests"
         #   -v          means verbose (print the output to the console)
         #   -count=1    means run the tests only once (don't cache the results)
-        cd syro
+        cd binance-pooler
         GO_TEST_MODE=full GO_CONF_PATH="$(pwd)/conf/config.dev.toml" go test ./... -count=1
         ;;
     esac

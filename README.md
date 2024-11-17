@@ -20,9 +20,9 @@ Additional features:
 ```bash
 chmod +x run.sh
 
-# start the syro/cmd/pooler app
+# start the binance-pooler/cmd/pooler app
 ./run.sh pooler
-# start the syro/cmd/api app
+# start the binance-pooler/cmd/api app
 ./run.sh api
 # run tests for the project (will be written under mongodb database called `test`)
 ./run.sh test
@@ -31,7 +31,7 @@ chmod +x run.sh
 ### Project structure
 
 ```bash
-├── syro
+├── binance-pooler
 │   ├── cmd               # entry points for the apps
 │   ├── conf              # config files
 │   ├── internal
