@@ -3,7 +3,7 @@ package binance_service
 import (
 	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
-	"binance-pooler/pkg/sy"
+	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
 
@@ -33,7 +33,7 @@ func (s *service) setupFuturesAssets() error {
 			return err
 		}
 
-		s.log().Info("upserted binance fututes info", sy.LogFields{"log": log})
+		s.log().Info("upserted binance fututes info", syro.LogFields{"log": log})
 
 		return nil
 	}
@@ -63,7 +63,7 @@ func (s *service) setupSpotAssets() error {
 			return err
 		}
 
-		s.log().Info("upserted binance spot info", sy.LogFields{"log": log})
+		s.log().Info("upserted binance spot info", syro.LogFields{"log": log})
 
 		return nil
 	}

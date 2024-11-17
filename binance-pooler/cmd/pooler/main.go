@@ -3,7 +3,7 @@ package main
 import (
 	"binance-pooler/internal/pooler/services/binance_service"
 	"binance-pooler/pkg/app"
-	"binance-pooler/pkg/sy"
+	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
 	"log"
@@ -28,7 +28,7 @@ func main() {
 
 	cron := cron.New(cron.WithLocation(loc))
 	storage := app.CronStorage()
-	scheduler := sy.NewCronScheduler(cron, "go-pooler").WithStorage(storage)
+	scheduler := syro.NewCronScheduler(cron, "go-pooler").WithStorage(storage)
 
 	if err := binance_service.New(app, 3).
 		WithDebugMode().

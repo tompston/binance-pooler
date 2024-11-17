@@ -3,7 +3,7 @@ package db
 import (
 	"binance-pooler/pkg/app/settings"
 	"binance-pooler/pkg/lib/mongodb"
-	"binance-pooler/pkg/sy/validate"
+	"binance-pooler/pkg/syro/validate"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"

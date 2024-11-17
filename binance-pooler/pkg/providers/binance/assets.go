@@ -2,8 +2,8 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/sy/fetcher"
-	"binance-pooler/pkg/sy/timeset"
+	"binance-pooler/pkg/syro/fetcher"
+	"binance-pooler/pkg/syro/timeset"
 	"encoding/json"
 	"time"
 )

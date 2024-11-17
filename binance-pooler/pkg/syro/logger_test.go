@@ -1,9 +1,9 @@
-package sy
+package syro
 
 import (
 	"binance-pooler/pkg/lib/mongodb"
-	"binance-pooler/pkg/sy/utils"
-	"binance-pooler/pkg/sy/validate"
+	"binance-pooler/pkg/syro/utils"
+	"binance-pooler/pkg/syro/validate"
 	"context"
 	"encoding/json"
 	"fmt"

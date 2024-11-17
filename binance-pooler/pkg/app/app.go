@@ -5,7 +5,7 @@ import (
 	"binance-pooler/pkg/app/settings"
 	"binance-pooler/pkg/dto"
 	"binance-pooler/pkg/lib/mongodb"
-	"binance-pooler/pkg/sy"
+	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
 	"testing"
@@ -22,14 +22,14 @@ const (
 type App struct {
 	conf        *settings.TomlConfig
 	db          *db.Db
-	cronStorage sy.CronStorage
-	logger      sy.Logger
+	cronStorage syro.CronStorage
+	logger      syro.Logger
 }
 
-func (a *App) Conf() *settings.TomlConfig  { return a.conf }
-func (a *App) Db() *db.Db                  { return a.db }
-func (a *App) CronStorage() sy.CronStorage { return a.cronStorage }
-func (a *App) Logger() sy.Logger           { return a.logger }
+func (a *App) Conf() *settings.TomlConfig    { return a.conf }
+func (a *App) Db() *db.Db                    { return a.db }
+func (a *App) CronStorage() syro.CronStorage { return a.cronStorage }
+func (a *App) Logger() syro.Logger           { return a.logger }
 
 var Env = &settings.Env{
 	DefaultConfigPath: "./conf/config.dev.toml",
@@ -69,14 +69,14 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 		return nil, fmt.Errorf("failed to setup mongodb environment: %v", err)
 	}
 
-	cronStorage, err := sy.NewMongoCronStorage(
+	cronStorage, err := syro.NewMongoCronStorage(
 		mongodb.Coll(db.Conn(), dbSchema.Name, "cron_list"),
 		mongodb.Coll(db.Conn(), dbSchema.Name, "cron_history"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cron storage: %v", err)
 	}
 
-	logger := sy.NewMongoLogger(db.LogsCollection(), nil)
+	logger := syro.NewMongoLogger(db.LogsCollection(), nil)
 
 	return &App{
 		conf:        conf,

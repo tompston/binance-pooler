@@ -50,10 +50,10 @@ func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
 	// 	to := r.URL.Query().Get("to")
 	// 	toTime, _ := time.Parse(time.RFC3339, to)
 
-	// 	return &sy.LogFilter{
+	// 	return &syro.LogFilter{
 	// 		From: fromTime,
 	// 		To:   toTime,
-	// 		Log: sy.Log{
+	// 		Log: syro.Log{
 	// 			// Level:   r.URL.Query().Get("level"),
 	// 			Message: r.URL.Query().Get("message"),
 	// 			Source:  r.URL.Query().Get("source"),
@@ -85,7 +85,7 @@ func (api *API) getCronJobs(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 
-	// parseUrlParams := func(r *http.Request) *sy.ExecutionFilter {
+	// parseUrlParams := func(r *http.Request) *syro.ExecutionFilter {
 	// 	// NOTE: errors in the parser are ignored because the validity
 	// 	// of the date is checked in the scheduler.FindExecutions method.
 	// 	from := r.URL.Query().Get("from")
@@ -100,10 +100,10 @@ func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 	// 	executionTime := r.URL.Query().Get("execution_time")
 	// 	execTime, _ := strconv.ParseInt(executionTime, 10, 64)
 
-	// 	return &sy.ExecutionFilter{
+	// 	return &syro.ExecutionFilter{
 	// 		From: fromTime,
 	// 		To:   toTime,
-	// 		ExecutionLog: sy.ExecutionLog{
+	// 		ExecutionLog: syro.ExecutionLog{
 	// 			Name:          r.URL.Query().Get("name"),
 	// 			InitializedAt: initTime,
 	// 			ExecutionTime: time.Duration(execTime),

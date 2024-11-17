@@ -2,7 +2,7 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/sy/fetcher"
+	"binance-pooler/pkg/syro/fetcher"
 	"encoding/json"
 	"fmt"
 	"strconv"

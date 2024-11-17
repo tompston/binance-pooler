@@ -4,8 +4,8 @@
 package mongodb
 
 import (
-	"binance-pooler/pkg/sy/timeset"
-	"binance-pooler/pkg/sy/utils"
+	"binance-pooler/pkg/syro/timeset"
+	"binance-pooler/pkg/syro/utils"
 	"context"
 	"fmt"
 	"strings"

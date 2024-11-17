@@ -1,7 +1,7 @@
-package sy
+package syro
 
 import (
-	"binance-pooler/pkg/sy/errgroup"
+	"binance-pooler/pkg/syro/errgroup"
 	"fmt"
 	"sync"
 	"time"

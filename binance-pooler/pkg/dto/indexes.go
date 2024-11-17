@@ -3,7 +3,7 @@ package dto
 import (
 	"binance-pooler/pkg/app/db"
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/sy"
+	"binance-pooler/pkg/syro"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,7 +33,7 @@ func SetupMongoEnv(db *db.Db) error {
 		}
 	}
 
-	if err := sy.CreateMongoIndexes(db.LogsCollection()); err != nil {
+	if err := syro.CreateMongoIndexes(db.LogsCollection()); err != nil {
 		return fmt.Errorf("failed to create indexes for %v: %v", db.LogsCollection().Name(), err)
 	}
 

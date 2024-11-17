@@ -1,8 +1,8 @@
 package main
 
 import (
-	"binance-pooler/pkg/sy"
-	"binance-pooler/pkg/sy/timeset"
+	"binance-pooler/pkg/syro"
+	"binance-pooler/pkg/syro/timeset"
 	"fmt"
 	"log"
 	"os"
@@ -53,7 +53,7 @@ func main() {
 	// 	app.Logger().SetEvent("main").Info("Hello, World!")
 	// }
 
-	logger := sy.NewConsoleLogger(nil)
+	logger := syro.NewConsoleLogger(nil)
 	for i := 0; i < 1_000; i++ {
 		logger.SetEvent("main").Info("Hello, World!")
 	}

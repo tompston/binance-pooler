@@ -1,4 +1,4 @@
-package sy
+package syro
 
 import (
 	"binance-pooler/pkg/lib/mongodb"

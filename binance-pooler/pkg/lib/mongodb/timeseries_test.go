@@ -1,8 +1,8 @@
 package mongodb
 
 import (
-	"binance-pooler/pkg/sy/utils"
-	"binance-pooler/pkg/sy/validate"
+	"binance-pooler/pkg/syro/utils"
+	"binance-pooler/pkg/syro/validate"
 	"encoding/json"
 	"fmt"
 	"testing"
