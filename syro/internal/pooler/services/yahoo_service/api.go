@@ -1,9 +1,9 @@
 package yahoo_service
 
 import (
+	"encoding/json"
 	"fmt"
-	"syro/pkg/lib/encoder"
-	"syro/pkg/lib/fetcher"
+	"syro/pkg/lib/sy/fetcher"
 	"time"
 )
 
@@ -121,7 +121,7 @@ func GetStockData(stockSymbol string, from, to time.Time, interval RequestInterv
 	}
 
 	var data apiResponse
-	if err := encoder.JSON.Unmarshal(res.Body, &data); err != nil {
+	if err := json.Unmarshal(res.Body, &data); err != nil {
 		return err
 	}
 

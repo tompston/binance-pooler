@@ -3,11 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"syro/pkg/app"
-	"syro/pkg/lib/logbook"
-	"syro/pkg/lib/scheduler"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -45,28 +41,28 @@ func (api *API) Routes() {
 }
 
 func (api *API) getLogs(w http.ResponseWriter, r *http.Request) {
-	parseUrlParams := func(r *http.Request) *logbook.LogFilter {
-		// NOTE: errors in the parser are ignored because the validity
-		// of the date is checked in the logger.FindLogs method.
-		from := r.URL.Query().Get("from")
-		fromTime, _ := time.Parse(time.RFC3339, from)
+	// parseUrlParams := func(r *http.Request) *logbook.LogFilter {
+	// 	// NOTE: errors in the parser are ignored because the validity
+	// 	// of the date is checked in the logger.FindLogs method.
+	// 	from := r.URL.Query().Get("from")
+	// 	fromTime, _ := time.Parse(time.RFC3339, from)
 
-		to := r.URL.Query().Get("to")
-		toTime, _ := time.Parse(time.RFC3339, to)
+	// 	to := r.URL.Query().Get("to")
+	// 	toTime, _ := time.Parse(time.RFC3339, to)
 
-		return &logbook.LogFilter{
-			From: fromTime,
-			To:   toTime,
-			Log: logbook.Log{
-				// Level:   r.URL.Query().Get("level"),
-				Message: r.URL.Query().Get("message"),
-				Source:  r.URL.Query().Get("source"),
-				Event:   r.URL.Query().Get("event"),
-				EventID: r.URL.Query().Get("event_id")}}
-	}
+	// 	return &sy.LogFilter{
+	// 		From: fromTime,
+	// 		To:   toTime,
+	// 		Log: sy.Log{
+	// 			// Level:   r.URL.Query().Get("level"),
+	// 			Message: r.URL.Query().Get("message"),
+	// 			Source:  r.URL.Query().Get("source"),
+	// 			Event:   r.URL.Query().Get("event"),
+	// 			EventID: r.URL.Query().Get("event_id")}}
+	// }
 
-	params := parseUrlParams(r)
-	_ = params
+	// params := parseUrlParams(r)
+	// _ = params
 
 	// data, err := api.app.Logger().FindLogs(*params, 100, 0)
 	// if err != nil {
@@ -89,34 +85,34 @@ func (api *API) getCronJobs(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 
-	parseUrlParams := func(r *http.Request) *scheduler.ExecutionFilter {
-		// NOTE: errors in the parser are ignored because the validity
-		// of the date is checked in the scheduler.FindExecutions method.
-		from := r.URL.Query().Get("from")
-		fromTime, _ := time.Parse(time.RFC3339, from)
+	// parseUrlParams := func(r *http.Request) *sy.ExecutionFilter {
+	// 	// NOTE: errors in the parser are ignored because the validity
+	// 	// of the date is checked in the scheduler.FindExecutions method.
+	// 	from := r.URL.Query().Get("from")
+	// 	fromTime, _ := time.Parse(time.RFC3339, from)
 
-		to := r.URL.Query().Get("to")
-		toTime, _ := time.Parse(time.RFC3339, to)
+	// 	to := r.URL.Query().Get("to")
+	// 	toTime, _ := time.Parse(time.RFC3339, to)
 
-		initializedAt := r.URL.Query().Get("initialized_at")
-		initTime, _ := time.Parse(time.RFC3339, initializedAt)
+	// 	initializedAt := r.URL.Query().Get("initialized_at")
+	// 	initTime, _ := time.Parse(time.RFC3339, initializedAt)
 
-		executionTime := r.URL.Query().Get("execution_time")
-		execTime, _ := strconv.ParseInt(executionTime, 10, 64)
+	// 	executionTime := r.URL.Query().Get("execution_time")
+	// 	execTime, _ := strconv.ParseInt(executionTime, 10, 64)
 
-		return &scheduler.ExecutionFilter{
-			From: fromTime,
-			To:   toTime,
-			ExecutionLog: scheduler.ExecutionLog{
-				Name:          r.URL.Query().Get("name"),
-				InitializedAt: initTime,
-				ExecutionTime: time.Duration(execTime),
-			},
-		}
-	}
+	// 	return &sy.ExecutionFilter{
+	// 		From: fromTime,
+	// 		To:   toTime,
+	// 		ExecutionLog: sy.ExecutionLog{
+	// 			Name:          r.URL.Query().Get("name"),
+	// 			InitializedAt: initTime,
+	// 			ExecutionTime: time.Duration(execTime),
+	// 		},
+	// 	}
+	// }
 
-	params := parseUrlParams(r)
-	_ = params
+	// params := parseUrlParams(r)
+	// _ = params
 
 	// data, err := api.app.CronStorage().FindExecutions(*params, 100, 0)
 	// if err != nil {

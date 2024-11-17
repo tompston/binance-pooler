@@ -1,4 +1,4 @@
-package scheduler
+package sy
 
 import (
 	"context"
@@ -74,7 +74,7 @@ func TestJobRunLocking(t *testing.T) {
 func TestCronRegistration(t *testing.T) {
 
 	t.Run("return err if job is nil", func(t *testing.T) {
-		sched := NewScheduler(cron.New(), "")
+		sched := NewCronScheduler(cron.New(), "")
 		err := sched.addJob(nil)
 
 		if err == nil {
@@ -87,7 +87,7 @@ func TestCronRegistration(t *testing.T) {
 	})
 
 	t.Run("return err if cron is nil", func(t *testing.T) {
-		sched := NewScheduler(nil, "")
+		sched := NewCronScheduler(nil, "")
 
 		err := sched.addJob(&Job{
 			Freq: "@every 1m",
@@ -104,7 +104,7 @@ func TestCronRegistration(t *testing.T) {
 	})
 
 	t.Run("return err if freq is nil", func(t *testing.T) {
-		sched := NewScheduler(cron.New(), "")
+		sched := NewCronScheduler(cron.New(), "")
 
 		err := sched.addJob(&Job{
 			Freq: "",
@@ -134,7 +134,7 @@ func TestMongoStorage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	storage, err := NewMongoStorage(cronListColl, cronHistoryColl)
+	storage, err := NewMongoCronStorage(cronListColl, cronHistoryColl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -192,7 +192,7 @@ func TestMongoStorage(t *testing.T) {
 
 		// c := cron.New()
 
-		sched := NewScheduler(cron.New(), "test-pooler").WithStorage(storage)
+		sched := NewCronScheduler(cron.New(), "test-pooler").WithStorage(storage)
 
 		const CRON_NAME = "cron-job-1"
 

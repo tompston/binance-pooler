@@ -1,38 +1,38 @@
-package scheduler
+package sy
 
 import (
 	"fmt"
 	"sync"
-	"syro/pkg/lib/errgroup"
+	"syro/pkg/lib/sy/errgroup"
 	"time"
 
 	"github.com/robfig/cron/v3"
 )
 
-// Scheduler is a wrapper around the cron scheduler that allows for the
+// CronScheduler is a wrapper around the cron CronScheduler that allows for the
 // registration of jobs and the optional storage of job status and
 // execution logs.
-type Scheduler struct {
-	cron    *cron.Cron // cron is the cron scheduler which will run the jobs
-	Source  string     // Source is used to identify the source of the job
-	Jobs    []*Job     // Jobs is a list of all registered jobs
-	Storage Storage    // Storage is an optional storage interface for the scheduler
+type CronScheduler struct {
+	cron        *cron.Cron  // cron is the cron CronScheduler which will run the jobs
+	Source      string      // Source is used to identify the source of the job
+	Jobs        []*Job      // Jobs is a list of all registered jobs
+	CronStorage CronStorage // Storage is an optional storage interface for the CronScheduler
 }
 
-func NewScheduler(cron *cron.Cron, source string) *Scheduler {
-	return &Scheduler{cron: cron, Source: source}
+func NewCronScheduler(cron *cron.Cron, source string) *CronScheduler {
+	return &CronScheduler{cron: cron, Source: source}
 }
 
-// WithStorage sets the storage for the scheduler.
-func (s *Scheduler) WithStorage(storage Storage) *Scheduler {
-	s.Storage = storage
+// WithStorage sets the storage for the CronScheduler.
+func (s *CronScheduler) WithStorage(storage CronStorage) *CronScheduler {
+	s.CronStorage = storage
 	return s
 }
 
-// Register the cron job to the scheduler.
-func (s *Scheduler) Register(j *Job) error {
+// Register the cron job to the CronScheduler.
+func (s *CronScheduler) Register(j *Job) error {
 	if s == nil {
-		return fmt.Errorf("scheduler cannot be nil")
+		return fmt.Errorf("CronScheduler cannot be nil")
 	}
 
 	if j == nil {
@@ -49,13 +49,13 @@ func (s *Scheduler) Register(j *Job) error {
 	return s.addJob(j)
 }
 
-// Start starts the cron scheduler.
+// Start starts the cron CronScheduler.
 //
-// NOTE: Need to specify for how long the scheduler should run after
+// NOTE: Need to specify for how long the CronScheduler should run after
 // calling this function (e.g. time.Sleep(1 * time.Hour) or forever)
-func (s *Scheduler) Start() { s.cron.Start() }
+func (s *CronScheduler) Start() { s.cron.Start() }
 
-// Job represents a cron job that can be registered with the cron scheduler.
+// Job represents a cron job that can be registered with the cron CronScheduler.
 type Job struct {
 	Source      string       // Source of the job (like the name of application which registered the job)
 	Freq        string       // Frequency of the job in cron format
@@ -68,11 +68,11 @@ type Job struct {
 	PostExecution func(error) // Optional. Combined version of OnError and OnSuccess functions.
 }
 
-type Storage interface {
+type CronStorage interface {
 	// SetOptions sets the storage options
-	SetOptions(StorageOptions) Storage
+	SetOptions(CronStorageOptions) CronStorage
 	// GetStorageOptions returns the storage options
-	GetStorageOptions() StorageOptions
+	GetStorageOptions() CronStorageOptions
 	// AllJobs returns a list of all registered jobs
 	AllJobs() ([]JobInfo, error)
 	// RegisterJob registers the details of the selected job
@@ -81,11 +81,11 @@ type Storage interface {
 	RegisterExecution(*ExecutionLog) error
 	// FindExecutions returns a list of job executions that match the filter
 	FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error)
-	// SetJobsToInactive updates the status of the jobs for the given source. This is useful when the app exits.
+	// SetJobsToInactive updates the status of the jobs for the given source. Useful when the app exits.
 	SetJobsToInactive(source string) error
 }
 
-type StorageOptions struct {
+type CronStorageOptions struct {
 	LogRuntime bool
 }
 
@@ -146,11 +146,11 @@ const (
 	JobStatusInactive    JobStatus = "inactive"
 )
 
-// addJob adds a new job to the cron scheduler and wraps the job function with a
+// addJob adds a new job to the cron CronScheduler and wraps the job function with a
 // mutex lock to prevent the execution of the job if it is already running. If
 // the function recieves a valid implementation of the Storage interface then
 // this will also handle the registration and monitoring of the job.
-func (s *Scheduler) addJob(j *Job) error {
+func (s *CronScheduler) addJob(j *Job) error {
 	if j == nil {
 		return fmt.Errorf("job cannot be nil")
 	}
@@ -182,8 +182,8 @@ func (s *Scheduler) addJob(j *Job) error {
 	// the query because the (source, name, freq, descr) params are
 	// written each time in order to update the status.
 
-	if s.Storage != nil {
-		if err := s.Storage.RegisterJob(source, name, freq, descr, JobStatusInitialized, nil); err != nil {
+	if s.CronStorage != nil {
+		if err := s.CronStorage.RegisterJob(source, name, freq, descr, JobStatusInitialized, nil); err != nil {
 			return err
 		}
 	}
@@ -193,8 +193,8 @@ func (s *Scheduler) addJob(j *Job) error {
 
 	_, err := s.cron.AddJob(freq, newJobLock(func() {
 
-		if s.Storage != nil {
-			if err := s.Storage.RegisterJob(s.Source, name, freq, descr, JobStatusRunning, nil); err != nil {
+		if s.CronStorage != nil {
+			if err := s.CronStorage.RegisterJob(s.Source, name, freq, descr, JobStatusRunning, nil); err != nil {
 				errors.Add(fmt.Errorf("failed to set job %v to running: %v", name, err))
 			}
 		}
@@ -216,12 +216,12 @@ func (s *Scheduler) addJob(j *Job) error {
 			j.OnSuccess()
 		}
 
-		if s.Storage != nil {
-			if err := s.Storage.RegisterExecution(newExecutionLog(source, name, now, err)); err != nil {
+		if s.CronStorage != nil {
+			if err := s.CronStorage.RegisterExecution(newExecutionLog(source, name, now, err)); err != nil {
 				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
 
-			if err := s.Storage.RegisterJob(s.Source, name, freq, descr, JobStatusDone, err); err != nil {
+			if err := s.CronStorage.RegisterJob(s.Source, name, freq, descr, JobStatusDone, err); err != nil {
 				errors.Add(fmt.Errorf("failed to set job %v to done: %v", name, err))
 			}
 		}

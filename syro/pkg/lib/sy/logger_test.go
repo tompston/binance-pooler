@@ -1,4 +1,4 @@
-package logbook
+package sy
 
 import (
 	"context"
@@ -170,12 +170,12 @@ func TestLog(t *testing.T) {
 		// parse the time from the timePart
 		parsedDate, err := time.Parse(format, timePart)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		// check if the parsed date is the same as the current time
 		if parsedDate.Before(time.Now().Add(-2 * time.Second)) {
-			t.Error("The created_at time is not within the last 2 seconds")
+			t.Fatal("The created_at time is not within the last 2 seconds")
 		}
 	})
 }
@@ -376,9 +376,9 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method ----
 		test1, err := logger.FindLogs(LogFilter{
-			Limit: 100,
-			Skip:  0,
-			Log:   Log{EventID: "my-event-id"},
+			Limit:   100,
+			Skip:    0,
+			EventID: "my-event-id",
 		})
 
 		if err != nil {
@@ -399,9 +399,9 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method with a limit ----
 		test2, err := logger.FindLogs(LogFilter{
-			Log:   Log{EventID: "my-event-id"},
-			Limit: 5,
-			Skip:  0,
+			EventID: "my-event-id",
+			Limit:   5,
+			Skip:    0,
 		})
 
 		if err != nil {
@@ -414,8 +414,8 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- other filters ----
 		test3, err := logger.FindLogs(LogFilter{
-			Log:   Log{EventID: "this-event-does-not-exist"},
-			Limit: 10,
+			EventID: "this-event-does-not-exist",
+			Limit:   10,
 		})
 
 		if err != nil {

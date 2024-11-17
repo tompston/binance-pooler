@@ -6,7 +6,7 @@ import (
 	"log"
 	"syro/internal/pooler/services/binance_service"
 	"syro/pkg/app"
-	"syro/pkg/lib/scheduler"
+	"syro/pkg/lib/sy"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -28,7 +28,7 @@ func main() {
 
 	cron := cron.New(cron.WithLocation(loc))
 	storage := app.CronStorage()
-	scheduler := scheduler.NewScheduler(cron, "go-pooler").WithStorage(storage)
+	scheduler := sy.NewCronScheduler(cron, "go-pooler").WithStorage(storage)
 
 	if err := binance_service.New(app, 3).
 		WithDebugMode().

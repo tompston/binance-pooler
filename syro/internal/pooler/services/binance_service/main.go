@@ -10,10 +10,9 @@ import (
 
 	"syro/pkg/app"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/logbook"
 	"syro/pkg/lib/mongodb"
-	"syro/pkg/lib/scheduler"
-	"syro/pkg/lib/timeset"
+	"syro/pkg/lib/sy"
+	"syro/pkg/lib/sy/timeset"
 	"syro/pkg/providers/binance"
 )
 
@@ -43,17 +42,17 @@ func (s *service) WithDebugMode() *service {
 	return s
 }
 
-func (s *service) log() logbook.Logger {
+func (s *service) log() sy.Logger {
 	return s.app.Logger().SetEvent("binance")
 }
 
-func (s *service) AddJobs(sched *scheduler.Scheduler) error {
+func (s *service) AddJobs(sched *sy.CronScheduler) error {
 	if err := s.setupSpotAssets(); err != nil {
 		s.log().Fatal(err.Error())
 	}
 
 	if err := sched.Register(
-		&scheduler.Job{
+		&sy.Job{
 			Name: "binance-spot-ohlc",
 			Freq: "@every 15s",
 			Func: func() error {
@@ -105,7 +104,7 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 	sem := make(chan struct{}, s.maxParalellRequests)
 	var wg sync.WaitGroup
 
-	s.log().Debug(" running ohlc scraper", logbook.Fields{"num_assets": len(assets)})
+	s.log().Debug(" running ohlc scraper", sy.Fields{"num_assets": len(assets)})
 
 	for _, asset := range assets {
 		sem <- struct{}{}
@@ -145,22 +144,22 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 	}
 
 	if len(gaps) == 0 {
-		s.log().Debug("no gaps found for futures ohlc", logbook.Fields{"id": id})
+		s.log().Debug("no gaps found for futures ohlc", sy.Fields{"id": id})
 		return nil
 	}
 
 	for interval, gap := range gaps {
 
-		s.log().Debug("found gaps for interval", logbook.Fields{"id": id, "interval": interval, "gaps": len(gap)})
+		s.log().Debug("found gaps for interval", sy.Fields{"id": id, "interval": interval, "gaps": len(gap)})
 
 		for _, g := range gap {
-			s.log().Debug("filling gap", logbook.Fields{"id": id, "gap": g.String()})
+			s.log().Debug("filling gap", sy.Fields{"id": id, "gap": g.String()})
 
 			// The gaps might exceed the 1k limit of the api, that's why we chunk the time range
 			// into smaller pieces and request them one by one.
 			gapChunks := timeset.ChunkTimeRange(g.StartOfGap, g.EndOfGap, timeset.MilisToDuration(interval), 500, 10)
 
-			s.log().Debug("period chunks", logbook.Fields{"chunks": len(gapChunks), "id": id})
+			s.log().Debug("period chunks", sy.Fields{"chunks": len(gapChunks), "id": id})
 
 			for chunkIdx, chunk := range gapChunks {
 				s.log().Debug(fmt.Sprintf("requesting chunk [%v / %v] for %v from %v -> %v", chunkIdx, len(gapChunks), id, chunk.From, chunk.To))
@@ -175,7 +174,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 					return err
 				}
 
-				s.log().Info("upserted binance fututes ohlc", logbook.Fields{"id": id, "log": upsertLog.String()})
+				s.log().Info("upserted binance fututes ohlc", sy.Fields{"id": id, "log": upsertLog.String()})
 			}
 		}
 	}
@@ -196,7 +195,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
-			s.log().Info("latest ohlc for is up to date", logbook.Fields{"id": id})
+			s.log().Info("latest ohlc for is up to date", sy.Fields{"id": id})
 			return nil
 		}
 	}
@@ -216,7 +215,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", id, tf.UrlParam, err)
 	}
 
-	s.log().Info("upserted binance fututes ohlc", logbook.Fields{"id": id, "upsertLog": upsertLog.String()})
+	s.log().Info("upserted binance fututes ohlc", sy.Fields{"id": id, "upsertLog": upsertLog.String()})
 
 	return nil
 }

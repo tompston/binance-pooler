@@ -1,4 +1,4 @@
-package scheduler
+package sy
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 )
 
 // MongoStorage implementation of the Storage interface
-type MongoStorage struct {
-	Options         StorageOptions
+type MongoCronStorage struct {
+	Options         CronStorageOptions
 	cronListColl    *mongo.Collection
 	cronHistoryColl *mongo.Collection
 }
 
 // NOTE: add optional auto delete index?
-func NewMongoStorage(cronListColl, cronHistoryColl *mongo.Collection) (*MongoStorage, error) {
+func NewMongoCronStorage(cronListColl, cronHistoryColl *mongo.Collection) (*MongoCronStorage, error) {
 	if cronListColl == nil || cronHistoryColl == nil {
 		return nil, fmt.Errorf("collections cannot be nil")
 	}
@@ -43,30 +43,30 @@ func NewMongoStorage(cronListColl, cronHistoryColl *mongo.Collection) (*MongoSto
 		return nil, err
 	}
 
-	return &MongoStorage{
+	return &MongoCronStorage{
 		cronListColl:    cronListColl,
 		cronHistoryColl: cronHistoryColl,
 	}, nil
 }
 
-func (m *MongoStorage) SetOptions(opt StorageOptions) Storage {
+func (m *MongoCronStorage) SetOptions(opt CronStorageOptions) CronStorage {
 	m.Options = opt
 	return m
 }
 
-func (m *MongoStorage) GetStorageOptions() StorageOptions {
+func (m *MongoCronStorage) GetStorageOptions() CronStorageOptions {
 	return m.Options
 }
 
 // TODO: refactor so that filter is a variadic parameter
-func (m *MongoStorage) AllJobs() ([]JobInfo, error) {
+func (m *MongoCronStorage) AllJobs() ([]JobInfo, error) {
 	var docs []JobInfo
 	err := mongodb.GetAllDocumentsWithTypes(m.cronListColl, bson.M{}, nil, &docs)
 	return docs, err
 }
 
 // TODO: test this function
-func (m *MongoStorage) SetJobsToInactive(source string) error {
+func (m *MongoCronStorage) SetJobsToInactive(source string) error {
 	filter := bson.M{"source": source}
 	update := bson.M{"$set": bson.M{"status": JobStatusInactive}}
 	_, err := m.cronListColl.UpdateMany(context.Background(), filter, update)
@@ -77,7 +77,7 @@ func (m *MongoStorage) SetJobsToInactive(source string) error {
 // and the job name. If the job does not exist, set the created_at
 // field to the current time. If the job already exists,
 // update the updated_at field to the current time.
-func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobStatus, fnErr error) error {
+func (m *MongoCronStorage) RegisterJob(source, name, freq, descr string, status JobStatus, fnErr error) error {
 	filter := bson.M{
 		"source": source,
 		"name":   name,
@@ -109,7 +109,7 @@ func (m *MongoStorage) RegisterJob(source, name, freq, descr string, status JobS
 }
 
 // Register the execution of a job in the database
-func (m *MongoStorage) RegisterExecution(ex *ExecutionLog) error {
+func (m *MongoCronStorage) RegisterExecution(ex *ExecutionLog) error {
 	if ex == nil {
 		return fmt.Errorf("job execution cannot be nil")
 	}
@@ -119,7 +119,7 @@ func (m *MongoStorage) RegisterExecution(ex *ExecutionLog) error {
 }
 
 // FindExecutions returns a list of executions based on the filter
-func (m *MongoStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error) {
+func (m *MongoCronStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error) {
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter

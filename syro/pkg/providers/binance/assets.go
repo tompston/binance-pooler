@@ -1,10 +1,10 @@
 package binance
 
 import (
+	"encoding/json"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/encoder"
-	"syro/pkg/lib/fetcher"
-	"syro/pkg/lib/timeset"
+	"syro/pkg/lib/sy/fetcher"
+	"syro/pkg/lib/sy/timeset"
 	"time"
 )
 
@@ -73,7 +73,7 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 	}
 
 	var data apiResponse
-	if err := encoder.JSON.Unmarshal(res.Body, &data); err != nil {
+	if err := json.Unmarshal(res.Body, &data); err != nil {
 		return nil, err
 	}
 
@@ -208,7 +208,7 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 	}
 
 	var data apiResponse
-	if err := encoder.JSON.Unmarshal(res.Body, &data); err != nil {
+	if err := json.Unmarshal(res.Body, &data); err != nil {
 		return nil, err
 	}
 

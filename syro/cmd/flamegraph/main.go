@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
-	"syro/pkg/lib/logbook"
-	"syro/pkg/lib/timeset"
+	"syro/pkg/lib/sy"
+	"syro/pkg/lib/sy/timeset"
 
 	"time"
 )
@@ -53,7 +53,7 @@ func main() {
 	// 	app.Logger().SetEvent("main").Info("Hello, World!")
 	// }
 
-	logger := logbook.NewConsoleLogger(nil)
+	logger := sy.NewConsoleLogger(nil)
 	for i := 0; i < 1_000; i++ {
 		logger.SetEvent("main").Info("Hello, World!")
 	}

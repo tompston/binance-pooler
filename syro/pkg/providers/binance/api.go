@@ -1,12 +1,12 @@
 package binance
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/encoder"
-	"syro/pkg/lib/fetcher"
+	"syro/pkg/lib/sy/fetcher"
 	"time"
 )
 
@@ -99,7 +99,7 @@ func (api API) requestKlineData(baseUrl string, id string, from, to time.Time, t
 	}
 
 	var data [][]any
-	if err := encoder.JSON.Unmarshal(res.Body, &data); err != nil {
+	if err := json.Unmarshal(res.Body, &data); err != nil {
 		return nil, err
 	}
 

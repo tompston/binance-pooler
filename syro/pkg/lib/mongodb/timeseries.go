@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"syro/pkg/lib/timeset"
+	"syro/pkg/lib/sy/timeset"
 	"syro/pkg/lib/utils"
 	"time"
 
@@ -43,7 +43,7 @@ func NewTimeseriesFields(startTime, endTime time.Time) (TimeseriesFields, error)
 
 	return TimeseriesFields{
 		StartTime: startTime.UTC(),
-		Interval:  timeset.DiffInMilliseconds(startTime.UTC(), endTime.UTC()),
+		Interval:  endTime.Sub(startTime).Milliseconds(),
 	}, nil
 }
 
