@@ -121,20 +121,13 @@ type Logger interface {
 	Trace(msg string, lf ...Fields) error
 	Fatal(msg string, lf ...Fields) error
 
-	// GetTableName returns the name of the table where the logs are stored
-	GetTableName() string
-	// GetProps returns the properties of the logger
-	GetProps() LoggerProps
-	// LogExists method checks if the log with the provided filter exists.
-	LogExists(filter any) (bool, error)
-	// FindLogs method returns the logs that match the provided filter
-	FindLogs(filter LogFilter) ([]Log, error)
-	// SetSource sets the source of the log
-	SetSource(v string) Logger
-	// SetEvent sets the event of the log
-	SetEvent(v string) Logger
-	// SetEventID sets the event id of the log
-	SetEventID(v string) Logger
+	GetTableName() string                     // GetTableName returns the name of the table where the logs are stored
+	FindLogs(filter LogFilter) ([]Log, error) // FindLogs returns the logs that match the provided filter
+	LogExists(filter any) (bool, error)       // LogExists checks if the log with the provided filter exists.
+	GetProps() LoggerProps                    // GetProps returns the properties of the logger
+	SetSource(v string) Logger                // SetSource sets the source of the log
+	SetEvent(v string) Logger                 // SetEvent sets the event of the log
+	SetEventID(v string) Logger               // SetEventID sets the event id of the log
 }
 
 // LoggerSettings struct for storing the settings for the logger which are
