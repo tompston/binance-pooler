@@ -74,7 +74,6 @@ chmod +x run.sh
 
 <!--
 
-
 psql -d postgres
 
  -->

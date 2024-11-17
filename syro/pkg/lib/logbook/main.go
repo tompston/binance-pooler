@@ -108,8 +108,8 @@ func (log Log) String(logger Logger) string {
 	}
 
 	b.WriteString("\n")
-	return b.String()
 
+	return b.String()
 }
 
 // Logger interface implements the methods for logging

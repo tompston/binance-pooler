@@ -19,16 +19,14 @@ func NewAPI() API { return API{} }
 var TopPairs = []string{
 	"BTCUSDT",
 	"ETHUSDT",
-	"SOLOUSDT",
 	"BNBUSDT",
-	"XPRTUSDT",
+	"XRPTUSDT",
 	"DOGEUSDT",
 	"ADAUSDT",
 	"TRXUSDT",
 	"AVAXUSDT",
 	"SOLUSDT",
 	"LINKUSDT",
-	"DOTUSDT",
 	"LTCUSDT",
 }
 
