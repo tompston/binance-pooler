@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/sy/fetcher"
+	"syro/pkg/sy/fetcher"
 	"time"
 )
 

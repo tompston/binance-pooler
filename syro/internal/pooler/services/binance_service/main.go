@@ -12,8 +12,8 @@ import (
 	"syro/pkg/dto/market_dto"
 	"syro/pkg/lib/mongodb"
 	"syro/pkg/lib/sy"
-	"syro/pkg/lib/sy/timeset"
 	"syro/pkg/providers/binance"
+	"syro/pkg/sy/timeset"
 )
 
 const (

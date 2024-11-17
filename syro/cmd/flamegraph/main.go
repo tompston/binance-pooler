@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime/pprof"
 	"syro/pkg/lib/sy"
-	"syro/pkg/lib/sy/timeset"
+	"syro/pkg/sy/timeset"
 
 	"time"
 )

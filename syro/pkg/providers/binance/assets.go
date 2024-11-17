@@ -3,8 +3,8 @@ package binance
 import (
 	"encoding/json"
 	"syro/pkg/dto/market_dto"
-	"syro/pkg/lib/sy/fetcher"
-	"syro/pkg/lib/sy/timeset"
+	"syro/pkg/sy/fetcher"
+	"syro/pkg/sy/timeset"
 	"time"
 )
 

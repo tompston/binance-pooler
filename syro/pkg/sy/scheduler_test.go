@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"syro/pkg/app/db"
 	"syro/pkg/lib/mongodb"
-	"syro/pkg/lib/sy/utils"
-	"syro/pkg/lib/sy/validate"
+	"syro/pkg/sy/utils"
+	"syro/pkg/sy/validate"
 	"testing"
 	"time"
 

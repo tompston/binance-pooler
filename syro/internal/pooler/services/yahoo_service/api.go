@@ -3,7 +3,7 @@ package yahoo_service
 import (
 	"encoding/json"
 	"fmt"
-	"syro/pkg/lib/sy/fetcher"
+	"syro/pkg/sy/fetcher"
 	"time"
 )
 

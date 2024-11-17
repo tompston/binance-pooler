@@ -3,7 +3,7 @@ package sy
 import (
 	"fmt"
 	"sync"
-	"syro/pkg/lib/sy/errgroup"
+	"syro/pkg/sy/errgroup"
 	"time"
 
 	"github.com/robfig/cron/v3"
