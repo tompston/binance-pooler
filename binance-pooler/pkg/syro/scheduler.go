@@ -74,13 +74,13 @@ type CronStorage interface {
 	// GetStorageOptions returns the storage options
 	GetStorageOptions() CronStorageOptions
 	// AllJobs returns a list of all registered jobs
-	AllJobs() ([]JobInfo, error)
+	AllJobs() ([]CronInfo, error)
 	// RegisterJob registers the details of the selected job
 	RegisterJob(source, name, frequency, description string, status JobStatus, err error) error
 	// RegisterExecution registers the execution of a job if the storage is specified
-	RegisterExecution(*ExecutionLog) error
+	RegisterExecution(*CronExecLog) error
 	// FindExecutions returns a list of job executions that match the filter
-	FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error)
+	FindExecutions(filter CronExecFilter) ([]CronExecLog, error)
 	// SetJobsToInactive updates the status of the jobs for the given source. Useful when the app exits.
 	SetJobsToInactive(source string) error
 }
@@ -89,8 +89,8 @@ type CronStorageOptions struct {
 	LogRuntime bool
 }
 
-// JobInfo stores information about the registered job
-type JobInfo struct {
+// CronInfo stores information about the registered job
+type CronInfo struct {
 	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
 	Source          string    `json:"source" bson:"source"`
@@ -102,8 +102,8 @@ type JobInfo struct {
 	ExitedWithError bool      `json:"exited_with_error" bson:"exited_with_error"`
 }
 
-// ExecutionLog stores information about the job execution
-type ExecutionLog struct {
+// CronExecLog stores information about the job execution
+type CronExecLog struct {
 	Source        string        `json:"source" bson:"source"`
 	Name          string        `json:"name" bson:"name"`
 	InitializedAt time.Time     `json:"initialized_at" bson:"initialized_at"`
@@ -112,16 +112,16 @@ type ExecutionLog struct {
 	Error         string        `json:"error" bson:"error"`
 }
 
-type ExecutionFilter struct {
-	From         time.Time    `json:"from" bson:"from"`
-	To           time.Time    `json:"to" bson:"to"`
-	Limit        int64        `json:"limit" bson:"limit"`
-	Skip         int64        `json:"skip" bson:"skip"`
-	ExecutionLog ExecutionLog `json:"execution_log" bson:"execution_log"`
+type CronExecFilter struct {
+	From        time.Time   `json:"from" bson:"from"`
+	To          time.Time   `json:"to" bson:"to"`
+	Limit       int64       `json:"limit" bson:"limit"`
+	Skip        int64       `json:"skip" bson:"skip"`
+	CronExecLog CronExecLog `json:"execution_log" bson:"execution_log"`
 }
 
-func newExecutionLog(source, name string, initializedAt time.Time, err error) *ExecutionLog {
-	log := &ExecutionLog{
+func newCronExecutionLog(source, name string, initializedAt time.Time, err error) *CronExecLog {
+	log := &CronExecLog{
 		Source:        source,
 		Name:          name,
 		InitializedAt: initializedAt,
@@ -217,7 +217,7 @@ func (s *CronScheduler) addJob(j *Job) error {
 		}
 
 		if s.CronStorage != nil {
-			if err := s.CronStorage.RegisterExecution(newExecutionLog(source, name, now, err)); err != nil {
+			if err := s.CronStorage.RegisterExecution(newCronExecutionLog(source, name, now, err)); err != nil {
 				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
 

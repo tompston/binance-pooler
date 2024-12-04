@@ -85,7 +85,7 @@ func (api *API) getCronJobs(w http.ResponseWriter, r *http.Request) {
 
 func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 
-	// parseUrlParams := func(r *http.Request) *syro.ExecutionFilter {
+	// parseUrlParams := func(r *http.Request) *syro.CronExecFilter {
 	// 	// NOTE: errors in the parser are ignored because the validity
 	// 	// of the date is checked in the scheduler.FindExecutions method.
 	// 	from := r.URL.Query().Get("from")
@@ -100,7 +100,7 @@ func (api *API) getCronJobExecutions(w http.ResponseWriter, r *http.Request) {
 	// 	executionTime := r.URL.Query().Get("execution_time")
 	// 	execTime, _ := strconv.ParseInt(executionTime, 10, 64)
 
-	// 	return &syro.ExecutionFilter{
+	// 	return &syro.CronExecFilter{
 	// 		From: fromTime,
 	// 		To:   toTime,
 	// 		ExecutionLog: syro.ExecutionLog{

@@ -224,7 +224,7 @@ func (lg *MongoLogger) Info(msg string, lf ...LogFields) error  { return lg.log(
 func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
 func (lg *MongoLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
 
-func CreateMongoIndexes(coll *mongo.Collection) error {
+func CreateMongoLogIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().
 		Add("time").
 		Add("level").

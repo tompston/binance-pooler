@@ -59,8 +59,8 @@ func (m *MongoCronStorage) GetStorageOptions() CronStorageOptions {
 }
 
 // TODO: refactor so that filter is a variadic parameter
-func (m *MongoCronStorage) AllJobs() ([]JobInfo, error) {
-	var docs []JobInfo
+func (m *MongoCronStorage) AllJobs() ([]CronInfo, error) {
+	var docs []CronInfo
 	err := mongodb.GetAllDocumentsWithTypes(m.cronListColl, bson.M{}, nil, &docs)
 	return docs, err
 }
@@ -107,7 +107,7 @@ func (m *MongoCronStorage) RegisterJob(source, name, freq, descr string, status 
 }
 
 // Register the execution of a job in the database
-func (m *MongoCronStorage) RegisterExecution(ex *ExecutionLog) error {
+func (m *MongoCronStorage) RegisterExecution(ex *CronExecLog) error {
 	if ex == nil {
 		return fmt.Errorf("job execution cannot be nil")
 	}
@@ -117,7 +117,7 @@ func (m *MongoCronStorage) RegisterExecution(ex *ExecutionLog) error {
 }
 
 // FindExecutions returns a list of executions based on the filter
-func (m *MongoCronStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLog, error) {
+func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog, error) {
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
@@ -129,19 +129,19 @@ func (m *MongoCronStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLo
 		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
-	if filter.ExecutionLog.Source != "" {
-		queryFilter["source"] = filter.ExecutionLog.Source
+	if filter.CronExecLog.Source != "" {
+		queryFilter["source"] = filter.CronExecLog.Source
 	}
 
-	if filter.ExecutionLog.Name != "" {
-		queryFilter["name"] = filter.ExecutionLog.Name
+	if filter.CronExecLog.Name != "" {
+		queryFilter["name"] = filter.CronExecLog.Name
 	}
 
-	if filter.ExecutionLog.Error != "" {
-		queryFilter["error"] = filter.ExecutionLog.Error
+	if filter.CronExecLog.Error != "" {
+		queryFilter["error"] = filter.CronExecLog.Error
 	}
 
-	execTime := filter.ExecutionLog.ExecutionTime
+	execTime := filter.CronExecLog.ExecutionTime
 	if execTime != 0 {
 		if execTime < 0 {
 			return nil, errors.New("execution time cannot be negative")
@@ -156,7 +156,7 @@ func (m *MongoCronStorage) FindExecutions(filter ExecutionFilter) ([]ExecutionLo
 		SetLimit(filter.Limit).
 		SetSkip(filter.Skip)
 
-	var docs []ExecutionLog
+	var docs []CronExecLog
 	err := mongodb.GetAllDocumentsWithTypes(m.cronHistoryColl, queryFilter, opts, &docs)
 	return docs, err
 }

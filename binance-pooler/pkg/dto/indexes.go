@@ -33,7 +33,7 @@ func SetupMongoEnv(db *db.Db) error {
 		}
 	}
 
-	if err := syro.CreateMongoIndexes(db.LogsCollection()); err != nil {
+	if err := syro.CreateMongoLogIndexes(db.LogsCollection()); err != nil {
 		return fmt.Errorf("failed to create indexes for %v: %v", db.LogsCollection().Name(), err)
 	}
 
