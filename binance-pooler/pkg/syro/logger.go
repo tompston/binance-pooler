@@ -166,6 +166,15 @@ func NewMongoLogger(coll *mongo.Collection, settings *LoggerSettings) *MongoLogg
 	return &MongoLogger{Coll: coll, Settings: settings}
 }
 
+func (lg *MongoLogger) CreateIndexes() error {
+	return mongodb.NewIndexes().
+		Add("time", "level").
+		Add("source").
+		Add("event").
+		Add("event_id").
+		Create(lg.Coll)
+}
+
 func (lg *MongoLogger) GetTableName() string {
 	return lg.Coll.Name()
 }
@@ -223,16 +232,6 @@ func (lg *MongoLogger) Error(msg string, lf ...LogFields) error { return lg.log(
 func (lg *MongoLogger) Info(msg string, lf ...LogFields) error  { return lg.log(INFO, msg, lf...) }
 func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(WARN, msg, lf...) }
 func (lg *MongoLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
-
-func CreateMongoLogIndexes(coll *mongo.Collection) error {
-	return mongodb.NewIndexes().
-		Add("time").
-		Add("level").
-		Add("source").
-		Add("event").
-		Add("event_id").
-		Create(coll)
-}
 
 type LogFilter struct {
 	From    time.Time `json:"from"`

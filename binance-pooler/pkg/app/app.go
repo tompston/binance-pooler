@@ -77,6 +77,9 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 	}
 
 	logger := syro.NewMongoLogger(db.LogsCollection(), nil)
+	if err := logger.CreateIndexes(); err != nil {
+		return nil, fmt.Errorf("failed to create indexes for logs collection: %v", err)
+	}
 
 	return &App{
 		conf:        conf,
