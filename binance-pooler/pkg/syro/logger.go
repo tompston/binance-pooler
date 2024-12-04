@@ -13,6 +13,24 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Logger interface implements the methods for logging
+type Logger interface {
+	Error(msg string, lf ...LogFields) error
+	Info(msg string, lf ...LogFields) error
+	Debug(msg string, lf ...LogFields) error
+	Warn(msg string, lf ...LogFields) error
+	Trace(msg string, lf ...LogFields) error
+	Fatal(msg string, lf ...LogFields) error
+
+	GetTableName() string                     // GetTableName returns the name of the table where the logs are stored
+	FindLogs(filter LogFilter) ([]Log, error) // FindLogs returns the logs that match the provided filter
+	LogExists(filter any) (bool, error)       // LogExists checks if the log with the provided filter exists.
+	GetProps() LoggerProps                    // GetProps returns the properties of the logger
+	SetSource(v string) Logger                // SetSource sets the source of the log
+	SetEvent(v string) Logger                 // SetEvent sets the event of the log
+	SetEventID(v string) Logger               // SetEventID sets the event id of the log
+}
+
 // Log struct for storing the log data. Event, EventID, and Fields are optional.
 type Log struct {
 	Time    time.Time `json:"time" bson:"time"`                             // Time of the log (UTC)
@@ -112,24 +130,6 @@ func (log Log) String(logger Logger) string {
 	b.WriteString("\n")
 
 	return b.String()
-}
-
-// Logger interface implements the methods for logging
-type Logger interface {
-	Error(msg string, lf ...LogFields) error
-	Info(msg string, lf ...LogFields) error
-	Debug(msg string, lf ...LogFields) error
-	Warn(msg string, lf ...LogFields) error
-	Trace(msg string, lf ...LogFields) error
-	Fatal(msg string, lf ...LogFields) error
-
-	GetTableName() string                     // GetTableName returns the name of the table where the logs are stored
-	FindLogs(filter LogFilter) ([]Log, error) // FindLogs returns the logs that match the provided filter
-	LogExists(filter any) (bool, error)       // LogExists checks if the log with the provided filter exists.
-	GetProps() LoggerProps                    // GetProps returns the properties of the logger
-	SetSource(v string) Logger                // SetSource sets the source of the log
-	SetEvent(v string) Logger                 // SetEvent sets the event of the log
-	SetEventID(v string) Logger               // SetEventID sets the event id of the log
 }
 
 // LoggerSettings struct for storing the settings for the logger which are

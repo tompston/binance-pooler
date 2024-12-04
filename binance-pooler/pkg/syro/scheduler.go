@@ -9,7 +9,7 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-// CronScheduler is a wrapper around the cron CronScheduler that allows for the
+// CronScheduler is a wrapper around the robfig/cron package that allows for the
 // registration of jobs and the optional storage of job status and
 // execution logs.
 type CronScheduler struct {
@@ -251,7 +251,7 @@ func newJobLock(jobFunc func(), name string) *jobLock {
 }
 
 func (j *jobLock) Run() {
-	if j.tryLock() {
+	if j.jobMutex.TryLock() {
 		defer j.jobMutex.Unlock()
 		j.jobFunc()
 	} else {
@@ -259,4 +259,4 @@ func (j *jobLock) Run() {
 	}
 }
 
-func (j *jobLock) tryLock() bool { return j.jobMutex.TryLock() }
+// func (j *jobLock) tryLock() bool { return j.jobMutex.TryLock() }

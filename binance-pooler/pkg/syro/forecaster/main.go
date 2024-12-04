@@ -1,15 +1,12 @@
 package forecaster
 
 import (
+	"context"
 	"fmt"
 	"time"
-)
 
-// Storage interface is used to define the required methods for a storage backend
-type Storage interface {
-	TableName() string
-	InsertForecasts([]Forecast) error
-}
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type Forecast struct {
 	StartTime  time.Time      `json:"start_time" bson:"start_time"` // For which start_time the forecast is made
@@ -47,7 +44,12 @@ type SaveOptions struct {
 	MaxPastOffset   int64 // Maximum allowed past offset (milliseconds)
 }
 
-func Save(body NewForecastsBody, opt ...SaveOptions) error {
+// Save forecasts using the specified storage backend
+func Save(body NewForecastsBody, insertFunc func(Forecast) error, opt ...SaveOptions) error {
+	if insertFunc == nil {
+		return fmt.Errorf("insertFunc is required")
+	}
+
 	if len(body.Data) == 0 {
 		return fmt.Errorf("no forecasts to save")
 	}
@@ -64,7 +66,6 @@ func Save(body NewForecastsBody, opt ...SaveOptions) error {
 		return fmt.Errorf("variable is required")
 	}
 
-	var forecasts []Forecast
 	for _, f := range body.Data {
 
 		if f.StartTime.IsZero() {
@@ -106,9 +107,34 @@ func Save(body NewForecastsBody, opt ...SaveOptions) error {
 			Meta:       body.Meta,
 		}
 
-		forecasts = append(forecasts, fc)
+		// Save forecasts to the database
+		if err := insertFunc(fc); err != nil {
+			return err
+		}
 	}
 
-	// Save forecasts to the database
+	return nil
+}
+
+// --- mongo storage ---
+
+type MongoStorage struct {
+	coll *mongo.Collection
+}
+
+func NewMongoStorage(coll *mongo.Collection) *MongoStorage {
+	return &MongoStorage{coll: coll}
+}
+
+func (m *MongoStorage) CreateIndexes(f Forecast) error {
+	return nil
+}
+
+func (m *MongoStorage) InsertForecasts(f Forecast) error {
+	_, err := m.coll.InsertOne(context.Background(), f)
+	return err
+}
+
+func (m *MongoStorage) QueryForecasts() error {
 	return nil
 }
