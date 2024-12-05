@@ -44,42 +44,39 @@ type SaveOptions struct {
 	MaxPastOffset   int64 // Maximum allowed past offset (milliseconds)
 }
 
-// Save forecasts using the specified storage backend
-func Save(body NewForecastsBody, insertFunc func(Forecast) error, opt ...SaveOptions) error {
-	if insertFunc == nil {
-		return fmt.Errorf("insertFunc is required")
-	}
+// Parse the ForecastBody and return a slice of Forecast structs
+func ParseBody(body NewForecastsBody, opt ...SaveOptions) ([]Forecast, error) {
 
 	if len(body.Data) == 0 {
-		return fmt.Errorf("no forecasts to save")
+		return nil, fmt.Errorf("no forecasts to save")
 	}
 
 	if body.Source == "" {
-		return fmt.Errorf("source is required")
+		return nil, fmt.Errorf("source is required")
 	}
 
 	if body.Model == "" {
-		return fmt.Errorf("model is required")
+		return nil, fmt.Errorf("model is required")
 	}
 
 	if body.Variable == "" {
-		return fmt.Errorf("variable is required")
+		return nil, fmt.Errorf("variable is required")
 	}
 
+	if body.Interval <= 0 {
+		return nil, fmt.Errorf("interval is required and must be greater than 0")
+	}
+
+	// var forecasts []Forecast
+	forecasts := make([]Forecast, 0, len(body.Data))
+	optionsExist := len(opt) == 1
+	now := time.Now()
+
 	for _, f := range body.Data {
-
-		if f.StartTime.IsZero() {
-			return fmt.Errorf("start_time is required")
-		}
-
-		if body.Interval <= 0 {
-			return fmt.Errorf("interval is required and must be greater than 0")
-		}
-
-		offset := time.Since(f.StartTime).Milliseconds()
+		offset := now.Sub(f.StartTime).Milliseconds()
 
 		// Do the filtering of forecasts before creating new structs, for optimization
-		if len(opt) == 1 {
+		if optionsExist {
 			options := opt[0]
 			if options.ExcludePast && offset < 0 {
 				continue
@@ -94,7 +91,11 @@ func Save(body NewForecastsBody, insertFunc func(Forecast) error, opt ...SaveOpt
 			}
 		}
 
-		fc := Forecast{
+		if f.StartTime.IsZero() {
+			return nil, fmt.Errorf("start_time is required")
+		}
+
+		forecasts = append(forecasts, Forecast{
 			StartTime:  f.StartTime.UTC(),
 			Interval:   body.Interval,
 			Offset:     offset,
@@ -105,15 +106,10 @@ func Save(body NewForecastsBody, insertFunc func(Forecast) error, opt ...SaveOpt
 			SubVar:     &body.SubVar,
 			Value:      f.Value,
 			Meta:       body.Meta,
-		}
-
-		// Save forecasts to the database
-		if err := insertFunc(fc); err != nil {
-			return err
-		}
+		})
 	}
 
-	return nil
+	return forecasts, nil
 }
 
 // --- mongo storage ---
