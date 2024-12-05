@@ -252,13 +252,13 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 	// if the from and to fields are not zero, add them to the query filter
 	if !filter.From.IsZero() && !filter.To.IsZero() {
 		if filter.From.After(filter.To) {
-			return nil, errors.New("from date cannot be after to date")
+			return nil, errors.New("'from' date cannot be after 'to' date")
 		}
 
 		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
-	if filter.Level != nil {
+	if filter.Level != nil && *filter.Level >= TRACE && *filter.Level <= FATAL {
 		queryFilter["level"] = *filter.Level
 	}
 

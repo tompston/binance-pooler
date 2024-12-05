@@ -31,7 +31,7 @@ type NewForecastsBody struct {
 	Meta     map[string]any `json:"meta"`
 	Data     []struct {
 		// Json field names are shortened to reduce the size of the request
-		StartTime  time.Time `json:"t"`
+		StartTime  time.Time `json:"t"` // todo: refactor to a timestamp for parsing efficiency?
 		Value      float64   `json:"v"`
 		UserOffset *int64    `json:"uo"` // save the value if it's specified
 	} `json:"data"`
