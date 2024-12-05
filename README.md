@@ -44,8 +44,10 @@ chmod +x run.sh
 ### TODOS
 
 - [ ] backend view for
-  - [ ] logs
-  - [ ] cron job executions and state
+  - [ ] logs (including filtering)
+  - [ ] cron job list
+    - [ ] Ability to execute a cron job from the frontend?
+  - [ ] cron job executions
   - [ ] user athentication?
 - [ ] simple tracing extension for the logger?
 - [ ] interface based kv store

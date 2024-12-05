@@ -26,14 +26,9 @@ func main() {
 	}
 	defer app.Exit(context.Background())
 
-	cron := cron.New(cron.WithLocation(loc))
-	storage := app.CronStorage()
-	scheduler := syro.NewCronScheduler(cron, "go-pooler").WithStorage(storage)
-
-	if err := binance_service.New(app, 3).
-		WithDebugMode().
-		AddJobs(scheduler); err != nil {
-		log.Fatalf("failed to add binance jobs: %v", err)
+	scheduler, err := InitializeScheduler(app, loc)
+	if err != nil {
+		log.Fatalf(err.Error())
 	}
 
 	// fmt.Printf("scheduler.Jobs: %#v\n", scheduler.Jobs)
@@ -42,6 +37,21 @@ func main() {
 	select {} // run forever
 
 	// for _, job := range scheduler.Jobs {
-	// 	fmt.Println(job.Freq, job.Name, job.Func)
+	// 	job.Func()
 	// }
+}
+
+func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler, error) {
+	cron := cron.New(cron.WithLocation(loc))
+
+	scheduler := syro.NewCronScheduler(cron, "go-pooler").
+		WithStorage(app.CronStorage())
+
+	if err := binance_service.New(app, 3).
+		WithDebugMode().
+		AddJobs(scheduler); err != nil {
+		return nil, fmt.Errorf("failed to add binance jobs to scheduler: %v", err)
+	}
+
+	return scheduler, nil
 }
