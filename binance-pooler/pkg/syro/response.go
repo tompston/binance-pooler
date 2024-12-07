@@ -16,8 +16,8 @@ type ApiResponse struct {
 	Params  any    `json:"params,omitempty"`
 }
 
-// ParseLogsQuery parses the query parameters from the URL and returns a LogFilter
-func ParseLogsQuery(fullUrl string) (*LogFilter, error) {
+// parseLogsQuery parses the query parameters from the URL and returns a LogFilter
+func parseLogsQuery(fullUrl string) (*LogFilter, error) {
 	// Parse the full URL
 	parsedURL, err := url.Parse(fullUrl)
 	if err != nil {
@@ -76,7 +76,7 @@ func ParseLogsQuery(fullUrl string) (*LogFilter, error) {
 	return &filter, nil
 }
 
-func ParseCronExecutionsQuery(fullUrl string) (*CronExecFilter, error) {
+func parseCronExecutionsQuery(fullUrl string) (*CronExecFilter, error) {
 	// Parse the full URL
 	parsedURL, err := url.Parse(fullUrl)
 	if err != nil {
@@ -126,4 +126,38 @@ func ParseCronExecutionsQuery(fullUrl string) (*CronExecFilter, error) {
 	filter.Name = params.Get("name")
 
 	return &filter, nil
+}
+
+func RequestLogs(l Logger, urlPath string) ([]Log, error) {
+	if l == nil {
+		return nil, errors.New("logger is nil")
+	}
+
+	filter, err := parseLogsQuery(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return l.FindLogs(*filter)
+}
+
+func RequestCronExecutions(s CronStorage, urlPath string) ([]CronExecLog, error) {
+	if s == nil {
+		return nil, errors.New("storage is nil")
+	}
+
+	filter, err := parseCronExecutionsQuery(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.FindExecutions(*filter)
+}
+
+func RequestCrons(s CronStorage, urlPath string) ([]CronInfo, error) {
+	if s == nil {
+		return nil, errors.New("storage is nil")
+	}
+
+	return s.FindJobs()
 }

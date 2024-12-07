@@ -7,10 +7,10 @@ import (
 
 func TestResponse(t *testing.T) {
 
-	t.Run("ParseLogsQuery", func(t *testing.T) {
+	t.Run("parseLogsQuery", func(t *testing.T) {
 		url := "http://localhost:8080/logs?from=2021-01-01T00:00:00Z&to=2021-01-02T00:00:00Z&limit=10&skip=5"
 
-		filter, err := ParseLogsQuery(url)
+		filter, err := parseLogsQuery(url)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
