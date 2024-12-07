@@ -73,8 +73,8 @@ type CronStorage interface {
 	SetOptions(CronStorageOptions) CronStorage
 	// GetStorageOptions returns the storage options
 	GetStorageOptions() CronStorageOptions
-	// AllJobs returns a list of all registered jobs
-	AllJobs() ([]CronInfo, error)
+	// FindJobs returns a list of all registered jobs
+	FindJobs() ([]CronInfo, error)
 	// RegisterJob registers the details of the selected job
 	RegisterJob(source, name, frequency, description string, status JobStatus, err error) error
 	// RegisterExecution registers the execution of a job if the storage is specified
@@ -113,11 +113,13 @@ type CronExecLog struct {
 }
 
 type CronExecFilter struct {
-	From        time.Time   `json:"from" bson:"from"`
-	To          time.Time   `json:"to" bson:"to"`
-	Limit       int64       `json:"limit" bson:"limit"`
-	Skip        int64       `json:"skip" bson:"skip"`
-	CronExecLog CronExecLog `json:"execution_log" bson:"execution_log"`
+	From   time.Time `json:"from" bson:"from"`
+	To     time.Time `json:"to" bson:"to"`
+	Limit  int64     `json:"limit" bson:"limit"`
+	Skip   int64     `json:"skip" bson:"skip"`
+	Source string    `json:"source" bson:"source"`
+	Name   string    `json:"name" bson:"name"`
+	// CronExecLog CronExecLog `json:"execution_log" bson:"execution_log"`
 }
 
 func newCronExecutionLog(source, name string, initializedAt time.Time, err error) *CronExecLog {

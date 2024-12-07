@@ -59,7 +59,7 @@ func (m *MongoCronStorage) GetStorageOptions() CronStorageOptions {
 }
 
 // TODO: refactor so that filter is a variadic parameter
-func (m *MongoCronStorage) AllJobs() ([]CronInfo, error) {
+func (m *MongoCronStorage) FindJobs() ([]CronInfo, error) {
 	var docs []CronInfo
 	err := mongodb.GetAllDocumentsWithTypes(m.cronListColl, bson.M{}, nil, &docs)
 	return docs, err
@@ -129,27 +129,27 @@ func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog,
 		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
-	if filter.CronExecLog.Source != "" {
-		queryFilter["source"] = filter.CronExecLog.Source
+	if filter.Source != "" {
+		queryFilter["source"] = filter.Source
 	}
 
-	if filter.CronExecLog.Name != "" {
-		queryFilter["name"] = filter.CronExecLog.Name
+	if filter.Name != "" {
+		queryFilter["name"] = filter.Name
 	}
 
-	if filter.CronExecLog.Error != "" {
-		queryFilter["error"] = filter.CronExecLog.Error
-	}
+	// if filter.Error != "" {
+	// 	queryFilter["error"] = filter.Error
+	// }
 
-	execTime := filter.CronExecLog.ExecutionTime
-	if execTime != 0 {
-		if execTime < 0 {
-			return nil, errors.New("execution time cannot be negative")
-		}
+	// execTime := filter.ExecutionTime
+	// if execTime != 0 {
+	// 	if execTime < 0 {
+	// 		return nil, errors.New("execution time cannot be negative")
+	// 	}
 
-		// where greater than or equal to the execution time
-		queryFilter["execution_time"] = bson.M{"$gte": execTime}
-	}
+	// 	// where greater than or equal to the execution time
+	// 	queryFilter["execution_time"] = bson.M{"$gte": execTime}
+	// }
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "initialized_at", Value: -1}}).

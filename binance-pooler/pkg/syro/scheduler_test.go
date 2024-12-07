@@ -146,7 +146,7 @@ func TestMongoStorage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		jobs, err := storage.AllJobs()
+		jobs, err := storage.FindJobs()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -271,9 +271,7 @@ func TestMongoStorage(t *testing.T) {
 		t.Run("test execution finder - name filter works for non existing crons", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(CronExecFilter{
 				Limit: 1,
-				CronExecLog: CronExecLog{
-					Name: "does-not-exist-qweqwe",
-				},
+				Name:  "does-not-exist-qweqwe",
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -287,9 +285,7 @@ func TestMongoStorage(t *testing.T) {
 		t.Run("test execution finder - name filter works existing crons", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(CronExecFilter{
 				Limit: 1,
-				CronExecLog: CronExecLog{
-					Name: "does-not-exist-qweqwe",
-				},
+				Name:  "does-not-exist-qweqwe",
 			})
 			if err != nil {
 				t.Fatal(err)
