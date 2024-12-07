@@ -33,16 +33,6 @@ func main() {
 
 	// Define routes
 	api.Get("/logs", func(c *fiber.Ctx) error {
-		// query, err := syro.parseLogsQuery(c.OriginalURL())
-		// if err != nil {
-		// 	return c.Status(400).SendString(err.Error())
-		// }
-
-		// data, err := app.Logger().FindLogs(*query)
-		// if err != nil {
-		// 	return c.Status(400).SendString(err.Error())
-		// }
-
 		data, err := syro.RequestLogs(app.Logger(), c.OriginalURL())
 		if err != nil {
 			return c.Status(400).SendString(err.Error())

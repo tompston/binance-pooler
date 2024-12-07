@@ -75,7 +75,7 @@ func TestCronRegistration(t *testing.T) {
 
 	t.Run("return err if job is nil", func(t *testing.T) {
 		sched := NewCronScheduler(cron.New(), "")
-		err := sched.addJob(nil)
+		err := sched.Register(nil)
 
 		if err == nil {
 			t.Fatalf("Expected error, got nil")
@@ -89,7 +89,7 @@ func TestCronRegistration(t *testing.T) {
 	t.Run("return err if cron is nil", func(t *testing.T) {
 		sched := NewCronScheduler(nil, "")
 
-		err := sched.addJob(&Job{
+		err := sched.Register(&Job{
 			Freq: "@every 1m",
 			Name: "test",
 		})
@@ -106,7 +106,7 @@ func TestCronRegistration(t *testing.T) {
 	t.Run("return err if freq is nil", func(t *testing.T) {
 		sched := NewCronScheduler(cron.New(), "")
 
-		err := sched.addJob(&Job{
+		err := sched.Register(&Job{
 			Freq: "",
 		})
 
@@ -146,7 +146,7 @@ func TestMongoStorage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		jobs, err := storage.FindJobs()
+		jobs, err := storage.FindCronJobs()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -197,7 +197,7 @@ func TestMongoStorage(t *testing.T) {
 		const CRON_NAME = "cron-job-1"
 
 		// Register the job
-		if err := sched.addJob(&Job{
+		if err := sched.Register(&Job{
 			Freq: "@every 1s",
 			Name: CRON_NAME,
 			Func: func() error {
@@ -257,7 +257,7 @@ func TestMongoStorage(t *testing.T) {
 
 		t.Run("test execution finder - limit works", func(t *testing.T) {
 			execHistory, err := storage.FindExecutions(CronExecFilter{
-				TimeseriesFilter: TimeseriesFilter{Limit: 10},
+				TimeseriesFilter: TimeseriesFilter{Limit: 1},
 			})
 			if err != nil {
 				t.Fatal(err)

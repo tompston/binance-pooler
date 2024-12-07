@@ -15,6 +15,8 @@ type TimeseriesFilter struct {
 	Skip  int64     `json:"skip" bson:"skip"`
 }
 
+// parse the to, from, limit and skip parameters from the URL, if they exist
+// and are valid values.
 func parseUrlToTimeseriesParams(vals url.Values) (*TimeseriesFilter, error) {
 	filter := TimeseriesFilter{}
 
@@ -136,10 +138,10 @@ func RequestCronExecutions(s CronStorage, urlPath string) ([]CronExecLog, error)
 	return s.FindExecutions(*filter)
 }
 
-func RequestCrons(s CronStorage, urlPath string) ([]CronInfo, error) {
+func RequestCrons(s CronStorage, urlPath string) ([]CronJob, error) {
 	if s == nil {
 		return nil, errors.New("storage is nil")
 	}
 
-	return s.FindJobs()
+	return s.FindCronJobs()
 }
