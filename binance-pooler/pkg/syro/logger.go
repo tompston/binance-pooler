@@ -234,14 +234,11 @@ func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(
 func (lg *MongoLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
 
 type LogFilter struct {
-	From    time.Time `json:"from"`
-	To      time.Time `json:"to"`
-	Limit   int64     `json:"limit"`
-	Skip    int64     `json:"skip"`
-	Source  string    `json:"source"`
-	Event   string    `json:"event"`
-	EventID string    `json:"event_id"`
-	Level   *LogLevel `json:"level"`
+	TimeseriesFilter TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
+	Source           string           `json:"source"`
+	Event            string           `json:"event"`
+	EventID          string           `json:"event_id"`
+	Level            *LogLevel        `json:"level"`
 }
 
 // FindLogs returns logs that match the filter
@@ -250,12 +247,12 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
-	if !filter.From.IsZero() && !filter.To.IsZero() {
-		if filter.From.After(filter.To) {
+	if !filter.TimeseriesFilter.From.IsZero() && !filter.TimeseriesFilter.To.IsZero() {
+		if filter.TimeseriesFilter.From.After(filter.TimeseriesFilter.To) {
 			return nil, errors.New("'from' date cannot be after 'to' date")
 		}
 
-		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
+		queryFilter["time"] = bson.M{"$gte": filter.TimeseriesFilter.From, "$lte": filter.TimeseriesFilter.To}
 	}
 
 	if filter.Level != nil && *filter.Level >= TRACE && *filter.Level <= FATAL {
@@ -274,12 +271,12 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 		queryFilter["event_id"] = filter.EventID
 	}
 
-	filter.Limit = 100
+	filter.TimeseriesFilter.Limit = 100
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "time", Value: -1}}). // sort by time field in descending order
-		SetLimit(filter.Limit).
-		SetSkip(filter.Skip)
+		SetLimit(filter.TimeseriesFilter.Limit).
+		SetSkip(filter.TimeseriesFilter.Skip)
 
 	var docs []Log
 	cursor, err := lg.Coll.Find(context.Background(), queryFilter, opts)

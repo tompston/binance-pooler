@@ -121,12 +121,12 @@ func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog,
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
-	if !filter.From.IsZero() && !filter.To.IsZero() {
-		if filter.From.After(filter.To) {
+	if !filter.TimeseriesFilter.From.IsZero() && !filter.TimeseriesFilter.To.IsZero() {
+		if filter.TimeseriesFilter.From.After(filter.TimeseriesFilter.To) {
 			return nil, errors.New("from date cannot be after to date")
 		}
 
-		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
+		queryFilter["time"] = bson.M{"$gte": filter.TimeseriesFilter.From, "$lte": filter.TimeseriesFilter.To}
 	}
 
 	if filter.Source != "" {
@@ -137,24 +137,14 @@ func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog,
 		queryFilter["name"] = filter.Name
 	}
 
-	// if filter.Error != "" {
-	// 	queryFilter["error"] = filter.Error
-	// }
-
-	// execTime := filter.ExecutionTime
-	// if execTime != 0 {
-	// 	if execTime < 0 {
-	// 		return nil, errors.New("execution time cannot be negative")
-	// 	}
-
-	// 	// where greater than or equal to the execution time
-	// 	queryFilter["execution_time"] = bson.M{"$gte": execTime}
-	// }
+	if filter.ExecutionTime > 0 {
+		queryFilter["execution_time"] = bson.M{"$gte": filter.ExecutionTime}
+	}
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "initialized_at", Value: -1}}).
-		SetLimit(filter.Limit).
-		SetSkip(filter.Skip)
+		SetLimit(filter.TimeseriesFilter.Limit).
+		SetSkip(filter.TimeseriesFilter.Skip)
 
 	var docs []CronExecLog
 	err := mongodb.GetAllDocumentsWithTypes(m.cronHistoryColl, queryFilter, opts, &docs)

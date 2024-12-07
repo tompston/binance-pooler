@@ -113,12 +113,10 @@ type CronExecLog struct {
 }
 
 type CronExecFilter struct {
-	From   time.Time `json:"from" bson:"from"`
-	To     time.Time `json:"to" bson:"to"`
-	Limit  int64     `json:"limit" bson:"limit"`
-	Skip   int64     `json:"skip" bson:"skip"`
-	Source string    `json:"source" bson:"source"`
-	Name   string    `json:"name" bson:"name"`
+	TimeseriesFilter TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
+	Source           string           `json:"source" bson:"source"`
+	Name             string           `json:"name" bson:"name"`
+	ExecutionTime    time.Duration    `json:"execution_time" bson:"execution_time"`
 	// CronExecLog CronExecLog `json:"execution_log" bson:"execution_log"`
 }
 

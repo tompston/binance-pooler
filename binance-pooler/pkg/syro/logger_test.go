@@ -376,9 +376,8 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method ----
 		test1, err := logger.FindLogs(LogFilter{
-			Limit:   100,
-			Skip:    0,
-			EventID: "my-event-id",
+			TimeseriesFilter: TimeseriesFilter{Limit: 100, Skip: 0},
+			EventID:          "my-event-id",
 		})
 
 		if err != nil {
@@ -399,9 +398,8 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- test the find logs method with a limit ----
 		test2, err := logger.FindLogs(LogFilter{
-			EventID: "my-event-id",
-			Limit:   5,
-			Skip:    0,
+			EventID:          "my-event-id",
+			TimeseriesFilter: TimeseriesFilter{Limit: 100, Skip: 0},
 		})
 
 		if err != nil {
@@ -414,8 +412,8 @@ func TestMongoLogger(t *testing.T) {
 
 		// ---- other filters ----
 		test3, err := logger.FindLogs(LogFilter{
-			EventID: "this-event-does-not-exist",
-			Limit:   10,
+			EventID:          "this-event-does-not-exist",
+			TimeseriesFilter: TimeseriesFilter{Limit: 100, Skip: 0},
 		})
 
 		if err != nil {
