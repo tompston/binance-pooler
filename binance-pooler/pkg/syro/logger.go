@@ -274,6 +274,8 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 		queryFilter["event_id"] = filter.EventID
 	}
 
+	filter.Limit = 100
+
 	opts := options.Find().
 		SetSort(bson.D{{Key: "time", Value: -1}}). // sort by time field in descending order
 		SetLimit(filter.Limit).

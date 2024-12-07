@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -21,11 +20,11 @@ func main() {
 	defer app.Exit(context.Background())
 
 	// Create a new Fiber instance
-	appServer := fiber.New(fiber.Config{
+	api := fiber.New(fiber.Config{
 		DisableStartupMessage: true, // Disable Fiber's startup message
 	})
 
-	appServer.Use(
+	api.Use(
 		cors.New(cors.Config{
 			AllowCredentials: false,
 			AllowOrigins:     "*", // NOTE: change this to a list of urls from which fetch requests are allowed
@@ -33,32 +32,27 @@ func main() {
 	)
 
 	// Define routes
-	appServer.Get("/logs", func(c *fiber.Ctx) error {
-		filter := syro.LogFilter{
-			Limit: 500,
-			// Level: ,
+	api.Get("/logs", func(c *fiber.Ctx) error {
+		query, err := syro.ParseLogsQuery(c.OriginalURL())
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
 		}
-		_ = filter
 
-		// Call the syro HTMX handler and pass the Fiber context
-		return c.Type("text/html").SendString("")
+		data, err := app.Logger().FindLogs(*query)
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(data)
 	})
 
 	// Start the server
 	addr := fmt.Sprintf("%v:%v", app.Conf().Api.Host, app.Conf().Api.Port)
 	log.Println("Starting HTTP server on " + addr)
 
-	if err := appServer.Listen(addr); err != nil {
+	if err := api.Listen(addr); err != nil {
 		log.Fatalf("failed to start HTTP server: %v", err)
 	}
-}
-
-func stringToFloatPointer(s string) *float64 {
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return nil
-	}
-	return &f
 }
 
 // on exit, kill the app running on port 8080
