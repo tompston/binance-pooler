@@ -6,7 +6,6 @@ toolchain go1.22.3
 
 require (
 	github.com/BurntSushi/toml v1.2.1
-	github.com/go-chi/chi/v5 v5.1.0
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/robfig/cron/v3 v3.0.0

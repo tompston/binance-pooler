@@ -1,10 +1,13 @@
 package main
 
 import (
-	"binance-pooler/internal/pooler/services/binance_service"
 	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/syro"
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
+	"time"
 )
 
 // go run cmd/exec/main.go
@@ -15,8 +18,8 @@ func main() {
 	}
 	defer app.Exit(context.Background())
 
-	s := binance_service.New(app, 1).WithDebugMode()
-	s.Tmp(true)
+	// s := binance_service.New(app, 1).WithDebugMode()
+	// s.Tmp(true)
 
 	// t1 := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
 	// t2 := time.Date(2021, 4, 1, 0, 0, 0, 0, time.UTC)
@@ -26,4 +29,16 @@ func main() {
 	// for _, chunk := range gapChunks {
 	// 	log.Printf("chunk: %s - %s", chunk.From, chunk.To)
 	// }
+
+	// convert the struct to a json string
+
+	for {
+		decoded, err := json.Marshal(syro.NewMemStats())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		fmt.Println(string(decoded))
+		time.Sleep(1 * time.Second)
+	}
 }
