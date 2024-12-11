@@ -25,6 +25,27 @@ type CronScheduler struct {
 	CronStorage CronStorage // Storage is an optional storage interface for the CronScheduler
 }
 
+type CronStorage interface {
+	// SetOptions sets the storage options
+	SetOptions(CronStorageOptions) CronStorage
+	// GetStorageOptions returns the storage options
+	GetStorageOptions() CronStorageOptions
+	// FindCronJobs returns a list of all registered jobs
+	FindCronJobs() ([]CronJob, error)
+	// RegisterJob registers the details of the selected job
+	RegisterJob(source, name, frequency, description string, status JobStatus, err error) error
+	// RegisterExecution registers the execution of a job if the storage is specified
+	RegisterExecution(*CronExecLog) error
+	// FindExecutions returns a list of job executions that match the filter
+	FindExecutions(filter CronExecFilter) ([]CronExecLog, error)
+	// SetJobsToInactive updates the status of the jobs for the given source. Useful when the app exits.
+	SetJobsToInactive(source string) error
+}
+
+type CronStorageOptions struct {
+	LogRuntime bool
+}
+
 func NewCronScheduler(cron *cron.Cron, source string) *CronScheduler {
 	return &CronScheduler{cron: cron, Source: source}
 }
@@ -140,7 +161,7 @@ func (s *CronScheduler) Register(j *Job) error {
 // calling this function (e.g. time.Sleep(1 * time.Hour) or forever)
 func (s *CronScheduler) Start() { s.cron.Start() }
 
-// Job represents a cron job that can be registered with the cron CronScheduler.
+// Job represents a cron job that can be registered with the CronScheduler.
 type Job struct {
 	Source      string       // Source of the job (like the name of application which registered the job)
 	Freq        string       // Frequency of the job in cron format
@@ -151,27 +172,6 @@ type Job struct {
 	OnSuccess     func()      // Optional. Function to be executed after the job executes without errors
 	OnError       func(error) // Optional. Function to be executed if the job returns an error
 	PostExecution func(error) // Optional. Combined version of OnError and OnSuccess functions.
-}
-
-type CronStorage interface {
-	// SetOptions sets the storage options
-	SetOptions(CronStorageOptions) CronStorage
-	// GetStorageOptions returns the storage options
-	GetStorageOptions() CronStorageOptions
-	// FindCronJobs returns a list of all registered jobs
-	FindCronJobs() ([]CronJob, error)
-	// RegisterJob registers the details of the selected job
-	RegisterJob(source, name, frequency, description string, status JobStatus, err error) error
-	// RegisterExecution registers the execution of a job if the storage is specified
-	RegisterExecution(*CronExecLog) error
-	// FindExecutions returns a list of job executions that match the filter
-	FindExecutions(filter CronExecFilter) ([]CronExecLog, error)
-	// SetJobsToInactive updates the status of the jobs for the given source. Useful when the app exits.
-	SetJobsToInactive(source string) error
-}
-
-type CronStorageOptions struct {
-	LogRuntime bool
 }
 
 // CronJob stores information about the registered job

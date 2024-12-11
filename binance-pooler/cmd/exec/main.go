@@ -2,12 +2,8 @@ package main
 
 import (
 	"binance-pooler/pkg/app"
-	"binance-pooler/pkg/syro"
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
-	"time"
 )
 
 // go run cmd/exec/main.go
@@ -32,13 +28,12 @@ func main() {
 
 	// convert the struct to a json string
 
-	for {
-		decoded, err := json.Marshal(syro.NewMemStats())
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-
-		fmt.Println(string(decoded))
-		time.Sleep(1 * time.Second)
-	}
+	// for {
+	// 	decoded, err := json.Marshal(syro.NewMemStats())
+	// 	if err != nil {
+	// 		log.Fatalf(err.Error())
+	// 	}
+	// 	fmt.Println(string(decoded))
+	// 	time.Sleep(1 * time.Second)
+	// }
 }

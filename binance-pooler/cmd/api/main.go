@@ -41,6 +41,24 @@ func main() {
 		return c.JSON(data)
 	})
 
+	api.Get("/cron_list", func(c *fiber.Ctx) error {
+		data, err := syro.RequestCrons(app.CronStorage(), c.OriginalURL())
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(data)
+	})
+
+	api.Get("/cron_history", func(c *fiber.Ctx) error {
+		data, err := syro.RequestCronExecutions(app.CronStorage(), c.OriginalURL())
+		if err != nil {
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(data)
+	})
+
 	// Start the server
 	addr := fmt.Sprintf("%v:%v", app.Conf().Api.Host, app.Conf().Api.Port)
 	log.Println("Starting HTTP server on " + addr)
