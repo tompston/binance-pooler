@@ -25,8 +25,8 @@ func TestApi(t *testing.T) {
 		}
 
 		for _, row := range dbrows {
-			if row.ID != "batusdt" {
-				t.Fatalf("expected bat, got %s", row.ID)
+			if row.Symbol != "batusdt" {
+				t.Fatalf("expected bat, got %s", row.Symbol)
 			}
 
 			fmt.Printf("GetFutureKline row: %v\n", row)
@@ -64,9 +64,9 @@ func TestService(t *testing.T) {
 		coll := app.Db().TestCollection("crypto_futures_ohlc_service_test")
 		from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 		to := from.Add(time.Hour * 4)
-		id := "batusdt"
+		symbol := "batusdt"
 
-		docs, err := api.GetFutureKline(id, from, to, binance.Timeframe15M)
+		docs, err := api.GetFutureKline(symbol, from, to, binance.Timeframe15M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -79,7 +79,7 @@ func TestService(t *testing.T) {
 		fmt.Printf("log.String(): %v\n", log.String())
 	})
 
-	t.Run("scrapeOhlcForIDTest", func(t *testing.T) {
+	t.Run("scrapeOhlcForSymbolTest", func(t *testing.T) {
 
 		s := New(app, 1)
 
@@ -88,9 +88,7 @@ func TestService(t *testing.T) {
 			s.log().Error(err.Error())
 		}
 
-		id := "BTCUSDT"
-
-		if err := s.scrapeOhlcForID(id, binance.Timeframe15M); err != nil {
+		if err := s.scrapeOhlcForSymbol("BTCUSDT", binance.Timeframe15M); err != nil {
 			t.Fatalf(err.Error())
 		}
 	})

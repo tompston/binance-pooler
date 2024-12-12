@@ -77,7 +77,7 @@ func (s *service) Tmp(fill bool) {
 func (s *service) getTopPairs() ([]market_dto.SpotAsset, error) {
 	return market_dto.NewMongoInterface().GetSpotAssets(
 		s.app.Db().CryptoSpotAssetColl(),
-		bson.M{"source": binance.Source, "id": bson.M{"$in": binance.TopPairs}}, nil,
+		bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}, nil,
 	)
 }
 
@@ -110,25 +110,25 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 		sem <- struct{}{}
 		wg.Add(1)
 
-		go func(id string) {
+		go func(symbol string) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
 			for _, tf := range requestableTimeframes {
 				time.Sleep(apiRequestSleep)
 				if fillgaps {
-					if err := s.fillGapsForId(id, tf); err != nil {
+					if err := s.fillGapsForSymbol(symbol, tf); err != nil {
 						s.log().Error(err.Error())
 					}
 
 				} else {
-					if err := s.scrapeOhlcForID(id, tf); err != nil {
+					if err := s.scrapeOhlcForSymbol(symbol, tf); err != nil {
 						s.log().Error(err.Error())
 					}
 				}
 			}
 
-		}(asset.ID)
+		}(asset.Symbol)
 	}
 
 	wg.Wait()
@@ -136,26 +136,26 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 	return nil
 }
 
-func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
+func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 
 	coll := s.app.Db().CryptoSpotOhlcColl()
-	filter := bson.M{"id": id, "interval": tf.Milis}
+	filter := bson.M{"symbol": symbol, "interval": tf.Milis}
 	gaps, err := mongodb.FindGaps(coll, filter)
 	if err != nil {
 		return err
 	}
 
 	if len(gaps) == 0 {
-		s.log().Debug("no gaps found for futures ohlc", syro.LogFields{"id": id})
+		s.log().Debug("no gaps found for futures ohlc", syro.LogFields{"symbol": symbol})
 		return nil
 	}
 
 	for interval, gap := range gaps {
 
-		s.log().Debug("found gaps for interval", syro.LogFields{"id": id, "interval": interval, "gaps": len(gap)})
+		s.log().Debug("found gaps for interval", syro.LogFields{"symbol": symbol, "interval": interval, "gaps": len(gap)})
 
 		for _, g := range gap {
-			s.log().Debug("filling gap", syro.LogFields{"id": id, "gap": g.String()})
+			s.log().Debug("filling gap", syro.LogFields{"symbol": symbol, "gap": g.String()})
 
 			// The gaps might exceed the 1k limit of the api, that's why we chunk the time range
 			// into smaller pieces and request them one by one.
@@ -164,14 +164,14 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 				return err
 			}
 
-			s.log().Debug("period chunks", syro.LogFields{"chunks": len(gapChunks), "id": id})
+			s.log().Debug("period chunks", syro.LogFields{"chunks": len(gapChunks), "symbol": symbol})
 
 			for chunkIdx, chunk := range gapChunks {
-				s.log().Debug(fmt.Sprintf("requesting chunk [%v / %v] for %v from %v -> %v", chunkIdx, len(gapChunks), id, chunk.From, chunk.To))
+				s.log().Debug(fmt.Sprintf("requesting chunk [%v / %v] for %v from %v -> %v", chunkIdx, len(gapChunks), symbol, chunk.From, chunk.To))
 
-				docs, err := s.api.GetFutureKline(id, chunk.From, chunk.To, tf)
+				docs, err := s.api.GetFutureKline(symbol, chunk.From, chunk.To, tf)
 				if err != nil {
-					return fmt.Errorf("%v:%v [%v -> %v] failed to get ohlc rows: %v", id, tf.UrlParam, chunk.From, chunk.To, err)
+					return fmt.Errorf("%v:%v [%v -> %v] failed to get ohlc rows: %v", symbol, tf.UrlParam, chunk.From, chunk.To, err)
 				}
 
 				upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
@@ -179,7 +179,7 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 					return err
 				}
 
-				s.log().Info("upserted binance fututes ohlc", syro.LogFields{"id": id, "log": upsertLog.String()})
+				s.log().Info("upserted binance fututes ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
 			}
 		}
 	}
@@ -187,14 +187,14 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 	return nil
 }
 
-func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
+func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error {
 
 	defaultStart := time.Now().AddDate(-5, 0, 0)
 	coll := s.app.Db().CryptoSpotOhlcColl()
 
 	filter := bson.M{
 		"interval": tf.Milis,
-		"id":       id,
+		"symbol":   symbol,
 	}
 
 	latestTime, err := mongodb.GetLatestStartTime(defaultStart, coll, filter, false)
@@ -206,7 +206,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
-			s.log().Info("latest ohlc is up to date", syro.LogFields{"id": id})
+			s.log().Info("latest ohlc is up to date", syro.LogFields{"symbol": symbol})
 			return nil
 		}
 	}
@@ -216,17 +216,18 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 	from := latestTime.Add(-overlay)
 	to := from.Add(tf.GetMaxReqPeriod())
 
-	docs, err := s.api.GetSpotKline(id, from, to, tf)
+	docs, err := s.api.GetSpotKline(symbol, from, to, tf)
 	if err != nil {
 		return err
 	}
 
 	upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
 	if err != nil {
-		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", id, tf.UrlParam, err)
+		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
 	}
 
-	s.log().Info("upserted binance fututes ohlc", syro.LogFields{"id": id, "resolution": tf.Milis / 60000, "upsertLog": upsertLog.String()})
+	s.log().Info("upserted binance fututes ohlc",
+		syro.LogFields{"symbol": symbol, "resolution": tf.Milis / 60000, "upsertLog": upsertLog.String()})
 
 	return nil
 }

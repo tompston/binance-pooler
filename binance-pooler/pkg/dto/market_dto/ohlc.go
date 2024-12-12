@@ -26,7 +26,7 @@ func NewOHLC(open, high, low, close, volume float64) *OHLC {
 // timeseries data stored in the db
 type OhlcRow struct {
 	mongodb.TimeseriesFields `bson:",inline"`
-	ID                       string `json:"id" bson:"id"`
+	Symbol                   string `json:"symbol" bson:"symbol"`
 	OHLC                     `bson:",inline"`
 	// Optional fields that are not always available
 	BaseAssetVolume *float64 `json:"bv" bson:"bv"`
@@ -39,13 +39,13 @@ func (o *OhlcRow) String() string {
 		return "<nil>"
 	}
 
-	return fmt.Sprintf("id: %v, time: %v, interval: %v, o: %v, h: %v, l: %v, c: %v, v: %v",
-		o.ID, o.StartTime, o.Interval, o.Open, o.High, o.Low, o.Close, o.Volume)
+	return fmt.Sprintf("symbol: %v, time: %v, interval: %v, o: %v, h: %v, l: %v, c: %v, v: %v",
+		o.Symbol, o.StartTime, o.Interval, o.Open, o.High, o.Low, o.Close, o.Volume)
 }
 
-func NewOhlcRow(id string, startTime, endTime time.Time, open, high, low, close, volume float64) (*OhlcRow, error) {
-	if id == "" {
-		return nil, fmt.Errorf("id is empty")
+func NewOhlcRow(symbol string, startTime, endTime time.Time, open, high, low, close, volume float64) (*OhlcRow, error) {
+	if symbol == "" {
+		return nil, fmt.Errorf("symbol is empty")
 	}
 
 	timeseries, err := mongodb.NewTimeseriesFields(startTime, endTime)
@@ -55,7 +55,7 @@ func NewOhlcRow(id string, startTime, endTime time.Time, open, high, low, close,
 
 	return &OhlcRow{
 		TimeseriesFields: timeseries,
-		ID:               id,
+		Symbol:           symbol,
 		OHLC:             *NewOHLC(open, high, low, close, volume),
 	}, nil
 }
@@ -65,8 +65,8 @@ func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 
 func (m *Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
 	return mongodb.TimeseriesIndexes().
-		Add("id").
-		Add(mongodb.START_TIME, "id", "interval").
+		Add("symbol").
+		Add(mongodb.START_TIME, "symbol", "interval").
 		Create(coll)
 }
 
@@ -77,11 +77,11 @@ func (db *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongod
 
 	var models []mongo.WriteModel
 	for _, row := range data {
-		if row.ID == "" {
-			return nil, fmt.Errorf("id is empty")
+		if row.Symbol == "" {
+			return nil, fmt.Errorf("symbol is empty")
 		}
 
-		filter := bson.M{"id": row.ID, mongodb.START_TIME: row.StartTime, "interval": row.Interval}
+		filter := bson.M{"symbol": row.Symbol, mongodb.START_TIME: row.StartTime, "interval": row.Interval}
 		update := bson.M{"$set": row}
 		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
 	}

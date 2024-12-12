@@ -14,7 +14,7 @@ import (
 type FuturesAsset struct {
 	UpdatedAt             time.Time `json:"updated_at" bson:"updated_at"`
 	Source                string    `json:"source" bson:"source"` // Where the data is coming from
-	ID                    string    `json:"id" bson:"id"`         // Id of the asset (e.g. BTCUSDT)
+	Symbol                string    `json:"symbol" bson:"symbol"` // Symbol of the asset (e.g. BTCUSDT)
 	ContractType          string    `json:"contract_type" bson:"contract_type"`
 	DeliveryDate          time.Time `json:"delivery_date" bson:"delivery_date"`
 	OnboardDate           time.Time `json:"onboard_date" bson:"onboard_date"`
@@ -38,11 +38,11 @@ func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection)
 	}
 
 	upsertFn := func(row FuturesAsset) error {
-		if row.ID == "" || row.Source == "" {
-			return fmt.Errorf("id or source is empty")
+		if row.Symbol == "" || row.Source == "" {
+			return fmt.Errorf("symbol or source is empty")
 		}
 
-		filter := bson.M{"id": row.ID, "source": row.Source}
+		filter := bson.M{"symbol": row.Symbol, "source": row.Source}
 		_, err := coll.UpdateOne(context.Background(), filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
@@ -64,21 +64,21 @@ func (m *Mongo) GetFuturesAssets(coll *mongo.Collection, filter bson.M, opt *opt
 	return docs, err
 }
 
-func (m *Mongo) GetFuturesAssetByID(coll *mongo.Collection, id string) (FuturesAsset, error) {
+func (m *Mongo) GetFuturesAssetBySymbol(coll *mongo.Collection, symbol string) (FuturesAsset, error) {
 	var doc FuturesAsset
-	filter := bson.M{"id": id}
+	filter := bson.M{"symbol": symbol}
 	err := coll.FindOne(context.Background(), filter).Decode(&doc)
 	return doc, err
 }
 
 func (m *Mongo) CreateAssetIndexes(coll *mongo.Collection) error {
-	return mongodb.NewIndexes().Add("id").Add("source", "status").Create(coll)
+	return mongodb.NewIndexes().Add("symbol").Add("source", "status").Create(coll)
 }
 
 type SpotAsset struct {
 	UpdatedAt                  time.Time `json:"updated_at" bson:"updated_at"`
 	Source                     string    `json:"source" bson:"source"` // Where the data is coming from
-	ID                         string    `json:"id" bson:"id"`         // Id of the asset (e.g. BTCUSDT)
+	Symbol                     string    `json:"symbol" bson:"symbol"` // symb of the asset (e.g. BTCUSDT)
 	Status                     string    `json:"status" bson:"status"`
 	BaseAsset                  string    `json:"base_asset" bson:"base_asset"`
 	QuoteAsset                 string    `json:"quote_asset" bson:"quote_asset"`
@@ -104,11 +104,11 @@ func (m *Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mon
 	}
 
 	upsertFn := func(row SpotAsset) error {
-		if row.ID == "" || row.Source == "" {
-			return fmt.Errorf("id or source is empty")
+		if row.Symbol == "" || row.Source == "" {
+			return fmt.Errorf("symbol or source is empty")
 		}
 
-		filter := bson.M{"id": row.ID, "source": row.Source}
+		filter := bson.M{"symbol": row.Symbol, "source": row.Source}
 		_, err := coll.UpdateOne(context.Background(), filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
@@ -130,9 +130,9 @@ func (m *Mongo) GetSpotAssets(coll *mongo.Collection, filter bson.M, opt *option
 	return docs, err
 }
 
-func (m *Mongo) GetSpotAssetByID(coll *mongo.Collection, id string) (SpotAsset, error) {
+func (m *Mongo) GetSpotAssetBySymbol(coll *mongo.Collection, symbol string) (SpotAsset, error) {
 	var doc SpotAsset
-	filter := bson.M{"id": id}
+	filter := bson.M{"symbol": symbol}
 	err := coll.FindOne(context.Background(), filter).Decode(&doc)
 	return doc, err
 }

@@ -80,8 +80,8 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 	var assets []market_dto.FuturesAsset
 
 	for _, symbol := range data.Symbols {
-		id := symbol.Symbol
-		if id == "" {
+		symb := symbol.Symbol
+		if symb == "" {
 			continue
 		}
 
@@ -115,7 +115,7 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 
 		asset := market_dto.FuturesAsset{
 			UpdatedAt:             time.Now().UTC(),
-			ID:                    id,
+			Symbol:                symb,
 			Source:                Source,
 			ContractType:          symbol.ContractType,
 			DeliveryDate:          deliveryDate,
@@ -214,15 +214,15 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 
 	var docs []market_dto.SpotAsset
 	for _, symbol := range data.Symbols {
-		id := symbol.Symbol
-		if id == "" {
+		symb := symbol.Symbol
+		if symb == "" {
 			continue
 		}
 
 		asset := market_dto.SpotAsset{
 			UpdatedAt:                  time.Now().UTC(),
 			Source:                     Source,
-			ID:                         id,
+			Symbol:                     symb,
 			Status:                     symbol.Status,
 			BaseAsset:                  symbol.BaseAsset,
 			QuoteAsset:                 symbol.QuoteAsset,

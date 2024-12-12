@@ -9,10 +9,10 @@ func TestApi(t *testing.T) {
 
 	t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	t2 := t1.Add(time.Hour * 4)
-	id := "ethusdt"
+	symbol := "ethusdt"
 
 	t.Run("GetSpotKline", func(t *testing.T) {
-		docs, err := NewAPI().GetSpotKline(id, t1, t2, Timeframe15M)
+		docs, err := NewAPI().GetSpotKline(symbol, t1, t2, Timeframe15M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -23,7 +23,7 @@ func TestApi(t *testing.T) {
 	})
 
 	t.Run("GetFutureKline", func(t *testing.T) {
-		docs, err := NewAPI().GetFutureKline(id, t1, t2, Timeframe15M)
+		docs, err := NewAPI().GetFutureKline(symbol, t1, t2, Timeframe15M)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
