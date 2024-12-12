@@ -70,10 +70,6 @@ func (m *Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
 		Create(coll)
 }
 
-func (m *Mongo) GetLatestOhlcStartTime(id string, defaultStartTime time.Time, coll *mongo.Collection, loggerFn func(any)) (time.Time, error) {
-	return mongodb.GetLatestStartTime(defaultStartTime, coll, bson.M{"id": id}, false, loggerFn)
-}
-
 func (db *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")

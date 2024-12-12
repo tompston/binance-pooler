@@ -19,15 +19,15 @@ func NewAPI() API { return API{} }
 var TopPairs = []string{
 	"BTCUSDT",
 	"ETHUSDT",
-	"BNBUSDT",
-	"XRPTUSDT",
-	"DOGEUSDT",
-	"ADAUSDT",
-	"TRXUSDT",
-	"AVAXUSDT",
-	"SOLUSDT",
-	"LINKUSDT",
-	"LTCUSDT",
+	// "BNBUSDT",
+	// "XRPTUSDT",
+	// "DOGEUSDT",
+	// "ADAUSDT",
+	// "TRXUSDT",
+	// "AVAXUSDT",
+	// "SOLUSDT",
+	// "LINKUSDT",
+	// "LTCUSDT",
 }
 
 type Timeframe struct {

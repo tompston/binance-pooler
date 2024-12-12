@@ -16,7 +16,7 @@ import (
 	"binance-pooler/pkg/syro/timeset"
 )
 
-const apiRequestSleep = 500 * time.Millisecond
+const apiRequestSleep = 200 * time.Millisecond
 
 type service struct {
 	app                 *app.App
@@ -52,7 +52,7 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 	if err := sched.Register(
 		&syro.Job{
 			Name: "binance-spot-ohlc",
-			Freq: "@every 15s",
+			Freq: "@every 30s",
 			Func: func() error {
 				if err := s.runOhlcScraper(false); err != nil {
 					s.log().Error(err.Error())
@@ -89,6 +89,12 @@ func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error
 	)
 }
 
+var requestableTimeframes = []binance.Timeframe{
+	binance.Timeframe1M,
+	binance.Timeframe5M,
+	binance.Timeframe15M,
+}
+
 func (s *service) runOhlcScraper(fillgaps bool) error {
 	assets, err := s.getTopPairs()
 	if err != nil {
@@ -107,16 +113,18 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 		go func(id string) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			time.Sleep(apiRequestSleep)
 
-			if fillgaps {
-				if err := s.fillGapsForId(id, binance.Timeframe15M); err != nil {
-					s.log().Error(err.Error())
-				}
+			for _, tf := range requestableTimeframes {
+				time.Sleep(apiRequestSleep)
+				if fillgaps {
+					if err := s.fillGapsForId(id, tf); err != nil {
+						s.log().Error(err.Error())
+					}
 
-			} else {
-				if err := s.scrapeOhlcForID(id, binance.Timeframe15M); err != nil {
-					s.log().Error(err.Error())
+				} else {
+					if err := s.scrapeOhlcForID(id, tf); err != nil {
+						s.log().Error(err.Error())
+					}
 				}
 			}
 
@@ -180,10 +188,16 @@ func (s *service) fillGapsForId(id string, tf binance.Timeframe) error {
 }
 
 func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
-	defaultStart := time.Now().AddDate(-4, 0, 0)
 
+	defaultStart := time.Now().AddDate(-5, 0, 0)
 	coll := s.app.Db().CryptoSpotOhlcColl()
-	latestTime, err := market_dto.NewMongoInterface().GetLatestOhlcStartTime(id, defaultStart, coll, nil)
+
+	filter := bson.M{
+		"interval": tf.Milis,
+		"id":       id,
+	}
+
+	latestTime, err := mongodb.GetLatestStartTime(defaultStart, coll, filter, false)
 	if err != nil {
 		return err
 	}
@@ -212,7 +226,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", id, tf.UrlParam, err)
 	}
 
-	s.log().Info("upserted binance fututes ohlc", syro.LogFields{"id": id, "upsertLog": upsertLog.String()})
+	s.log().Info("upserted binance fututes ohlc", syro.LogFields{"id": id, "resolution": tf.Milis / 60000, "upsertLog": upsertLog.String()})
 
 	return nil
 }
