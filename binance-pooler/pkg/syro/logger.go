@@ -33,6 +33,7 @@ type Logger interface {
 
 // Log struct for storing the log data. Event, EventID, and Fields are optional.
 type Log struct {
+	ID      string    `json:"_id" bson:"_id"`                               // (not logged to the console)
 	Time    time.Time `json:"time" bson:"time"`                             // Time of the log (UTC)
 	Level   LogLevel  `json:"level" bson:"level"`                           // Log level
 	Message string    `json:"message" bson:"message"`                       // Logged message
@@ -234,11 +235,11 @@ func (lg *MongoLogger) Warn(msg string, lf ...LogFields) error  { return lg.log(
 func (lg *MongoLogger) Fatal(msg string, lf ...LogFields) error { return lg.log(FATAL, msg, lf...) }
 
 type LogFilter struct {
-	TimeseriesFilter TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
-	Source           string           `json:"source"`
-	Event            string           `json:"event"`
-	EventID          string           `json:"event_id"`
-	Level            *LogLevel        `json:"level"`
+	TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
+	Source           string    `json:"source"`
+	Event            string    `json:"event"`
+	EventID          string    `json:"event_id"`
+	Level            *LogLevel `json:"level"`
 }
 
 // FindLogs returns logs that match the filter
@@ -247,12 +248,12 @@ func (lg *MongoLogger) FindLogs(filter LogFilter) ([]Log, error) {
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
-	if !filter.TimeseriesFilter.From.IsZero() && !filter.TimeseriesFilter.To.IsZero() {
-		if filter.TimeseriesFilter.From.After(filter.TimeseriesFilter.To) {
+	if !filter.From.IsZero() && !filter.To.IsZero() {
+		if filter.From.After(filter.To) {
 			return nil, errors.New("'from' date cannot be after 'to' date")
 		}
 
-		queryFilter["time"] = bson.M{"$gte": filter.TimeseriesFilter.From, "$lte": filter.TimeseriesFilter.To}
+		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
 	if filter.Level != nil && *filter.Level >= TRACE && *filter.Level <= FATAL {

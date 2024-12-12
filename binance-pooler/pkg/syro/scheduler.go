@@ -176,15 +176,17 @@ type Job struct {
 
 // CronJob stores information about the registered job
 type CronJob struct {
-	CreatedAt       time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at" bson:"updated_at"`
-	Source          string    `json:"source" bson:"source"`
-	Name            string    `json:"name" bson:"name"`
-	Status          string    `json:"status" bson:"status"`
-	Frequency       string    `json:"frequency" bson:"frequency"`
-	Description     string    `json:"description" bson:"description"`
-	Error           string    `json:"error" bson:"error"`
-	ExitedWithError bool      `json:"exited_with_error" bson:"exited_with_error"`
+	ID              string     `json:"_id" bson:"_id"`
+	CreatedAt       time.Time  `json:"created_at" bson:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at" bson:"updated_at"`
+	Source          string     `json:"source" bson:"source"`
+	Name            string     `json:"name" bson:"name"`
+	Status          string     `json:"status" bson:"status"`
+	Frequency       string     `json:"frequency" bson:"frequency"`
+	Description     string     `json:"description" bson:"description"`
+	Error           string     `json:"error" bson:"error"`
+	ExitedWithError bool       `json:"exited_with_error" bson:"exited_with_error"`
+	FinishedAt      *time.Time `json:"finished_at" bson:"finished_at"`
 }
 
 // CronExecLog stores information about the job execution
@@ -198,10 +200,10 @@ type CronExecLog struct {
 }
 
 type CronExecFilter struct {
-	TimeseriesFilter TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
-	Source           string           `json:"source" bson:"source"`
-	Name             string           `json:"name" bson:"name"`
-	ExecutionTime    time.Duration    `json:"execution_time" bson:"execution_time"`
+	TimeseriesFilter `json:"timeseries_filter" bson:"timeseries_filter"`
+	Source           string        `json:"source" bson:"source"`
+	Name             string        `json:"name" bson:"name"`
+	ExecutionTime    time.Duration `json:"execution_time" bson:"execution_time"`
 }
 
 func newCronExecutionLog(source, name string, initializedAt time.Time, err error) *CronExecLog {
@@ -339,6 +341,10 @@ func (m *MongoCronStorage) RegisterJob(source, name, freq, descr string, status 
 		set["error"] = ""
 	}
 
+	if status == JobStatusDone {
+		set["finished_at"] = time.Now().UTC()
+	}
+
 	_, err := m.cronListColl.UpdateOne(context.Background(), filter, bson.M{
 		"$set":         set,
 		"$setOnInsert": bson.M{"created_at": time.Now().UTC()},
@@ -362,12 +368,12 @@ func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog,
 	queryFilter := bson.M{}
 
 	// if the from and to fields are not zero, add them to the query filter
-	if !filter.TimeseriesFilter.From.IsZero() && !filter.TimeseriesFilter.To.IsZero() {
-		if filter.TimeseriesFilter.From.After(filter.TimeseriesFilter.To) {
+	if !filter.From.IsZero() && !filter.To.IsZero() {
+		if filter.From.After(filter.To) {
 			return nil, errors.New("from date cannot be after to date")
 		}
 
-		queryFilter["time"] = bson.M{"$gte": filter.TimeseriesFilter.From, "$lte": filter.TimeseriesFilter.To}
+		queryFilter["time"] = bson.M{"$gte": filter.From, "$lte": filter.To}
 	}
 
 	if filter.Source != "" {
@@ -382,9 +388,12 @@ func (m *MongoCronStorage) FindExecutions(filter CronExecFilter) ([]CronExecLog,
 		queryFilter["execution_time"] = bson.M{"$gte": filter.ExecutionTime}
 	}
 
+	// limit := filter.TimeseriesFilter.Limit
+	limit := 200
+
 	opts := options.Find().
 		SetSort(bson.D{{Key: "initialized_at", Value: -1}}).
-		SetLimit(filter.TimeseriesFilter.Limit).
+		SetLimit(int64(limit)).
 		SetSkip(filter.TimeseriesFilter.Skip)
 
 	var docs []CronExecLog

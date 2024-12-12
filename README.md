@@ -47,6 +47,7 @@ chmod +x run.sh
   - [ ] logs (including filtering)
   - [ ] cron job list
     - [ ] Ability to execute a cron job from the frontend?
+    - [ ] Timeline of the cron executions.
   - [ ] cron job executions
   - [ ] user athentication?
 - [ ] simple tracing extension for the logger?

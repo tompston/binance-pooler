@@ -73,6 +73,10 @@ func ParseBody(body NewForecastsBody, opt ...SaveOptions) ([]Forecast, error) {
 	now := time.Now()
 
 	for _, f := range body.Data {
+		if f.StartTime.IsZero() {
+			return nil, fmt.Errorf("start_time is required")
+		}
+
 		offset := now.Sub(f.StartTime).Milliseconds()
 
 		// Do the filtering of forecasts before creating new structs, for optimization
@@ -89,10 +93,6 @@ func ParseBody(body NewForecastsBody, opt ...SaveOptions) ([]Forecast, error) {
 			if options.MaxPastOffset > 0 && offset < -options.MaxPastOffset {
 				continue
 			}
-		}
-
-		if f.StartTime.IsZero() {
-			return nil, fmt.Errorf("start_time is required")
 		}
 
 		forecasts = append(forecasts, Forecast{

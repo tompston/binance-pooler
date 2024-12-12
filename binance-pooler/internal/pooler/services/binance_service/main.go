@@ -192,7 +192,7 @@ func (s *service) scrapeOhlcForID(id string, tf binance.Timeframe) error {
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
-			s.log().Info("latest ohlc for is up to date", syro.LogFields{"id": id})
+			s.log().Info("latest ohlc is up to date", syro.LogFields{"id": id})
 			return nil
 		}
 	}
