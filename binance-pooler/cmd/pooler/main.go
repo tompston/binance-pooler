@@ -3,6 +3,7 @@ package main
 import (
 	"binance-pooler/internal/pooler/services/binance_service"
 	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/providers/binance"
 	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
@@ -47,7 +48,14 @@ func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler,
 	scheduler := syro.NewCronScheduler(cron, "go-pooler").
 		WithStorage(app.CronStorage())
 
-	if err := binance_service.New(app, 3).
+	timeframes := []binance.Timeframe{
+		binance.Timeframe1M,
+		binance.Timeframe5M,
+		binance.Timeframe15M,
+	}
+
+	if err := binance_service.New(app, 3, timeframes).
+		WithSleepDuration(100 * time.Millisecond).
 		WithDebugMode().
 		AddJobs(scheduler); err != nil {
 		return nil, fmt.Errorf("failed to add binance jobs to scheduler: %v", err)

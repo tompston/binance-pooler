@@ -16,19 +16,20 @@ import (
 	"binance-pooler/pkg/syro/timeset"
 )
 
-const apiRequestSleep = 200 * time.Millisecond
-
 type service struct {
-	app                 *app.App
-	api                 binance.API
-	maxParalellRequests int
-	debugMode           bool
+	app                  *app.App
+	api                  binance.API
+	maxParalellRequests  int
+	timeframes           []binance.Timeframe
+	requestSleepDuration time.Duration
+	debugMode            bool
 }
 
-func New(app *app.App, maxParalellRequests int) *service {
+func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) *service {
 	return &service{
 		maxParalellRequests: maxParalellRequests,
 		api:                 binance.NewAPI(),
+		timeframes:          timeframes,
 		debugMode:           false,
 		app:                 app,
 	}
@@ -37,6 +38,11 @@ func New(app *app.App, maxParalellRequests int) *service {
 // Set debug mode to true
 func (s *service) WithDebugMode() *service {
 	s.debugMode = true
+	return s
+}
+
+func (s *service) WithSleepDuration(d time.Duration) *service {
+	s.requestSleepDuration = d
 	return s
 }
 
@@ -89,12 +95,6 @@ func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error
 	)
 }
 
-var requestableTimeframes = []binance.Timeframe{
-	binance.Timeframe1M,
-	binance.Timeframe5M,
-	binance.Timeframe15M,
-}
-
 func (s *service) runOhlcScraper(fillgaps bool) error {
 	assets, err := s.getTopPairs()
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 	sem := make(chan struct{}, s.maxParalellRequests)
 	var wg sync.WaitGroup
 
-	s.log().Debug(" running ohlc scraper", syro.LogFields{"num_assets": len(assets)})
+	s.log().Debug("* running ohlc scraper", syro.LogFields{"num_assets": len(assets)})
 
 	for _, asset := range assets {
 		sem <- struct{}{}
@@ -114,8 +114,8 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			for _, tf := range requestableTimeframes {
-				time.Sleep(apiRequestSleep)
+			for _, tf := range s.timeframes {
+				time.Sleep(s.requestSleepDuration)
 				if fillgaps {
 					if err := s.fillGapsForSymbol(symbol, tf); err != nil {
 						s.log().Error(err.Error())
@@ -146,13 +146,13 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 	}
 
 	if len(gaps) == 0 {
-		s.log().Debug("no gaps found for futures ohlc", syro.LogFields{"symbol": symbol})
+		s.log().Debug("no gaps found for futures ohlc", syro.LogFields{"symbol": symbol, "interval": tf.Milis})
 		return nil
 	}
 
 	for interval, gap := range gaps {
 
-		s.log().Debug("found gaps for interval", syro.LogFields{"symbol": symbol, "interval": interval, "gaps": len(gap)})
+		s.log().Debug("found gaps", syro.LogFields{"symbol": symbol, "interval": interval, "num_gaps": len(gap)})
 
 		for _, g := range gap {
 			s.log().Debug("filling gap", syro.LogFields{"symbol": symbol, "gap": g.String()})
@@ -167,7 +167,8 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 			s.log().Debug("period chunks", syro.LogFields{"chunks": len(gapChunks), "symbol": symbol})
 
 			for chunkIdx, chunk := range gapChunks {
-				s.log().Debug(fmt.Sprintf("requesting chunk [%v / %v] for %v from %v -> %v", chunkIdx, len(gapChunks), symbol, chunk.From, chunk.To))
+
+				s.log().Debug(fmt.Sprintf("requesting chunk %v/%v for %v from %v -> %v", chunkIdx, len(gapChunks), symbol, chunk.From, chunk.To))
 
 				docs, err := s.api.GetFutureKline(symbol, chunk.From, chunk.To, tf)
 				if err != nil {
@@ -206,12 +207,12 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
-			s.log().Info("latest ohlc is up to date", syro.LogFields{"symbol": symbol})
+			s.log().Info("latest ohlc is up to date", syro.LogFields{"symbol": symbol, "interval": tf.Milis})
 			return nil
 		}
 	}
 
-	overlay := tf.CalculateOverlay(10)
+	overlay := tf.CalculateOverlay(20)
 
 	from := latestTime.Add(-overlay)
 	to := from.Add(tf.GetMaxReqPeriod())

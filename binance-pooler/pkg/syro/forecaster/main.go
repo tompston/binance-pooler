@@ -1,11 +1,8 @@
 package forecaster
 
 import (
-	"context"
 	"fmt"
 	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Forecast struct {
@@ -31,8 +28,8 @@ type NewForecastsBody struct {
 	Meta     map[string]any `json:"meta"`
 	Data     []struct {
 		// Json field names are shortened to reduce the size of the request
-		StartTime  time.Time `json:"t"` // todo: refactor to a timestamp for parsing efficiency?
-		Value      float64   `json:"v"`
+		StartTime  time.Time `json:"t"`  // todo: refactor to a timestamp for parsing efficiency?
+		Value      float64   `json:"v"`  // todo: use any to catch cases when the user submits an incorrect value
 		UserOffset *int64    `json:"uo"` // save the value if it's specified
 	} `json:"data"`
 }
@@ -110,27 +107,4 @@ func ParseBody(body NewForecastsBody, opt ...SaveOptions) ([]Forecast, error) {
 	}
 
 	return forecasts, nil
-}
-
-// --- mongo storage ---
-
-type MongoStorage struct {
-	coll *mongo.Collection
-}
-
-func NewMongoStorage(coll *mongo.Collection) *MongoStorage {
-	return &MongoStorage{coll: coll}
-}
-
-func (m *MongoStorage) CreateIndexes(f Forecast) error {
-	return nil
-}
-
-func (m *MongoStorage) InsertForecasts(f Forecast) error {
-	_, err := m.coll.InsertOne(context.Background(), f)
-	return err
-}
-
-func (m *MongoStorage) QueryForecasts() error {
-	return nil
 }

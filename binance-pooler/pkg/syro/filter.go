@@ -15,8 +15,7 @@ type TimeseriesFilter struct {
 	Skip  int64     `json:"skip" bson:"skip"`
 }
 
-// parse the to, from, limit and skip parameters from the URL, if they exist
-// and are valid values.
+// parse the to, from, limit and skip parameters from the URL, if they exist and are valid values.
 func parseUrlToTimeseriesParams(vals url.Values) (*TimeseriesFilter, error) {
 	filter := TimeseriesFilter{}
 

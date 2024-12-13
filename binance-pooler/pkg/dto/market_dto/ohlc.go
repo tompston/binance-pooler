@@ -4,6 +4,7 @@ import (
 	"binance-pooler/pkg/lib/mongodb"
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -74,6 +75,11 @@ func (db *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongod
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
+
+	// Sort the data slice by StartTime in ascending order
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].StartTime.Before(data[j].StartTime)
+	})
 
 	var models []mongo.WriteModel
 	for _, row := range data {

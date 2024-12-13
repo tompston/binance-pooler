@@ -82,16 +82,17 @@ func ArraysMatch(expected, actual []string, verbose ...bool) error {
 		return fmt.Errorf("array did not have the expected number of columns, %v", len(actual))
 	}
 
-	shouldReturnVerboseError := false
+	useVerboseError := false
 	if len(verbose) == 1 {
-		shouldReturnVerboseError = verbose[0]
+		useVerboseError = verbose[0]
 	}
 
 	for i, exp := range expected {
 		if actual[i] != exp {
-			if shouldReturnVerboseError {
+			if useVerboseError {
 				return fmt.Errorf("array did not have the expected column name at position %v, encountered: %v, expected: %v", i, actual[i], exp)
 			}
+
 			return fmt.Errorf("array did not have the expected column name at position %v", i)
 		}
 	}
