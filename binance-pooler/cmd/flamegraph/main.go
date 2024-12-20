@@ -2,13 +2,9 @@ package main
 
 import (
 	"binance-pooler/pkg/syro"
-	"binance-pooler/pkg/syro/timeset"
-	"fmt"
 	"log"
 	"os"
 	"runtime/pprof"
-
-	"time"
 )
 
 /*
@@ -39,24 +35,8 @@ func main() {
 	}
 	defer pprof.StopCPUProfile()
 
-	now := time.Now()
-	fmt.Println("Hello, World!")
-
-	// app, err := app.New(context.Background())
-	// if err != nil {
-	// 	msg := fmt.Sprintf("failed to create app in go pooler: %v", err.Error())
-	// 	log.Fatalf(msg)
-	// }
-	// defer app.Exit(context.Background())
-
-	// for i := 0; i < 1_000; i++ {
-	// 	app.Logger().SetEvent("main").Info("Hello, World!")
-	// }
-
 	logger := syro.NewConsoleLogger(nil)
 	for i := 0; i < 1_000; i++ {
 		logger.SetEvent("main").Info("Hello, World!")
 	}
-
-	fmt.Printf("execution time: %v\n", timeset.SecSince(now))
 }

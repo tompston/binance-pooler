@@ -48,6 +48,8 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 			LiquidationFee        string   `json:"liquidationFee"`
 			MarketTakeBound       string   `json:"marketTakeBound"`
 			MaxMoveOrderLimit     float64  `json:"maxMoveOrderLimit"`
+			OrderTypes            []string `json:"orderTypes"`
+			TimeInForce           []string `json:"timeInForce"`
 			// Filters               []struct {
 			// 	FilterType        string `json:"filterType"`
 			// 	MaxPrice          string `json:"maxPrice,omitempty"`
@@ -62,8 +64,6 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 			// 	MultiplierDown    string `json:"multiplierDown,omitempty"`
 			// 	MultiplierDecimal string `json:"multiplierDecimal,omitempty"`
 			// } `json:"filters"`
-			OrderTypes  []string `json:"orderTypes"`
-			TimeInForce []string `json:"timeInForce"`
 		} `json:"symbols"`
 	}
 
@@ -152,24 +152,28 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 		} `json:"rateLimits"`
 		ExchangeFilters []interface{} `json:"exchangeFilters"`
 		Symbols         []struct {
-			Symbol                     string   `json:"symbol"`
-			Status                     string   `json:"status"`
-			BaseAsset                  string   `json:"baseAsset"`
-			QuoteAsset                 string   `json:"quoteAsset"`
-			BaseAssetPrecision         float64  `json:"baseAssetPrecision"`
-			QuotePrecision             float64  `json:"quotePrecision"`
-			QuoteAssetPrecision        float64  `json:"quoteAssetPrecision"`
-			BaseCommissionPrecision    float64  `json:"baseCommissionPrecision"`
-			QuoteCommissionPrecision   float64  `json:"quoteCommissionPrecision"`
-			OrderTypes                 []string `json:"orderTypes"`
-			IcebergAllowed             bool     `json:"icebergAllowed"`
-			OcoAllowed                 bool     `json:"ocoAllowed"`
-			OtoAllowed                 bool     `json:"otoAllowed"`
-			QuoteOrderQtyMarketAllowed bool     `json:"quoteOrderQtyMarketAllowed"`
-			AllowTrailingStop          bool     `json:"allowTrailingStop"`
-			CancelReplaceAllowed       bool     `json:"cancelReplaceAllowed"`
-			IsSpotTradingAllowed       bool     `json:"isSpotTradingAllowed"`
-			IsMarginTradingAllowed     bool     `json:"isMarginTradingAllowed"`
+			Symbol                          string        `json:"symbol"`
+			Status                          string        `json:"status"`
+			BaseAsset                       string        `json:"baseAsset"`
+			QuoteAsset                      string        `json:"quoteAsset"`
+			BaseAssetPrecision              float64       `json:"baseAssetPrecision"`
+			QuotePrecision                  float64       `json:"quotePrecision"`
+			QuoteAssetPrecision             float64       `json:"quoteAssetPrecision"`
+			BaseCommissionPrecision         float64       `json:"baseCommissionPrecision"`
+			QuoteCommissionPrecision        float64       `json:"quoteCommissionPrecision"`
+			OrderTypes                      []string      `json:"orderTypes"`
+			IcebergAllowed                  bool          `json:"icebergAllowed"`
+			OcoAllowed                      bool          `json:"ocoAllowed"`
+			OtoAllowed                      bool          `json:"otoAllowed"`
+			QuoteOrderQtyMarketAllowed      bool          `json:"quoteOrderQtyMarketAllowed"`
+			AllowTrailingStop               bool          `json:"allowTrailingStop"`
+			CancelReplaceAllowed            bool          `json:"cancelReplaceAllowed"`
+			IsSpotTradingAllowed            bool          `json:"isSpotTradingAllowed"`
+			IsMarginTradingAllowed          bool          `json:"isMarginTradingAllowed"`
+			Permissions                     []interface{} `json:"permissions"`
+			PermissionSets                  [][]string    `json:"permissionSets"`
+			DefaultSelfTradePreventionMode  string        `json:"defaultSelfTradePreventionMode"`
+			AllowedSelfTradePreventionModes []string      `json:"allowedSelfTradePreventionModes"`
 			// Filters                    []struct {
 			// 	FilterType            string `json:"filterType"`
 			// 	MinPrice              string `json:"minPrice,omitempty"`
@@ -195,10 +199,6 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 			// 	MaxNumOrders          int    `json:"maxNumOrders,omitempty"`
 			// 	MaxNumAlgoOrders      int    `json:"maxNumAlgoOrders,omitempty"`
 			// } `json:"filters"`
-			Permissions                     []interface{} `json:"permissions"`
-			PermissionSets                  [][]string    `json:"permissionSets"`
-			DefaultSelfTradePreventionMode  string        `json:"defaultSelfTradePreventionMode"`
-			AllowedSelfTradePreventionModes []string      `json:"allowedSelfTradePreventionModes"`
 		} `json:"symbols"`
 	}
 

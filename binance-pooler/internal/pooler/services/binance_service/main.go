@@ -180,7 +180,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					return err
 				}
 
-				s.log().Info("upserted binance fututes ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
+				s.log().Info("upserted binance spot ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
 			}
 		}
 	}
@@ -190,7 +190,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 
 func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error {
 
-	defaultStart := time.Now().AddDate(-5, 0, 0)
+	defaultStart := time.Now().AddDate(-4, 0, 0)
 	coll := s.app.Db().CryptoSpotOhlcColl()
 
 	filter := bson.M{
@@ -227,7 +227,7 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
 	}
 
-	s.log().Info("upserted binance fututes ohlc",
+	s.log().Info("upserted binance spot ohlc",
 		syro.LogFields{"symbol": symbol, "resolution": tf.Milis / 60000, "upsertLog": upsertLog.String()})
 
 	return nil
