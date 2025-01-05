@@ -9,10 +9,10 @@ import (
 )
 
 type TimeseriesFilter struct {
-	From  time.Time `json:"from" bson:"from"`
-	To    time.Time `json:"to" bson:"to"`
-	Limit int64     `json:"limit" bson:"limit"`
-	Skip  int64     `json:"skip" bson:"skip"`
+	From  time.Time
+	To    time.Time
+	Limit int64
+	Skip  int64
 }
 
 // parse the to, from, limit and skip parameters from the URL, if they exist and are valid values.

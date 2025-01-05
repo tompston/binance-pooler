@@ -169,6 +169,7 @@ type Job struct {
 	Func        func() error // Function to be executed by the job
 	Description string       // Optional. Description of the job
 	// TODO: add these in the logic and test them
+	// TODO: add a context input so that it would be possible to optionally cancel the job if it takes longer than x to run
 	OnSuccess     func()      // Optional. Function to be executed after the job executes without errors
 	OnError       func(error) // Optional. Function to be executed if the job returns an error
 	PostExecution func(error) // Optional. Combined version of OnError and OnSuccess functions.
