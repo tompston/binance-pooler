@@ -17,7 +17,7 @@ import (
 
 // CronScheduler is a wrapper around the robfig/cron package that allows for the
 // registration of jobs and the optional storage of job status and
-// execution logs.
+// execution logs using the CronStorage interface.
 type CronScheduler struct {
 	cron        *cron.Cron  // cron is the cron CronScheduler which will run the jobs
 	Source      string      // Source is used to identify the source of the job
@@ -106,9 +106,9 @@ func (s *CronScheduler) Register(j *Job) error {
 	}
 
 	// Accumulate errors in the c.AddJob function, because the cron.Job param does not return anything
-	errors := errgroup.New()
 
 	_, err := s.cron.AddJob(freq, newJobLock(func() {
+		errors := errgroup.New()
 
 		if s.CronStorage != nil {
 			if err := s.CronStorage.RegisterJob(s.Source, name, freq, descr, JobStatusRunning, nil); err != nil {
@@ -143,6 +143,8 @@ func (s *CronScheduler) Register(j *Job) error {
 			}
 		}
 
+		// todo: what should be done with errors?
+
 	}, name))
 
 	if err != nil {
@@ -152,7 +154,7 @@ func (s *CronScheduler) Register(j *Job) error {
 	// Add the job to the list of registered jobs
 	s.Jobs = append(s.Jobs, j)
 
-	return errors.ToErr()
+	return nil
 }
 
 // Start starts the cron CronScheduler.
