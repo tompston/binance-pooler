@@ -5,8 +5,8 @@ Scrapes spot data from binance api and stores it in a mongodb database.
 
 Additional features:
 
-- [ ] Logging
-- [ ] Tracking of cron job state and executions
+- Logging
+- Tracking of cron job state and executions (wrapper around the `robfig/cron/v3` package)
 
 ## Dependencies
 

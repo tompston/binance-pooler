@@ -44,27 +44,6 @@ func EmptyStringsInStructExist(v any) error {
 	return checkFields(value, "")
 }
 
-func ValueIsInArray[T comparable](i T, arr []T) bool {
-	for _, a := range arr {
-		if a == i {
-			return true
-		}
-	}
-	return false
-}
-
-// StringsMatch compares two strings and returns an error if they are not equal.
-func StringsMatch(s1, s2 string) error {
-	if !reflect.DeepEqual(s1, s2) {
-		for i := 0; i < len(s1) && i < len(s2); i++ {
-			if s1[i] != s2[i] {
-				return fmt.Errorf("difference at index %d: Value 1 has '%c', Value 2 has '%c'", i, s1[i], s2[i])
-			}
-		}
-	}
-	return nil
-}
-
 // StringIncludes checks if the input string contains all of the strings in
 // the array. If the input string does not contain a strings from the
 // array, an error is returned.
@@ -74,28 +53,5 @@ func StringIncludes(input string, arr []string) error {
 			return fmt.Errorf("input string '%s' does not include '%s'", input, str)
 		}
 	}
-	return nil
-}
-
-func ArraysMatch(expected, actual []string, verbose ...bool) error {
-	if len(actual) != len(expected) {
-		return fmt.Errorf("array did not have the expected number of columns, %v", len(actual))
-	}
-
-	useVerboseError := false
-	if len(verbose) == 1 {
-		useVerboseError = verbose[0]
-	}
-
-	for i, exp := range expected {
-		if actual[i] != exp {
-			if useVerboseError {
-				return fmt.Errorf("array did not have the expected column name at position %v, encountered: %v, expected: %v", i, actual[i], exp)
-			}
-
-			return fmt.Errorf("array did not have the expected column name at position %v", i)
-		}
-	}
-
 	return nil
 }

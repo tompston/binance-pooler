@@ -95,11 +95,13 @@ func (s *CronScheduler) Register(j *Job) error {
 	source := s.Source
 	descr := j.Description
 
+	storageIsSpecified := s.CronStorage != nil
+
 	// NOTE: there is a slight inefficiency in the data that is written by
 	// the query because the (source, name, freq, descr) params are
 	// written each time in order to update the status.
 
-	if s.CronStorage != nil {
+	if storageIsSpecified {
 		if err := s.CronStorage.RegisterJob(source, name, freq, descr, JobStatusInitialized, nil); err != nil {
 			return err
 		}
@@ -110,7 +112,7 @@ func (s *CronScheduler) Register(j *Job) error {
 	_, err := s.cron.AddJob(freq, newJobLock(func() {
 		errors := errgroup.New()
 
-		if s.CronStorage != nil {
+		if storageIsSpecified {
 			if err := s.CronStorage.RegisterJob(s.Source, name, freq, descr, JobStatusRunning, nil); err != nil {
 				errors.Add(fmt.Errorf("failed to set job %v to running: %v", name, err))
 			}
@@ -133,7 +135,7 @@ func (s *CronScheduler) Register(j *Job) error {
 			j.OnSuccess()
 		}
 
-		if s.CronStorage != nil {
+		if storageIsSpecified {
 			if err := s.CronStorage.RegisterExecution(newCronExecutionLog(source, name, now, err)); err != nil {
 				errors.Add(fmt.Errorf("failed to register execution for %v: %v", name, err))
 			}
@@ -157,7 +159,7 @@ func (s *CronScheduler) Register(j *Job) error {
 	return nil
 }
 
-// Start starts the cron CronScheduler.
+// Start the cron CronScheduler.
 //
 // NOTE: Need to specify for how long the CronScheduler should run after
 // calling this function (e.g. time.Sleep(1 * time.Hour) or forever)
@@ -235,24 +237,23 @@ const (
 	JobStatusInactive    JobStatus = "inactive"
 )
 
-// jobLock is a mutex lock that prevents the execution of a
-// job if it is already running.
+// jobLock is a mutex lock that prevents the execution of a job if it is already running.
 type jobLock struct {
-	jobFunc  func()
-	jobName  string
-	jobMutex sync.Mutex
+	fn   func()
+	name string
+	mu   sync.Mutex
 }
 
 func newJobLock(jobFunc func(), name string) *jobLock {
-	return &jobLock{jobName: name, jobFunc: jobFunc}
+	return &jobLock{name: name, fn: jobFunc}
 }
 
 func (j *jobLock) Run() {
-	if j.jobMutex.TryLock() {
-		defer j.jobMutex.Unlock()
-		j.jobFunc()
+	if j.mu.TryLock() {
+		defer j.mu.Unlock()
+		j.fn()
 	} else {
-		fmt.Printf("job %v already running. Skipping...\n", j.jobName)
+		fmt.Printf("job %v already running. Skipping...\n", j.name)
 	}
 }
 
