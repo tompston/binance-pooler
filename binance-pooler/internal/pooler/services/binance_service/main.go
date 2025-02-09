@@ -28,7 +28,7 @@ type service struct {
 func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) *service {
 	return &service{
 		maxParalellRequests: maxParalellRequests,
-		api:                 binance.NewAPI(),
+		api:                 binance.New(),
 		timeframes:          timeframes,
 		debugMode:           false,
 		app:                 app,

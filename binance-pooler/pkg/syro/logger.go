@@ -106,8 +106,6 @@ func (log Log) String(logger Logger) string {
 		}
 	}
 
-	// Removing string length reduces ns/op from 933 - 718 (29% faster)
-
 	var b strings.Builder
 
 	b.WriteString(log.Time.In(settings.Location).Format(settings.TimeFormat))

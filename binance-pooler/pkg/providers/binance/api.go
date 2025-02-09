@@ -14,7 +14,7 @@ const Source = "binance"
 
 type API struct{}
 
-func NewAPI() API { return API{} }
+func New() API { return API{} }
 
 var TopPairs = []string{
 	"BTCUSDT",
@@ -52,11 +52,6 @@ func (tf Timeframe) GetMaxReqPeriod() time.Duration {
 	return time.Duration(0.97*float64(tf.Milis)*1000) * time.Millisecond
 }
 
-type PeriodChunk struct {
-	From time.Time
-	To   time.Time
-}
-
 // CalculateOverlay returns the time duration that should be added to the
 // start time of the request in order to avoid gaps in the data.
 func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
@@ -67,17 +62,17 @@ func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
 //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
 //   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
 func (api API) GetSpotKline(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
-	return api.requestKlineData("https://api.binance.com/api/v3/klines", symbol, from, to, tf)
+	return api.requestKlines("https://api.binance.com/api/v3/klines", symbol, from, to, tf)
 }
 
 // https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data#response-example
 func (api API) GetFutureKline(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
-	return api.requestKlineData("https://fapi.binance.com/fapi/v1/klines", symbol, from, to, tf)
+	return api.requestKlines("https://fapi.binance.com/fapi/v1/klines", symbol, from, to, tf)
 }
 
 // Futures and Spot markets have the same data structure. The only difference
 // is the endpoint url.
-func (api API) requestKlineData(baseUrl string, symbol string, from, to time.Time, timeframe Timeframe) ([]market_dto.OhlcRow, error) {
+func (api API) requestKlines(baseUrl string, symbol string, from, to time.Time, timeframe Timeframe) ([]market_dto.OhlcRow, error) {
 	if symbol == "" {
 		return nil, fmt.Errorf("symbol is required")
 	}

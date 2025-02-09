@@ -10,7 +10,7 @@ import (
 )
 
 func TestApi(t *testing.T) {
-	api := binance.NewAPI()
+	api := binance.New()
 	from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 	to := from.Add(time.Hour * 1)
 
@@ -41,7 +41,7 @@ func TestApi(t *testing.T) {
 
 		reqPeriod := 60
 
-		api := binance.NewAPI()
+		api := binance.New()
 		doc, err := api.GetSpotKline("ethusdt", t1, t2, binance.Timeframe1M)
 		if err != nil {
 			t.Fatalf(err.Error())
@@ -60,7 +60,7 @@ func TestService(t *testing.T) {
 	mongoInterface := market_dto.NewMongoInterface()
 
 	t.Run("GetFutureKlineTest", func(t *testing.T) {
-		api := binance.NewAPI()
+		api := binance.New()
 		coll := app.Db().TestCollection("crypto_futures_ohlc_service_test")
 		from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 		to := from.Add(time.Hour * 4)
