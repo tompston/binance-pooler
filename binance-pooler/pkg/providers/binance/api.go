@@ -59,8 +59,6 @@ func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
 	return time.Duration(numEntries*tf.Milis) * time.Millisecond
 }
 
-type GetKlines func(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error)
-
 // 1min query data
 //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
 //   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
@@ -68,10 +66,10 @@ func (api API) GetSpotKline(symbol string, from, to time.Time, tf Timeframe) ([]
 	return api.requestKlines("https://api.binance.com/api/v3/klines", symbol, from, to, tf)
 }
 
-// https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data#response-example
-func (api API) GetFutureKline(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
-	return api.requestKlines("https://fapi.binance.com/fapi/v1/klines", symbol, from, to, tf)
-}
+// // https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data#response-example
+// func (api API) GetFutureKline(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error) {
+// 	return api.requestKlines("https://fapi.binance.com/fapi/v1/klines", symbol, from, to, tf)
+// }
 
 // Futures and Spot markets have the same data structure. The only difference
 // is the endpoint url.

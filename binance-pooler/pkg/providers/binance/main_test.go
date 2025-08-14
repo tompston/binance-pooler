@@ -23,14 +23,16 @@ func TestApi(t *testing.T) {
 		}
 	})
 
-	t.Run("GetFutureKline", func(t *testing.T) {
-		docs, err := New().GetFutureKline(symbol, t1, t2, timerfame)
-		if err != nil {
-			t.Fatal(err)
-		}
+	/*
+		t.Run("GetFutureKline", func(t *testing.T) {
+			docs, err := New().GetFutureKline(symbol, t1, t2, timerfame)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		if len(docs) == 0 {
-			t.Fatalf("expected 5 rows, got %d", len(docs))
-		}
-	})
+			if len(docs) == 0 {
+				t.Fatalf("expected 5 rows, got %d", len(docs))
+			}
+		})
+	*/
 }

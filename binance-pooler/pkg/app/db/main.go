@@ -75,8 +75,8 @@ type DbSchema struct {
 type Collections struct {
 	CryptoSpotAsset,
 	CryptoSpotOhlc,
-	CryptoFuturesAsset,
-	CryptoFuturesOhlc,
+	// CryptoFuturesAsset,
+	// CryptoFuturesOhlc,
 	Logs string
 }
 
@@ -107,11 +107,11 @@ func NewDbSchema(name string) *DbSchema {
 	return &DbSchema{
 		Name: name,
 		colls: Collections{
-			CryptoSpotAsset:    "crypto_spot_asset",
-			CryptoSpotOhlc:     "crypto_spot_ohlc",
-			CryptoFuturesAsset: "crypto_futures_asset",
-			CryptoFuturesOhlc:  "crypto_futures_ohlc",
-			Logs:               "logs",
+			CryptoSpotAsset: "crypto_spot_asset",
+			CryptoSpotOhlc:  "crypto_spot_ohlc",
+			// CryptoFuturesAsset: "crypto_futures_asset",
+			// CryptoFuturesOhlc:  "crypto_futures_ohlc",
+			Logs: "logs",
 		},
 	}
 }
@@ -129,13 +129,13 @@ func (m *Db) CryptoSpotOhlcColl() *mongo.Collection {
 	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoSpotOhlc)
 }
 
-func (m *Db) CryptoFuturesAssetColl() *mongo.Collection {
-	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesAsset)
-}
+// func (m *Db) CryptoFuturesAssetColl() *mongo.Collection {
+// 	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesAsset)
+// }
 
-func (m *Db) CryptoFuturesOhlcColl() *mongo.Collection {
-	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesOhlc)
-}
+// func (m *Db) CryptoFuturesOhlcColl() *mongo.Collection {
+// 	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesOhlc)
+// }
 
 // Collection to which all logs are written
 func (m *Db) LogsCollection() *mongo.Collection {

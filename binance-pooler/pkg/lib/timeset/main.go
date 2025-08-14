@@ -6,10 +6,7 @@ import (
 )
 
 func MilisToDuration(milis int64) time.Duration           { return time.Duration(milis) * time.Millisecond }
-func DiffInMilliseconds(t1, t2 time.Time) int64           { return t2.Sub(t1).Milliseconds() }
 func ExceedsDiffInHours(t1, t2 time.Time, hours int) bool { return t2.Sub(t1).Hours() > float64(hours) }
-func MinSince(t time.Time) string                         { return fmt.Sprintf("%.2f min", time.Since(t).Seconds()/60) }
-func SecSince(t time.Time) string                         { return fmt.Sprintf("%.2f sec", time.Since(t).Seconds()) }
 
 // Convert Unix milliseconds to time.Time value
 func UnixMillisToTime(unixMillis int64) time.Time {

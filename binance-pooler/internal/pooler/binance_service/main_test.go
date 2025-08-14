@@ -9,28 +9,6 @@ import (
 )
 
 func TestApi(t *testing.T) {
-	api := binance.New()
-	from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
-	to := from.Add(time.Hour * 1)
-
-	t.Run("GetFutureKline", func(t *testing.T) {
-		dbrows, err := api.GetFutureKline("batusdt", from, to, binance.Timeframe15M)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if len(dbrows) != 5 {
-			t.Fatalf("expected 5 rows, got %d", len(dbrows))
-		}
-
-		for _, row := range dbrows {
-			if row.Symbol != "batusdt" {
-				t.Fatalf("expected bat, got %s", row.Symbol)
-			}
-
-			fmt.Printf("GetFutureKline row: %v\n", row)
-		}
-	})
 
 	t.Run("GetSpotKline - Expected num rows parsed", func(t *testing.T) {
 		const past = -time.Hour * 24 * 7
@@ -56,14 +34,14 @@ func TestService(t *testing.T) {
 	app, cleanup := app.SetupTestEnvironment(t)
 	defer cleanup()
 
-	t.Run("GetFutureKlineTest", func(t *testing.T) {
+	t.Run("get-spot-kline-flow", func(t *testing.T) {
 		api := binance.New()
-		coll := app.Db().TestCollection("crypto_futures_ohlc_service_test")
+		coll := app.Db().TestCollection("crypto_spot_ohlc_service_test")
 		from := time.Now().Add(-time.Hour * 24).Truncate(time.Hour)
 		to := from.Add(time.Hour * 4)
 		symbol := "batusdt"
 
-		docs, err := api.GetFutureKline(symbol, from, to, binance.Timeframe15M)
+		docs, err := api.GetSpotKline(symbol, from, to, binance.Timeframe15M)
 		if err != nil {
 			t.Fatal(err)
 		}

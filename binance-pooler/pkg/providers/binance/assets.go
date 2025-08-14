@@ -2,13 +2,121 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/lib/timeset"
 	"encoding/json"
 	"time"
 
 	"github.com/tompston/syro"
 )
 
+func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
+	type apiResponse struct {
+		Timezone   string `json:"timezone"`
+		ServerTime int64  `json:"serverTime"`
+		RateLimits []struct {
+			RateLimitType string `json:"rateLimitType"`
+			Interval      string `json:"interval"`
+			IntervalNum   int    `json:"intervalNum"`
+			Limit         int    `json:"limit"`
+		} `json:"rateLimits"`
+		ExchangeFilters []interface{} `json:"exchangeFilters"`
+		Symbols         []struct {
+			Symbol                          string        `json:"symbol"`
+			Status                          string        `json:"status"`
+			BaseAsset                       string        `json:"baseAsset"`
+			QuoteAsset                      string        `json:"quoteAsset"`
+			BaseAssetPrecision              float64       `json:"baseAssetPrecision"`
+			QuotePrecision                  float64       `json:"quotePrecision"`
+			QuoteAssetPrecision             float64       `json:"quoteAssetPrecision"`
+			BaseCommissionPrecision         float64       `json:"baseCommissionPrecision"`
+			QuoteCommissionPrecision        float64       `json:"quoteCommissionPrecision"`
+			OrderTypes                      []string      `json:"orderTypes"`
+			IcebergAllowed                  bool          `json:"icebergAllowed"`
+			OcoAllowed                      bool          `json:"ocoAllowed"`
+			OtoAllowed                      bool          `json:"otoAllowed"`
+			QuoteOrderQtyMarketAllowed      bool          `json:"quoteOrderQtyMarketAllowed"`
+			AllowTrailingStop               bool          `json:"allowTrailingStop"`
+			CancelReplaceAllowed            bool          `json:"cancelReplaceAllowed"`
+			IsSpotTradingAllowed            bool          `json:"isSpotTradingAllowed"`
+			IsMarginTradingAllowed          bool          `json:"isMarginTradingAllowed"`
+			Permissions                     []interface{} `json:"permissions"`
+			PermissionSets                  [][]string    `json:"permissionSets"`
+			DefaultSelfTradePreventionMode  string        `json:"defaultSelfTradePreventionMode"`
+			AllowedSelfTradePreventionModes []string      `json:"allowedSelfTradePreventionModes"`
+			// Filters                    []struct {
+			// 	FilterType            string `json:"filterType"`
+			// 	MinPrice              string `json:"minPrice,omitempty"`
+			// 	MaxPrice              string `json:"maxPrice,omitempty"`
+			// 	TickSize              string `json:"tickSize,omitempty"`
+			// 	MinQty                string `json:"minQty,omitempty"`
+			// 	MaxQty                string `json:"maxQty,omitempty"`
+			// 	StepSize              string `json:"stepSize,omitempty"`
+			// 	Limit                 int    `json:"limit,omitempty"`
+			// 	MinTrailingAboveDelta int    `json:"minTrailingAboveDelta,omitempty"`
+			// 	MaxTrailingAboveDelta int    `json:"maxTrailingAboveDelta,omitempty"`
+			// 	MinTrailingBelowDelta int    `json:"minTrailingBelowDelta,omitempty"`
+			// 	MaxTrailingBelowDelta int    `json:"maxTrailingBelowDelta,omitempty"`
+			// 	BidMultiplierUp       string `json:"bidMultiplierUp,omitempty"`
+			// 	BidMultiplierDown     string `json:"bidMultiplierDown,omitempty"`
+			// 	AskMultiplierUp       string `json:"askMultiplierUp,omitempty"`
+			// 	AskMultiplierDown     string `json:"askMultiplierDown,omitempty"`
+			// 	AvgPriceMins          int    `json:"avgPriceMins,omitempty"`
+			// 	MinNotional           string `json:"minNotional,omitempty"`
+			// 	ApplyMinToMarket      bool   `json:"applyMinToMarket,omitempty"`
+			// 	MaxNotional           string `json:"maxNotional,omitempty"`
+			// 	ApplyMaxToMarket      bool   `json:"applyMaxToMarket,omitempty"`
+			// 	MaxNumOrders          int    `json:"maxNumOrders,omitempty"`
+			// 	MaxNumAlgoOrders      int    `json:"maxNumAlgoOrders,omitempty"`
+			// } `json:"filters"`
+		} `json:"symbols"`
+	}
+
+	res, err := syro.NewRequest("GET", "https://api.binance.com/api/v3/exchangeInfo").WithJsonHeader().Do()
+	if err != nil {
+		return nil, err
+	}
+
+	var data apiResponse
+	if err := json.Unmarshal(res.Body, &data); err != nil {
+		return nil, err
+	}
+
+	var docs []market_dto.SpotAsset
+	for _, symbol := range data.Symbols {
+		symb := symbol.Symbol
+		if symb == "" {
+			continue
+		}
+
+		asset := market_dto.SpotAsset{
+			UpdatedAt:                  time.Now().UTC(),
+			Source:                     Source,
+			Symbol:                     symb,
+			Status:                     symbol.Status,
+			BaseAsset:                  symbol.BaseAsset,
+			QuoteAsset:                 symbol.QuoteAsset,
+			BaseAssetPrecision:         symbol.BaseAssetPrecision,
+			QuotePrecision:             symbol.QuotePrecision,
+			QuoteAssetPrecision:        symbol.QuoteAssetPrecision,
+			BaseCommissionPrecision:    symbol.BaseCommissionPrecision,
+			QuoteCommissionPrecision:   symbol.QuoteCommissionPrecision,
+			OrderTypes:                 symbol.OrderTypes,
+			IcebergAllowed:             symbol.IcebergAllowed,
+			OcoAllowed:                 symbol.OcoAllowed,
+			OtoAllowed:                 symbol.OtoAllowed,
+			QuoteOrderQtyMarketAllowed: symbol.QuoteOrderQtyMarketAllowed,
+			AllowTrailingStop:          symbol.AllowTrailingStop,
+			CancelReplaceAllowed:       symbol.CancelReplaceAllowed,
+			IsSpotTradingAllowed:       symbol.IsSpotTradingAllowed,
+			IsMarginTradingAllowed:     symbol.IsMarginTradingAllowed,
+		}
+
+		docs = append(docs, asset)
+	}
+
+	return docs, nil
+}
+
+/*
 func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 	type apiResponse struct {
 		Timezone    string `json:"timezone"`
@@ -140,111 +248,4 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 
 	return assets, nil
 }
-
-func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
-	type apiResponse struct {
-		Timezone   string `json:"timezone"`
-		ServerTime int64  `json:"serverTime"`
-		RateLimits []struct {
-			RateLimitType string `json:"rateLimitType"`
-			Interval      string `json:"interval"`
-			IntervalNum   int    `json:"intervalNum"`
-			Limit         int    `json:"limit"`
-		} `json:"rateLimits"`
-		ExchangeFilters []interface{} `json:"exchangeFilters"`
-		Symbols         []struct {
-			Symbol                          string        `json:"symbol"`
-			Status                          string        `json:"status"`
-			BaseAsset                       string        `json:"baseAsset"`
-			QuoteAsset                      string        `json:"quoteAsset"`
-			BaseAssetPrecision              float64       `json:"baseAssetPrecision"`
-			QuotePrecision                  float64       `json:"quotePrecision"`
-			QuoteAssetPrecision             float64       `json:"quoteAssetPrecision"`
-			BaseCommissionPrecision         float64       `json:"baseCommissionPrecision"`
-			QuoteCommissionPrecision        float64       `json:"quoteCommissionPrecision"`
-			OrderTypes                      []string      `json:"orderTypes"`
-			IcebergAllowed                  bool          `json:"icebergAllowed"`
-			OcoAllowed                      bool          `json:"ocoAllowed"`
-			OtoAllowed                      bool          `json:"otoAllowed"`
-			QuoteOrderQtyMarketAllowed      bool          `json:"quoteOrderQtyMarketAllowed"`
-			AllowTrailingStop               bool          `json:"allowTrailingStop"`
-			CancelReplaceAllowed            bool          `json:"cancelReplaceAllowed"`
-			IsSpotTradingAllowed            bool          `json:"isSpotTradingAllowed"`
-			IsMarginTradingAllowed          bool          `json:"isMarginTradingAllowed"`
-			Permissions                     []interface{} `json:"permissions"`
-			PermissionSets                  [][]string    `json:"permissionSets"`
-			DefaultSelfTradePreventionMode  string        `json:"defaultSelfTradePreventionMode"`
-			AllowedSelfTradePreventionModes []string      `json:"allowedSelfTradePreventionModes"`
-			// Filters                    []struct {
-			// 	FilterType            string `json:"filterType"`
-			// 	MinPrice              string `json:"minPrice,omitempty"`
-			// 	MaxPrice              string `json:"maxPrice,omitempty"`
-			// 	TickSize              string `json:"tickSize,omitempty"`
-			// 	MinQty                string `json:"minQty,omitempty"`
-			// 	MaxQty                string `json:"maxQty,omitempty"`
-			// 	StepSize              string `json:"stepSize,omitempty"`
-			// 	Limit                 int    `json:"limit,omitempty"`
-			// 	MinTrailingAboveDelta int    `json:"minTrailingAboveDelta,omitempty"`
-			// 	MaxTrailingAboveDelta int    `json:"maxTrailingAboveDelta,omitempty"`
-			// 	MinTrailingBelowDelta int    `json:"minTrailingBelowDelta,omitempty"`
-			// 	MaxTrailingBelowDelta int    `json:"maxTrailingBelowDelta,omitempty"`
-			// 	BidMultiplierUp       string `json:"bidMultiplierUp,omitempty"`
-			// 	BidMultiplierDown     string `json:"bidMultiplierDown,omitempty"`
-			// 	AskMultiplierUp       string `json:"askMultiplierUp,omitempty"`
-			// 	AskMultiplierDown     string `json:"askMultiplierDown,omitempty"`
-			// 	AvgPriceMins          int    `json:"avgPriceMins,omitempty"`
-			// 	MinNotional           string `json:"minNotional,omitempty"`
-			// 	ApplyMinToMarket      bool   `json:"applyMinToMarket,omitempty"`
-			// 	MaxNotional           string `json:"maxNotional,omitempty"`
-			// 	ApplyMaxToMarket      bool   `json:"applyMaxToMarket,omitempty"`
-			// 	MaxNumOrders          int    `json:"maxNumOrders,omitempty"`
-			// 	MaxNumAlgoOrders      int    `json:"maxNumAlgoOrders,omitempty"`
-			// } `json:"filters"`
-		} `json:"symbols"`
-	}
-
-	res, err := syro.NewRequest("GET", "https://api.binance.com/api/v3/exchangeInfo").WithJsonHeader().Do()
-	if err != nil {
-		return nil, err
-	}
-
-	var data apiResponse
-	if err := json.Unmarshal(res.Body, &data); err != nil {
-		return nil, err
-	}
-
-	var docs []market_dto.SpotAsset
-	for _, symbol := range data.Symbols {
-		symb := symbol.Symbol
-		if symb == "" {
-			continue
-		}
-
-		asset := market_dto.SpotAsset{
-			UpdatedAt:                  time.Now().UTC(),
-			Source:                     Source,
-			Symbol:                     symb,
-			Status:                     symbol.Status,
-			BaseAsset:                  symbol.BaseAsset,
-			QuoteAsset:                 symbol.QuoteAsset,
-			BaseAssetPrecision:         symbol.BaseAssetPrecision,
-			QuotePrecision:             symbol.QuotePrecision,
-			QuoteAssetPrecision:        symbol.QuoteAssetPrecision,
-			BaseCommissionPrecision:    symbol.BaseCommissionPrecision,
-			QuoteCommissionPrecision:   symbol.QuoteCommissionPrecision,
-			OrderTypes:                 symbol.OrderTypes,
-			IcebergAllowed:             symbol.IcebergAllowed,
-			OcoAllowed:                 symbol.OcoAllowed,
-			OtoAllowed:                 symbol.OtoAllowed,
-			QuoteOrderQtyMarketAllowed: symbol.QuoteOrderQtyMarketAllowed,
-			AllowTrailingStop:          symbol.AllowTrailingStop,
-			CancelReplaceAllowed:       symbol.CancelReplaceAllowed,
-			IsSpotTradingAllowed:       symbol.IsSpotTradingAllowed,
-			IsMarginTradingAllowed:     symbol.IsMarginTradingAllowed,
-		}
-
-		docs = append(docs, asset)
-	}
-
-	return docs, nil
-}
+*/
