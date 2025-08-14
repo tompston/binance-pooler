@@ -36,11 +36,10 @@ func ChunkTimeRange(from, to time.Time, interval time.Duration, maxReqPeriods, o
 	maxDuration := interval * time.Duration(maxReqPeriods) // Maximum duration of each chunk
 	overlayTime := interval * time.Duration(overlayPeriods)
 
-	debugEnabled := len(withDebug) == 1 && withDebug[0]
+	debug := len(withDebug) == 1 && withDebug[0]
 
-	if debugEnabled {
-		fmt.Printf("maxDuration: %v, overlayTime: %v\n",
-			maxDuration.Hours()/24, overlayTime.Hours()/24)
+	if debug {
+		fmt.Printf("maxDuration: %v, overlayTime: %v\n", maxDuration.Hours()/24, overlayTime.Hours()/24)
 	}
 
 	const format = "2006-01-02 15:04:05"
@@ -56,7 +55,7 @@ func ChunkTimeRange(from, to time.Time, interval time.Duration, maxReqPeriods, o
 		start = start.Add(maxDuration).Add(-overlayTime)
 		end = end.Add(maxDuration).Add(-overlayTime)
 
-		if debugEnabled {
+		if debug {
 			fmt.Printf("%v -> %v, diff: %v hours\n", start.Format(format), end.Format(format), end.Sub(start).Hours())
 		}
 	}

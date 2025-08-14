@@ -81,7 +81,7 @@ func TestService(t *testing.T) {
 		s := New(app, 1, []binance.Timeframe{})
 
 		// need to setup assets first, so that they can be found in the db
-		if err := s.setupFuturesAssets(); err != nil {
+		if err := s.setupSpotAssets(); err != nil {
 			s.log().Error(err.Error())
 		}
 

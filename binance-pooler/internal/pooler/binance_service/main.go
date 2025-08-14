@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"binance-pooler/pkg/app"
 	"binance-pooler/pkg/dto/market_dto"
@@ -90,6 +89,7 @@ func (s *service) getTopPairs() ([]market_dto.SpotAsset, error) {
 	)
 }
 
+/*
 func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error) {
 	return marketdb.GetSpotAssets(
 		s.app.Db().CryptoSpotAssetColl(),
@@ -97,6 +97,7 @@ func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error
 		options.Find().SetLimit(limit), // options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
 	)
 }
+*/
 
 func (s *service) runOhlcScraper(fillgaps bool) error {
 	assets, err := s.getTopPairs()
@@ -180,7 +181,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					"interval":   tf.Milis,
 				})
 
-				docs, err := s.api.GetFutureKline(symbol, chunk.From, chunk.To, tf)
+				docs, err := s.api.GetSpotKline(symbol, chunk.From, chunk.To, tf)
 				if err != nil {
 					return fmt.Errorf("%v:%v [%v -> %v] failed to get ohlc rows: %v", symbol, tf.UrlParam, chunk.From, chunk.To, err)
 				}
@@ -190,7 +191,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					return err
 				}
 
-				s.log().Info("upserted binance spot ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
+				s.log().Info("upserted binance ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
 			}
 		}
 	}
@@ -200,7 +201,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 
 func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error {
 
-	defaultStart := time.Now().AddDate(-4, 0, 0)
+	defaultStart := time.Now().AddDate(-5, 0, 0)
 	coll := s.app.Db().CryptoSpotOhlcColl()
 
 	filter := bson.M{

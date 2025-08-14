@@ -59,6 +59,8 @@ func (tf Timeframe) CalculateOverlay(numEntries int64) time.Duration {
 	return time.Duration(numEntries*tf.Milis) * time.Millisecond
 }
 
+type GetKlines func(symbol string, from, to time.Time, tf Timeframe) ([]market_dto.OhlcRow, error)
+
 // 1min query data
 //   - https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
 //   - endpoint url - https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&startTime=1633833600000&endTime=1633833900000&limit=1000
