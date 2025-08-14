@@ -1,7 +1,6 @@
 package binance_service
 
 import (
-	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
 	"context"
 	"fmt"
@@ -29,7 +28,7 @@ func (s *service) setupFuturesAssets() error {
 			return err
 		}
 
-		log, err := market_dto.NewMongoInterface().UpsertFuturesAssets(docs, coll)
+		log, err := marketdb.UpsertFuturesAssets(docs, coll)
 		if err != nil {
 			return err
 		}
@@ -59,7 +58,7 @@ func (s *service) setupSpotAssets() error {
 			return err
 		}
 
-		log, err := market_dto.NewMongoInterface().UpsertSpotAssets(docs, coll)
+		log, err := marketdb.UpsertSpotAssets(docs, coll)
 		if err != nil {
 			return err
 		}

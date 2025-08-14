@@ -27,6 +27,8 @@ type service struct {
 	debug                bool
 }
 
+var marketdb = market_dto.NewMongoInterface()
+
 func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) *service {
 	return &service{
 		maxParalellRequests: maxParalellRequests,
@@ -82,14 +84,14 @@ func (s *service) Tmp(fill bool) {
 }
 
 func (s *service) getTopPairs() ([]market_dto.SpotAsset, error) {
-	return market_dto.NewMongoInterface().GetSpotAssets(
+	return marketdb.GetSpotAssets(
 		s.app.Db().CryptoSpotAssetColl(),
 		bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}, nil,
 	)
 }
 
 func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error) {
-	return market_dto.NewMongoInterface().GetSpotAssets(
+	return marketdb.GetSpotAssets(
 		s.app.Db().CryptoSpotAssetColl(),
 		bson.M{"source": binance.Source, "status": "TRADING"},
 		options.Find().SetLimit(limit), // options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
@@ -183,7 +185,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					return fmt.Errorf("%v:%v [%v -> %v] failed to get ohlc rows: %v", symbol, tf.UrlParam, chunk.From, chunk.To, err)
 				}
 
-				upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
+				upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
 				if err != nil {
 					return err
 				}
@@ -230,7 +232,7 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		return err
 	}
 
-	upsertLog, err := market_dto.NewMongoInterface().UpsertOhlcRows(docs, coll)
+	upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
 	if err != nil {
 		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
 	}

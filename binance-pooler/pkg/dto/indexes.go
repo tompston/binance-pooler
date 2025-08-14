@@ -8,9 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// SetupMongoEnv creates the timeseries collection for the logs collection and
-// indexes for collections
-func SetupMongoEnv(db *db.Db) error {
+func SetupMongoIndexes(db *db.Db) error {
 
 	mongoInterface := market_dto.NewMongoInterface()
 

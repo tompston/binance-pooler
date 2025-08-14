@@ -1,7 +1,7 @@
 package main
 
 import (
-	"binance-pooler/internal/pooler/services/binance_service"
+	"binance-pooler/internal/pooler/binance_service"
 	"binance-pooler/pkg/app"
 	"binance-pooler/pkg/providers/binance"
 	"context"

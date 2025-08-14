@@ -2,7 +2,6 @@ package binance_service
 
 import (
 	"binance-pooler/pkg/app"
-	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
 	"fmt"
 	"testing"
@@ -57,8 +56,6 @@ func TestService(t *testing.T) {
 	app, cleanup := app.SetupTestEnvironment(t)
 	defer cleanup()
 
-	mongoInterface := market_dto.NewMongoInterface()
-
 	t.Run("GetFutureKlineTest", func(t *testing.T) {
 		api := binance.New()
 		coll := app.Db().TestCollection("crypto_futures_ohlc_service_test")
@@ -71,7 +68,7 @@ func TestService(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		log, err := mongoInterface.UpsertOhlcRows(docs, coll)
+		log, err := marketdb.UpsertOhlcRows(docs, coll)
 		if err != nil {
 			t.Fatal(err)
 		}

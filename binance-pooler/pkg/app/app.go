@@ -65,7 +65,7 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 		return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
 	}
 
-	if err := dto.SetupMongoEnv(db); err != nil {
+	if err := dto.SetupMongoIndexes(db); err != nil {
 		return nil, fmt.Errorf("failed to setup mongodb environment: %v", err)
 	}
 
