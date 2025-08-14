@@ -2,7 +2,6 @@ package market_dto
 
 import (
 	"binance-pooler/pkg/lib/mongodb"
-	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -76,7 +75,7 @@ func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.U
 		return nil, fmt.Errorf("no data to upsert")
 	}
 
-	// Sort the data slice by StartTime in ascending order
+	// sort the data for consecutive upserts
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].StartTime.Before(data[j].StartTime)
 	})
@@ -94,7 +93,7 @@ func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.U
 
 	start := time.Now()
 
-	_, err := coll.BulkWrite(context.Background(), models)
+	_, err := coll.BulkWrite(ctx, models)
 	log := mongodb.NewUpsertLog(coll, data[0].StartTime, data[len(data)-1].StartTime, len(data), start)
 	return log, err
 }

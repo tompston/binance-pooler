@@ -18,19 +18,19 @@ import (
 func main() {
 	loc, err := time.LoadLocation("Europe/Riga")
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 
 	app, err := app.New(context.Background())
 	if err != nil {
 		msg := fmt.Sprintf("failed to create app in go pooler: %v", err.Error())
-		log.Fatalf(msg)
+		log.Fatal(msg)
 	}
 	defer app.Exit(context.Background())
 
 	scheduler, err := InitializeScheduler(app, loc)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err)
 	}
 
 	// fmt.Printf("scheduler.Jobs: %#v\n", scheduler.Jobs)
@@ -50,8 +50,7 @@ func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler,
 		WithStorage(app.CronStorage())
 
 	timeframes := []binance.Timeframe{
-		binance.Timeframe1M,
-		binance.Timeframe5M,
+		// binance.Timeframe5M,
 		binance.Timeframe15M,
 	}
 

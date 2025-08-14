@@ -2,7 +2,6 @@ package market_dto
 
 import (
 	"binance-pooler/pkg/lib/mongodb"
-	"context"
 	"fmt"
 	"time"
 
@@ -32,7 +31,7 @@ type FuturesAsset struct {
 	OrderTypes            []string  `json:"order_types" bson:"order_types"`
 }
 
-func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (*Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -43,7 +42,7 @@ func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection)
 		}
 
 		filter := bson.M{"symbol": row.Symbol, "source": row.Source}
-		_, err := coll.UpdateOne(context.Background(), filter, bson.M{"$set": row}, mongodb.UpsertOpt)
+		_, err := coll.UpdateOne(ctx, filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
 
@@ -67,7 +66,7 @@ func (*Mongo) GetFuturesAssets(coll *mongo.Collection, filter bson.M, opt *optio
 func (*Mongo) GetFuturesAssetBySymbol(coll *mongo.Collection, symbol string) (FuturesAsset, error) {
 	var doc FuturesAsset
 	filter := bson.M{"symbol": symbol}
-	err := coll.FindOne(context.Background(), filter).Decode(&doc)
+	err := coll.FindOne(ctx, filter).Decode(&doc)
 	return doc, err
 }
 
@@ -109,7 +108,7 @@ func (*Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mongo
 		}
 
 		filter := bson.M{"symbol": row.Symbol, "source": row.Source}
-		_, err := coll.UpdateOne(context.Background(), filter, bson.M{"$set": row}, mongodb.UpsertOpt)
+		_, err := coll.UpdateOne(ctx, filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
 
@@ -133,6 +132,6 @@ func (*Mongo) GetSpotAssets(coll *mongo.Collection, filter bson.M, opt *options.
 func (*Mongo) GetSpotAssetBySymbol(coll *mongo.Collection, symbol string) (SpotAsset, error) {
 	var doc SpotAsset
 	filter := bson.M{"symbol": symbol}
-	err := coll.FindOne(context.Background(), filter).Decode(&doc)
+	err := coll.FindOne(ctx, filter).Decode(&doc)
 	return doc, err
 }
