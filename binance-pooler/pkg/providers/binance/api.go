@@ -89,11 +89,7 @@ func (api API) requestKlines(baseUrl string, symbol string, from, to time.Time, 
 	url := fmt.Sprintf("%v?symbol=%s&interval=%v&startTime=%d&endTime=%d&limit=%d",
 		baseUrl, urlSymbol, timeframe.UrlParam, t1, t2, limit)
 
-	header := map[string]string{
-		"Accept": "application/json",
-	}
-
-	res, err := syro.NewRequest("GET", url).WithHeaders(header).Do()
+	res, err := syro.NewRequest("GET", url).WithJsonHeader().Do()
 	if err != nil {
 		return nil, err
 	}

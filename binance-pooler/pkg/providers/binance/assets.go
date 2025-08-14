@@ -68,11 +68,7 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 		} `json:"symbols"`
 	}
 
-	header := map[string]string{
-		"Accept": "application/json",
-	}
-
-	res, err := syro.NewRequest("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo").WithHeaders(header).Do()
+	res, err := syro.NewRequest("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo").WithJsonHeader().Do()
 	if err != nil {
 		return nil, err
 	}
@@ -207,11 +203,7 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 		} `json:"symbols"`
 	}
 
-	header := map[string]string{
-		"Accept": "application/json",
-	}
-
-	res, err := syro.NewRequest("GET", "https://api.binance.com/api/v3/exchangeInfo").WithHeaders(header).Do()
+	res, err := syro.NewRequest("GET", "https://api.binance.com/api/v3/exchangeInfo").WithJsonHeader().Do()
 	if err != nil {
 		return nil, err
 	}
