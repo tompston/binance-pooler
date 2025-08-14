@@ -1,6 +1,7 @@
 package binance_service
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -82,25 +83,51 @@ func (s *service) Tmp(fill bool) {
 	}
 }
 
-func (s *service) getTopPairs() ([]market_dto.SpotAsset, error) {
+func (s *service) getPairs() ([]market_dto.SpotAsset, error) {
+	// return marketdb.GetSpotAssets(
+	// 	s.app.Db().CryptoSpotAssetColl(),
+	// 	bson.M{"source": binance.Source, "status": "TRADING"},
+	// 	options.Find().SetLimit(limit), // options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
+	// )
+
 	return marketdb.GetSpotAssets(
 		s.app.Db().CryptoSpotAssetColl(),
 		bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}, nil,
 	)
 }
 
-/*
-func (s *service) getAllTradingPairs(limit int64) ([]market_dto.SpotAsset, error) {
-	return marketdb.GetSpotAssets(
-		s.app.Db().CryptoSpotAssetColl(),
-		bson.M{"source": binance.Source, "status": "TRADING"},
-		options.Find().SetLimit(limit), // options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
-	)
+func (s *service) setupSpotAssets() error {
+	coll := s.app.Db().CryptoSpotAssetColl()
+
+	filter := bson.M{"source": binance.Source}
+	count, err := coll.CountDocuments(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		s.log().Info("no spot assets found, scraping data")
+		docs, err := s.api.GetAllSpotAssets()
+		if err != nil {
+			return err
+		}
+
+		log, err := marketdb.UpsertSpotAssets(docs, coll)
+		if err != nil {
+			return err
+		}
+
+		s.log().Info("upserted binance spot info", syro.LogFields{"log": log})
+
+		return nil
+	}
+
+	s.log().Info(fmt.Sprintf("spot assets already exist in %v collection, skipping setup", coll.Name()))
+	return nil
 }
-*/
 
 func (s *service) runOhlcScraper(fillgaps bool) error {
-	assets, err := s.getTopPairs()
+	assets, err := s.getPairs()
 	if err != nil {
 		return err
 	}
