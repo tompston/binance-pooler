@@ -9,7 +9,6 @@ if [ $# -eq 0 ]; then
     echo "
 ~ Available commands
     pooler          # Start the pooler
-    api             # Start the API on localhost:4444
     ports           # List all ports in use
     cloc            # Count lines of code
     test go         # Run Go tests"
@@ -22,10 +21,10 @@ case $FIRST_ARG in
     cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/pooler/main.go"
     ;;
 
-"api")
-    echo " * Starting the api"
-    cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/api/main.go"
-    ;;
+# "api")
+#     echo " * Starting the api"
+#     cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/api/main.go"
+#     ;;
 
 "exec")
     cd binance-pooler && go run cmd/exec/main.go

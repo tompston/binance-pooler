@@ -191,7 +191,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					return err
 				}
 
-				s.log().Info("upserted binance ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
+				s.log().Info("upserted ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
 			}
 		}
 	}

@@ -9,7 +9,7 @@ Additional features:
 
 ## Dependencies
 
-- Go (min version 1.20)
+- Go (min version 1.23)
 - Running instance of mongodb. Default port, no auth. [installation link](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/)
 - Reflex (for rebuilding the go app on changes) [(installation link)](https://github.com/cespare/reflex)
 
@@ -20,8 +20,6 @@ chmod +x run.sh
 
 # start the binance-pooler/cmd/pooler app
 ./run.sh pooler
-# start the binance-pooler/cmd/api app
-./run.sh api
 # run tests for the project (will be written under mongodb database called `test`)
 ./run.sh test
 ```

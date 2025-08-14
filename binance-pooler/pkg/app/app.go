@@ -90,7 +90,7 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 }
 
 // Exit closes the MongoDB connection. It should be called with the
-// defer keyword after the New function is called.
+// defer keyword after the app.New function is called.
 func (a *App) Exit(ctx context.Context) error {
 	if err := a.Db().Conn().Disconnect(ctx); err != nil {
 		return fmt.Errorf("failed to close mongodb conn: %v", err)
