@@ -65,15 +65,7 @@ type TomlConfig struct {
 		Host string `toml:"host"`
 		Port int    `toml:"port"`
 	} `toml:"api"`
-	Mongo struct {
-		Host     string `toml:"host"`
-		Port     int    `toml:"port"`
-		Username string `toml:"username"`
-		Password string `toml:"password"`
-	} `toml:"mongo"`
-	Postgres struct {
-		ConnString string `toml:"conn_string"`
-	} `toml:"postgres"`
+	MongoUri string `toml:"mongo_uri"`
 }
 
 // NewConfig loads a toml config file with the specified path.

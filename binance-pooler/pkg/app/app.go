@@ -59,8 +59,7 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 	dbSchema := db.SetDbSchemaBasedOnDebugMode(Env, debugMode...)
 	fmt.Printf(" * using db: %v\n", dbSchema.Name)
 
-	mongo := conf.Mongo
-	db, err := db.NewDb(mongo.Host, mongo.Port, mongo.Username, mongo.Password, dbSchema)
+	db, err := db.NewDb(conf.MongoUri, dbSchema)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
 	}

@@ -32,6 +32,8 @@ type FuturesAsset struct {
 }
 
 func (*Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+	start := time.Now()
+
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -45,8 +47,6 @@ func (*Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection) (
 		_, err := coll.UpdateOne(ctx, filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
-
-	start := time.Now()
 
 	for _, row := range data {
 		if err := upsertFn(row); err != nil {
@@ -98,6 +98,8 @@ type SpotAsset struct {
 }
 
 func (*Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+	start := time.Now()
+
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -111,8 +113,6 @@ func (*Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mongo
 		_, err := coll.UpdateOne(ctx, filter, bson.M{"$set": row}, mongodb.UpsertOpt)
 		return err
 	}
-
-	start := time.Now()
 
 	for _, row := range data {
 		if err := upsertFn(row); err != nil {

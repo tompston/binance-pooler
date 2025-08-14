@@ -1,13 +1,5 @@
+mongo_uri = "mongodb://localhost:27017"  # Use this for MongoDB connection URI
+
 [api]
 host = "localhost"
 port = 4444
-
-[mongo]
-host = "localhost"
-port = 27017                
-username = ""   # leave blank if no auth
-password = ""   # leave blank if no auth
-
-[postgres]
-# postgres://username:password@localhost:5432/dbname?sslmode=disable
-conn_string = "postgres://tompston:postgres@localhost:5432/postgres?sslmode=disable"

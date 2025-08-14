@@ -33,16 +33,6 @@ type OhlcRow struct {
 	NumberOfTrades  *int64   `json:"n" bson:"n"`
 }
 
-// Pretty print the OhlcRow for debugging
-func (o *OhlcRow) String() string {
-	if o == nil {
-		return "<nil>"
-	}
-
-	return fmt.Sprintf("symbol: %v, time: %v, interval: %v, o: %v, h: %v, l: %v, c: %v, v: %v",
-		o.Symbol, o.StartTime, o.Interval, o.Open, o.High, o.Low, o.Close, o.Volume)
-}
-
 func NewOhlcRow(symbol string, startTime, endTime time.Time, open, high, low, close, volume float64) (*OhlcRow, error) {
 	if symbol == "" {
 		return nil, fmt.Errorf("symbol is empty")
@@ -71,6 +61,8 @@ func (*Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
 }
 
 func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+	start := time.Now()
+
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -90,8 +82,6 @@ func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.U
 		update := bson.M{"$set": row}
 		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
 	}
-
-	start := time.Now()
 
 	_, err := coll.BulkWrite(ctx, models)
 	log := mongodb.NewUpsertLog(coll, data[0].StartTime, data[len(data)-1].StartTime, len(data), start)

@@ -12,21 +12,17 @@ import (
 )
 
 // New returns a new Db struct with the connection to the database and the db schema
-func New(host string, port int, username, password string) (*mongo.Client, error) {
+func New(uri string) (*mongo.Client, error) {
+
+	if uri == "" {
+		return nil, fmt.Errorf("uri for mongodb connection is empty")
+	}
+
 	opt := options.Client().
 		SetMaxPoolSize(20).                  // Set the maximum number of connections in the connection pool
 		SetMaxConnIdleTime(10 * time.Minute) // Close idle connections after the specified time
 
-	// If both the username and password exists, use it as the credentials. Else use the non-authenticated url.
-	var url string
-	if username != "" && password != "" {
-		opt.SetAuth(options.Credential{Username: username, Password: password})
-		url = fmt.Sprintf("mongodb://%s:%s@%s:%d", username, password, host, port)
-	} else {
-		url = fmt.Sprintf("mongodb://%s:%d", host, port)
-	}
-
-	opt.ApplyURI(url)
+	opt.ApplyURI(uri)
 
 	conn, err := mongo.Connect(context.Background(), opt)
 	if err != nil {

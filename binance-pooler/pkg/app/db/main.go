@@ -26,7 +26,7 @@ type Db struct {
 func (m *Db) Conn() *mongo.Client { return m.conn }
 
 // NewDb returns a new Db struct with the connection to the database and the db schema
-func NewDb(host string, port int, username, password string, schema *DbSchema) (*Db, error) {
+func NewDb(uri string, schema *DbSchema) (*Db, error) {
 	if schema == nil {
 		return nil, fmt.Errorf("schema for the database is nil")
 	}
@@ -37,7 +37,7 @@ func NewDb(host string, port int, username, password string, schema *DbSchema) (
 		return nil, err
 	}
 
-	conn, err := mongodb.New(host, port, username, password)
+	conn, err := mongodb.New(uri)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +63,7 @@ func SetupMongdbTest(env *settings.Env, useProdDb ...bool) (*Db, error) {
 		return nil, err
 	}
 
-	mongo := conf.Mongo
-
-	return NewDb(mongo.Host, mongo.Port, mongo.Username, mongo.Password, dbSchema)
+	return NewDb(conf.MongoUri, dbSchema)
 }
 
 // DbSchema holds a map of all of the names for the dbs and their corresponding collections
