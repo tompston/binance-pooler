@@ -12,8 +12,10 @@ import (
 	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/lib/mongodb"
 	"binance-pooler/pkg/providers/binance"
-	"binance-pooler/pkg/syro"
-	"binance-pooler/pkg/syro/timeset"
+
+	"binance-pooler/pkg/lib/timeset"
+
+	"github.com/tompston/syro"
 )
 
 type service struct {
@@ -22,7 +24,7 @@ type service struct {
 	maxParalellRequests  int
 	timeframes           []binance.Timeframe
 	requestSleepDuration time.Duration
-	debugMode            bool
+	debug                bool
 }
 
 func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) *service {
@@ -30,14 +32,13 @@ func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) 
 		maxParalellRequests: maxParalellRequests,
 		api:                 binance.New(),
 		timeframes:          timeframes,
-		debugMode:           false,
+		debug:               false,
 		app:                 app,
 	}
 }
 
-// Set debug mode to true
-func (s *service) WithDebugMode() *service {
-	s.debugMode = true
+func (s *service) WithDebug() *service {
+	s.debug = true
 	return s
 }
 
@@ -47,7 +48,7 @@ func (s *service) WithSleepDuration(d time.Duration) *service {
 }
 
 func (s *service) log() syro.Logger {
-	return s.app.Logger().SetEvent("binance")
+	return s.app.Logger().WithEvent("binance")
 }
 
 func (s *service) AddJobs(sched *syro.CronScheduler) error {
@@ -57,8 +58,8 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 
 	if err := sched.Register(
 		&syro.Job{
-			Name: "binance-spot-ohlc",
-			Freq: "@every 30s",
+			Name:     "binance-spot-ohlc",
+			Schedule: "@every 30s",
 			Func: func() error {
 				if err := s.runOhlcScraper(false); err != nil {
 					s.log().Error(err.Error())
@@ -104,7 +105,7 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 	sem := make(chan struct{}, s.maxParalellRequests)
 	var wg sync.WaitGroup
 
-	s.log().Debug("* running ohlc scraper", syro.LogFields{"num_assets": len(assets)})
+	s.log().Debug("running ohlc scraper", syro.LogFields{"num_assets": len(assets)})
 
 	for _, asset := range assets {
 		sem <- struct{}{}
@@ -168,7 +169,14 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 
 			for chunkIdx, chunk := range gapChunks {
 
-				s.log().Debug(fmt.Sprintf("requesting chunk %v/%v for %v from %v -> %v", chunkIdx, len(gapChunks), symbol, chunk.From, chunk.To))
+				s.log().Debug("requesting chunk", syro.LogFields{
+					"chunk_idx":  chunkIdx,
+					"num_chunks": len(gapChunks),
+					"symbol":     symbol,
+					"from":       chunk.From,
+					"to":         chunk.To,
+					"interval":   tf.Milis,
+				})
 
 				docs, err := s.api.GetFutureKline(symbol, chunk.From, chunk.To, tf)
 				if err != nil {
@@ -203,7 +211,7 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		return err
 	}
 
-	if s.debugMode {
+	if s.debug {
 		// if the latest start time is from the last 3 days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
@@ -228,7 +236,11 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 	}
 
 	s.log().Info("upserted binance spot ohlc",
-		syro.LogFields{"symbol": symbol, "resolution": tf.Milis / 60000, "upsertLog": upsertLog.String()})
+		syro.LogFields{
+			"symbol":     symbol,
+			"resolution": tf.Milis / 60000,
+			"upsertLog":  upsertLog.String(),
+		})
 
 	return nil
 }

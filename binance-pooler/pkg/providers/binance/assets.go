@@ -2,10 +2,11 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/syro/fetcher"
-	"binance-pooler/pkg/syro/timeset"
+	"binance-pooler/pkg/lib/timeset"
 	"encoding/json"
 	"time"
+
+	"github.com/tompston/syro"
 )
 
 func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
@@ -67,7 +68,11 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 		} `json:"symbols"`
 	}
 
-	res, err := fetcher.Fetch("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo", fetcher.JsonHeader)
+	header := map[string]string{
+		"Accept": "application/json",
+	}
+
+	res, err := syro.NewRequest("GET", "https://fapi.binance.com/fapi/v1/exchangeInfo").WithHeaders(header).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +207,11 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 		} `json:"symbols"`
 	}
 
-	res, err := fetcher.Fetch("GET", "https://api.binance.com/api/v3/exchangeInfo", fetcher.JsonHeader)
+	header := map[string]string{
+		"Accept": "application/json",
+	}
+
+	res, err := syro.NewRequest("GET", "https://api.binance.com/api/v3/exchangeInfo").WithHeaders(header).Do()
 	if err != nil {
 		return nil, err
 	}

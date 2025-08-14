@@ -3,9 +3,10 @@ package binance_service
 import (
 	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
-	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
+
+	"github.com/tompston/syro"
 
 	"go.mongodb.org/mongo-driver/bson"
 )

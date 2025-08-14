@@ -55,6 +55,7 @@ func GetEnvVar(key string) string {
 	if val, ok := os.LookupEnv(key); ok && val != "" {
 		return val
 	}
+
 	return ""
 }
 

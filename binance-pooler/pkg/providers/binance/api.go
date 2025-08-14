@@ -2,12 +2,13 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
-	"binance-pooler/pkg/syro/fetcher"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/tompston/syro"
 )
 
 const Source = "binance"
@@ -88,7 +89,11 @@ func (api API) requestKlines(baseUrl string, symbol string, from, to time.Time, 
 	url := fmt.Sprintf("%v?symbol=%s&interval=%v&startTime=%d&endTime=%d&limit=%d",
 		baseUrl, urlSymbol, timeframe.UrlParam, t1, t2, limit)
 
-	res, err := fetcher.Fetch("GET", url, fetcher.JsonHeader)
+	header := map[string]string{
+		"Accept": "application/json",
+	}
+
+	res, err := syro.NewRequest("GET", url).WithHeaders(header).Do()
 	if err != nil {
 		return nil, err
 	}

@@ -5,10 +5,11 @@ import (
 	"binance-pooler/pkg/app/settings"
 	"binance-pooler/pkg/dto"
 	"binance-pooler/pkg/lib/mongodb"
-	"binance-pooler/pkg/syro"
 	"context"
 	"fmt"
 	"testing"
+
+	"github.com/tompston/syro"
 )
 
 const (
@@ -39,10 +40,9 @@ var Env = &settings.Env{
 	IsProductionKey:   "GO_IS_PRODUCTION",
 }
 
-// New returns a new App struct with the specified configuration, database
-// connection and command line arguments. If the optional debugMode argument
-// is set to true, the app will write all of the collections under a
-// single database called "test".
+// New returns a new App struct with the specified configuration. If the
+// optional debugMode argument is set to true, the app will write all
+// of the collections under a single database called "test".
 func New(ctx context.Context, debugMode ...bool) (*App, error) {
 
 	confPath := Env.GetConfigPath()
@@ -84,8 +84,8 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 	return &App{
 		conf:        conf,
 		db:          db,
-		cronStorage: cronStorage,
 		logger:      logger,
+		cronStorage: cronStorage,
 	}, nil
 }
 

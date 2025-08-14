@@ -58,20 +58,20 @@ func (m *Mongo) UpsertFuturesAssets(data []FuturesAsset, coll *mongo.Collection)
 	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
 }
 
-func (m *Mongo) GetFuturesAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]FuturesAsset, error) {
+func (*Mongo) GetFuturesAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]FuturesAsset, error) {
 	var docs []FuturesAsset
 	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
 	return docs, err
 }
 
-func (m *Mongo) GetFuturesAssetBySymbol(coll *mongo.Collection, symbol string) (FuturesAsset, error) {
+func (*Mongo) GetFuturesAssetBySymbol(coll *mongo.Collection, symbol string) (FuturesAsset, error) {
 	var doc FuturesAsset
 	filter := bson.M{"symbol": symbol}
 	err := coll.FindOne(context.Background(), filter).Decode(&doc)
 	return doc, err
 }
 
-func (m *Mongo) CreateAssetIndexes(coll *mongo.Collection) error {
+func (*Mongo) CreateAssetIndexes(coll *mongo.Collection) error {
 	return mongodb.NewIndexes().Add("symbol").Add("source", "status").Create(coll)
 }
 
@@ -98,7 +98,7 @@ type SpotAsset struct {
 	IsMarginTradingAllowed     bool      `json:"is_margin_trading_allowed" bson:"is_margin_trading_allowed"`
 }
 
-func (m *Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (*Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}
@@ -124,13 +124,13 @@ func (m *Mongo) UpsertSpotAssets(data []SpotAsset, coll *mongo.Collection) (*mon
 	return mongodb.NewUpsertLog(coll, time.Time{}, time.Time{}, len(data), start), nil
 }
 
-func (m *Mongo) GetSpotAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]SpotAsset, error) {
+func (*Mongo) GetSpotAssets(coll *mongo.Collection, filter bson.M, opt *options.FindOptions) ([]SpotAsset, error) {
 	var docs []SpotAsset
 	err := mongodb.GetAllDocumentsWithTypes(coll, filter, opt, &docs)
 	return docs, err
 }
 
-func (m *Mongo) GetSpotAssetBySymbol(coll *mongo.Collection, symbol string) (SpotAsset, error) {
+func (*Mongo) GetSpotAssetBySymbol(coll *mongo.Collection, symbol string) (SpotAsset, error) {
 	var doc SpotAsset
 	filter := bson.M{"symbol": symbol}
 	err := coll.FindOne(context.Background(), filter).Decode(&doc)

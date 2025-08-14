@@ -1,7 +1,6 @@
 package main
 
 import (
-	"binance-pooler/pkg/syro"
 	"log"
 	"os"
 	"runtime/pprof"
@@ -35,8 +34,4 @@ func main() {
 	}
 	defer pprof.StopCPUProfile()
 
-	logger := syro.NewConsoleLogger(nil)
-	for i := 0; i < 1_000; i++ {
-		logger.SetEvent("main").Info("Hello, World!")
-	}
 }

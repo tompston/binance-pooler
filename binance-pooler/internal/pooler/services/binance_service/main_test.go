@@ -17,7 +17,7 @@ func TestApi(t *testing.T) {
 	t.Run("GetFutureKline", func(t *testing.T) {
 		dbrows, err := api.GetFutureKline("batusdt", from, to, binance.Timeframe15M)
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatal(err)
 		}
 
 		if len(dbrows) != 5 {
@@ -44,7 +44,7 @@ func TestApi(t *testing.T) {
 		api := binance.New()
 		doc, err := api.GetSpotKline("ethusdt", t1, t2, binance.Timeframe1M)
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatal(err)
 		}
 
 		if len(doc) != reqPeriod {
@@ -68,12 +68,12 @@ func TestService(t *testing.T) {
 
 		docs, err := api.GetFutureKline(symbol, from, to, binance.Timeframe15M)
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatal(err)
 		}
 
 		log, err := mongoInterface.UpsertOhlcRows(docs, coll)
 		if err != nil {
-			t.Fatalf(err.Error())
+			t.Fatal(err)
 		}
 
 		fmt.Printf("log.String(): %v\n", log.String())
@@ -89,7 +89,7 @@ func TestService(t *testing.T) {
 		}
 
 		if err := s.scrapeOhlcForSymbol("BTCUSDT", binance.Timeframe15M); err != nil {
-			t.Fatalf(err.Error())
+			t.Fatal(err)
 		}
 	})
 }

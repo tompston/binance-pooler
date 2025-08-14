@@ -64,14 +64,14 @@ func NewOhlcRow(symbol string, startTime, endTime time.Time, open, high, low, cl
 func (r *OhlcRow) SetBaseAssetVolume(vol float64) { r.BaseAssetVolume = &vol }
 func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 
-func (m *Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
+func (*Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
 	return mongodb.TimeseriesIndexes().
 		Add("symbol").
 		Add(mongodb.START_TIME, "symbol", "interval").
 		Create(coll)
 }
 
-func (db *Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("no data to upsert")
 	}

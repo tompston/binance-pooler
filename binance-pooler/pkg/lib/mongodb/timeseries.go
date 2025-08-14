@@ -4,8 +4,7 @@
 package mongodb
 
 import (
-	"binance-pooler/pkg/syro/timeset"
-	"binance-pooler/pkg/syro/utils"
+	"binance-pooler/pkg/lib/timeset"
 	"context"
 	"fmt"
 	"strings"
@@ -17,6 +16,7 @@ import (
 )
 
 // TimeseriesFields holds filelds which are used for timeseries data.
+// TODO: push this to another package.
 type TimeseriesFields struct {
 	StartTime time.Time `json:"start_time" bson:"start_time"` // StartTime is the start of the measurement
 	Interval  int64     `json:"interval" bson:"interval"`     // Interval is the frequency of the measurement in milliseconds
@@ -174,8 +174,7 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 		// if the query fails because there are no documents in the result, return the
 		// default start date and no errors.
 		if strings.Contains(err.Error(), "no documents in result") {
-			msg := noRecordsFoundMsg(coll.Name(), defaultStart, filter)
-			utils.LogIfArgExists(msg, loggerFn)
+			// msg := noRecordsFoundMsg(coll.Name(), defaultStart, filter)
 			return defaultStart, nil
 		}
 
@@ -193,8 +192,8 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 	// start of today. This is done so that the info queried from the external sources is updated, as the
 	// majority of sources don't have all of the data for today available for most of the day.
 	if setToStartOfToday && timeset.IsTodayOrInFuture(startTime) {
-		msg := lastDocStartTimeIsTodayMsg(startTime, coll.Name())
-		utils.LogIfArgExists(msg, loggerFn)
+		// msg := lastDocStartTimeIsTodayMsg(startTime, coll.Name())
+		// utils.LogIfArgExists(msg, loggerFn)
 		startOfToday := timeset.StartOfDay(time.Now())
 		return startOfToday, err
 	}

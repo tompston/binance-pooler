@@ -1,10 +1,6 @@
 package mongodb
 
 import (
-	"binance-pooler/pkg/syro/utils"
-	"binance-pooler/pkg/syro/validate"
-	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 )
@@ -30,40 +26,6 @@ func TestTimeseries(t *testing.T) {
 		}
 	})
 
-	t.Run(" Test if unmarshalling returns the expected fields", func(t *testing.T) {
-		extracted, err := utils.DecodeStructToStrings(fields)
-		if err != nil {
-			t.Fatalf("Failed to decode struct to strings: %v", err)
-		}
-
-		// JSON marshalling and unmarshalling
-		var jsonFields TimeseriesFields
-		if err := json.Unmarshal([]byte(extracted.JSON), &jsonFields); err != nil {
-			t.Fatalf("Failed to unmarshal from JSON: %v", err)
-		}
-
-		expectedJsonSubstrings := []string{
-			START_TIME + `":"2023-09-20T10:00:00Z"`,
-			`interval":3600000`,
-		}
-
-		jsonStr := string(extracted.JSON)
-		fmt.Printf("jsonStr: %v\n", jsonStr)
-		if err := validate.StringIncludes(jsonStr, expectedJsonSubstrings); err != nil {
-			t.Fatalf("json did not have the expected fields: %v", err)
-		}
-
-		bsonStr := string(extracted.BSON)
-		fmt.Printf("bsonStr: %v\n", bsonStr)
-
-		expectedBsonSubstrings := []string{
-			START_TIME + `":{"$date":"2023-09-20T10:00:00Z"`,
-			`"interval":3600000`,
-		}
-		if err := validate.StringIncludes(bsonStr, expectedBsonSubstrings); err != nil {
-			t.Fatalf("bson did not have the expected fields: %v", err)
-		}
-	})
 }
 
 //	TODO: fix these tests
