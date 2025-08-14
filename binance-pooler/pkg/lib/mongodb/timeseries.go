@@ -4,7 +4,6 @@
 package mongodb
 
 import (
-	"binance-pooler/pkg/lib/timeset"
 	"context"
 	"fmt"
 	"strings"
@@ -85,13 +84,6 @@ func findGapsInIntervalGroup(records []TimeseriesFields) []GapInfo {
 	return gaps
 }
 
-func UnixMilisToTime(unixMilli int64) time.Time {
-	// Convert milliseconds to seconds and nanoseconds
-	seconds := unixMilli / 1000
-	nanoseconds := (unixMilli % 1000) * 1000000
-	return time.Unix(seconds, nanoseconds)
-}
-
 // FindGaps in the given collection. This is done based on the
 // time and interval field. Gaps are cheched for each unique
 // interval seperately.
@@ -157,14 +149,12 @@ func FindGaps(coll *mongo.Collection, customFilter ...bson.M) (map[int64][]GapIn
 	return gapsMap, nil
 }
 
-// GetLatestStartTime returns the most recent time value from a document from a
-// collection which is sorted by time field (Descending).
-//
-// If the returned time.Time value is today and setToStartOfToday is set to true, then
-// it is set to the start of today, so that the service would refetch the data from
-// the start of today. This is done because most of the scraped data sources
-// update the data of today constantly.
-func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter bson.M, setToStartOfToday bool, loggerFn ...func(any)) (time.Time, error) {
+type FindTimeSettings struct {
+	Logger func(string)
+}
+
+// FindLatestStartTime returns the latest start time from the collection.
+func FindLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter bson.M, settings ...FindTimeSettings) (time.Time, error) {
 
 	sort := bson.M{START_TIME: -1}
 
@@ -174,7 +164,12 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 		// if the query fails because there are no documents in the result, return the
 		// default start date and no errors.
 		if strings.Contains(err.Error(), "no documents in result") {
-			// msg := noRecordsFoundMsg(coll.Name(), defaultStart, filter)
+			if len(settings) == 1 && settings[0].Logger != nil {
+				loggerFunc := settings[0].Logger
+				msg := noRecordsFoundMsg(coll.Name(), defaultStart, filter)
+				loggerFunc(msg)
+			}
+
 			return defaultStart, nil
 		}
 
@@ -188,16 +183,6 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 		return time.Time{}, fmt.Errorf("mongo query returned a zero value for the time field")
 	}
 
-	// if the latest row in the collection has the time value of today or is in the future, set it to the
-	// start of today. This is done so that the info queried from the external sources is updated, as the
-	// majority of sources don't have all of the data for today available for most of the day.
-	if setToStartOfToday && timeset.IsTodayOrInFuture(startTime) {
-		// msg := lastDocStartTimeIsTodayMsg(startTime, coll.Name())
-		// utils.LogIfArgExists(msg, loggerFn)
-		startOfToday := timeset.StartOfDay(time.Now())
-		return startOfToday, err
-	}
-
 	// if the returned time.Time value is a valid date and is not today, return the last
 	// time value from the collection
 	return startTime, err
@@ -206,9 +191,4 @@ func GetLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter b
 func noRecordsFoundMsg(collName string, defaultStartDate time.Time, filter bson.M) string {
 	return fmt.Sprintf("no records found in the %v collection with %v filter. Returning default start date of %v",
 		collName, filter, defaultStartDate.Format("2006-01-02"))
-}
-
-func lastDocStartTimeIsTodayMsg(collectionLatestDate time.Time, collName string) string {
-	return fmt.Sprintf("latest document in the %v collection is today or in the future ( %v ) . Returning start of today",
-		collName, collectionLatestDate.Format("2006-01-01 05:00"))
 }

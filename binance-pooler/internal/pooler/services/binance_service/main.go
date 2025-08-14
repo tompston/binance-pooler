@@ -206,7 +206,7 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		"symbol":   symbol,
 	}
 
-	latestTime, err := mongodb.GetLatestStartTime(defaultStart, coll, filter, false)
+	latestTime, err := mongodb.FindLatestStartTime(defaultStart, coll, filter)
 	if err != nil {
 		return err
 	}

@@ -90,10 +90,6 @@ type QueryParams struct {
 	Options *options.FindOptions
 }
 
-func NewQueryParams(coll *mongo.Collection, filter primitive.M, options *options.FindOptions) *QueryParams {
-	return &QueryParams{coll, filter, options}
-}
-
 // GetDocuments is a helper function that queries the database for documents
 // and returns them as types of the data argument.
 func GetDocuments[T any](params QueryParams, data *[]T) error {
@@ -109,15 +105,6 @@ func DeleteByID(coll *mongo.Collection, id string) error {
 	_, err = coll.DeleteOne(context.Background(), bson.M{"_id": objID})
 	return err
 }
-
-// Code for creating area filters based on the structure of collection documents
-// areaFilterType is an enum for the type of area filter
-type ValueFilterType int
-
-const (
-	ValueFilterForKeys   ValueFilterType = iota // value -> 0
-	ValueFilterForFields                        // value -> 1
-)
 
 // UpsertLog struct holds meta information about how long it took to upsert documents into a collection.
 type UpsertLog struct {

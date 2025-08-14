@@ -53,21 +53,6 @@ func (ib *IndexBuilder) AddUnique(keys ...string) *IndexBuilder {
 	return ib
 }
 
-func (ib *IndexBuilder) AddTextIndex(key string) *IndexBuilder {
-	indexModel := mongo.IndexModel{Keys: map[string]any{key: "text"}}
-	ib.indexes = append(ib.indexes, indexModel)
-	return ib
-}
-
-func (ib *IndexBuilder) AddExpirationIndex(timefieldName string, expirationAfterHours int32) *IndexBuilder {
-	indexModel := mongo.IndexModel{
-		Keys:    map[string]any{timefieldName: 1},
-		Options: options.Index().SetExpireAfterSeconds(60 * 60 * expirationAfterHours),
-	}
-	ib.indexes = append(ib.indexes, indexModel)
-	return ib
-}
-
 // Create creates all the indexes that have been added to the IndexBuilder.
 func (ib *IndexBuilder) Create(coll *mongo.Collection) error {
 	if ib == nil {
@@ -97,23 +82,4 @@ func AvailableIndexes(coll *mongo.Collection) ([]bson.M, error) {
 	var indexes []bson.M
 	err = indexesCursor.All(context.Background(), &indexes)
 	return indexes, err
-}
-
-func IndexExists(coll *mongo.Collection, indexName string) (bool, error) {
-	if coll == nil {
-		return false, fmt.Errorf("coll is nil")
-	}
-
-	indexes, err := AvailableIndexes(coll)
-	if err != nil {
-		return false, err
-	}
-
-	for _, index := range indexes {
-		if index["name"] == indexName {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }
