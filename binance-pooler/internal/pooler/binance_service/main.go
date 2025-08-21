@@ -228,7 +228,7 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 
 func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error {
 
-	defaultStart := time.Now().AddDate(-5, 0, 0)
+	defaultStart := time.Now().AddDate(-6, 0, 0)
 	coll := s.app.Db().CryptoSpotOhlcColl()
 
 	filter := bson.M{
@@ -251,26 +251,72 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 	}
 
 	overlay := tf.CalculateOverlay(20)
+	maxPeriod := tf.GetMaxReqPeriod()
 
-	from := latestTime.Add(-overlay)
-	to := from.Add(tf.GetMaxReqPeriod())
+	// a dumb but simple way to handle the following problem: we don't know from which date
+	// the data is available, so we iterate from the default start time, untill time series
+	// data is found. This block executes only on the first run.
+	if latestTime.Equal(defaultStart) {
 
-	docs, err := s.api.GetSpotKline(symbol, from, to, tf)
-	if err != nil {
-		return err
+		current := latestTime
+		stop := time.Now()
+
+		for current.Before(stop) {
+			from := current.Add(-overlay)
+			to := from.Add(maxPeriod)
+
+			time.Sleep(s.requestSleepDuration)
+
+			meta := syro.LogFields{"symbol": symbol, "resolution": tf.Milis / 60000, "from": from.UTC(), "to": to.UTC()}
+
+			s.log().Debug("init request ohlc", meta)
+
+			docs, err := s.api.GetSpotKline(symbol, from, to, tf)
+			if err != nil {
+				return fmt.Errorf("%v:%v failed to get ohlc rows: %v", symbol, tf.UrlParam, err)
+			}
+
+			if len(docs) != 0 {
+				upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
+				if err != nil {
+					return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
+				}
+
+				s.log().Info("upserted binance spot ohlc",
+					syro.LogFields{
+						"symbol":     symbol,
+						"resolution": tf.Milis / 60000,
+						"upsertLog":  upsertLog.String(),
+					})
+				break
+
+			} else {
+				s.log().Debug("no ohlc data found", meta)
+				current = current.Add(maxPeriod)
+			}
+		}
+
+	} else {
+		from := latestTime.Add(-overlay)
+		to := from.Add(maxPeriod)
+
+		docs, err := s.api.GetSpotKline(symbol, from, to, tf)
+		if err != nil {
+			return err
+		}
+
+		upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
+		if err != nil {
+			return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
+		}
+
+		s.log().Info("upserted binance spot ohlc",
+			syro.LogFields{
+				"symbol":     symbol,
+				"resolution": tf.Milis / 60000,
+				"upsertLog":  upsertLog.String(),
+			})
 	}
-
-	upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
-	if err != nil {
-		return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
-	}
-
-	s.log().Info("upserted binance spot ohlc",
-		syro.LogFields{
-			"symbol":     symbol,
-			"resolution": tf.Milis / 60000,
-			"upsertLog":  upsertLog.String(),
-		})
 
 	return nil
 }

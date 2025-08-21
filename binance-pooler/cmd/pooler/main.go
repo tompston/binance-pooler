@@ -50,12 +50,12 @@ func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler,
 		WithStorage(app.CronStorage())
 
 	timeframes := []binance.Timeframe{
-		// binance.Timeframe5M,
+		binance.Timeframe5M,
 		binance.Timeframe15M,
 	}
 
-	if err := binance_service.New(app, 3, timeframes).
-		WithSleepDuration(100 * time.Millisecond).
+	if err := binance_service.New(app, 2, timeframes).
+		WithSleepDuration(500 * time.Millisecond).
 		WithDebug().
 		AddJobs(scheduler); err != nil {
 		return nil, fmt.Errorf("failed to add binance jobs to scheduler: %v", err)
