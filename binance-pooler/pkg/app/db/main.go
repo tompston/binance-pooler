@@ -50,11 +50,9 @@ func SetupMongdbTest(env *settings.Env, useProdDb ...bool) (*Db, error) {
 		return nil, fmt.Errorf("env is nil")
 	}
 
-	var dbSchema *DbSchema
+	dbSchema := TestsDbSchema()
 	if len(useProdDb) == 1 && useProdDb[0] {
 		dbSchema = DefaultDbSchema()
-	} else {
-		dbSchema = TestsDbSchema()
 	}
 
 	confPath := env.GetConfigPath()
