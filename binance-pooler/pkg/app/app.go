@@ -43,7 +43,7 @@ var Env = &settings.Env{
 // New returns a new App struct with the specified configuration. If the
 // optional debugMode argument is set to true, the app will write all
 // of the collections under a single database called "test".
-func New(ctx context.Context, debugMode ...bool) (*App, error) {
+func New(ctx context.Context, testing ...bool) (*App, error) {
 
 	confPath := Env.GetConfigPath()
 
@@ -56,21 +56,28 @@ func New(ctx context.Context, debugMode ...bool) (*App, error) {
 		return nil, fmt.Errorf("failed to load config file: %v", err)
 	}
 
-	dbSchema := db.SetDbSchemaBasedOnDebugMode(Env, debugMode...)
-	fmt.Printf(" * using db: %v\n", dbSchema.Name)
+	name := "syro"
 
-	db, err := db.NewDb(conf.MongoUri, dbSchema)
+	if len(testing) == 1 && testing[0] || Env.ShouldUseTestDb() {
+		name = "test"
+	}
+
+	db, err := db.NewDb(conf.MongoUri, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to mongodb: %v", err)
 	}
+
+	dbName := db.DbName
+
+	fmt.Printf(" * using db: %v\n", dbName)
 
 	if err := dto.SetupMongoIndexes(db); err != nil {
 		return nil, fmt.Errorf("failed to setup mongodb environment: %v", err)
 	}
 
 	cronStorage, err := syro.NewMongoCronStorage(
-		mongodb.Coll(db.Conn(), dbSchema.Name, "cron_list"),
-		mongodb.Coll(db.Conn(), dbSchema.Name, "cron_history"))
+		mongodb.Coll(db.Conn(), dbName, "cron_list"),
+		mongodb.Coll(db.Conn(), dbName, "cron_history"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cron storage: %v", err)
 	}
@@ -98,13 +105,8 @@ func (a *App) Exit(ctx context.Context) error {
 }
 
 // SetupTestEnvironment sets up a test environment for the app.
-func SetupTestEnvironment(t *testing.T, useProductionDb ...bool) (*App, func()) {
-	debugMode := true
-	if len(useProductionDb) == 1 && useProductionDb[0] {
-		debugMode = false
-	}
-
-	app, err := New(context.Background(), debugMode)
+func SetupTestEnvironment(t *testing.T) (*App, func()) {
+	app, err := New(context.Background(), true)
 	if err != nil {
 		t.Fatalf("failed to setup environment: %v", err)
 	}

@@ -3,7 +3,6 @@ package settings
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -17,18 +16,10 @@ type Env struct {
 	IsProductionKey   string
 }
 
-// IsProduction returns true if the IsProductionKey environment variable is set to true.
-// If the env var is not set, it returns false. This is used because there are some
-// functions which we don't want to run while running in development mode.
+// Return true if the IsProductionKey environment variable is set to "true".
 func (e *Env) IsProduction() bool {
 	envVar := GetEnvVar(e.IsProductionKey)
-
-	isProd, err := strconv.ParseBool(envVar)
-	if err != nil {
-		return false
-	}
-
-	return isProd
+	return envVar == "true"
 }
 
 // GetConfigPath returns the path to the config file.
@@ -46,7 +37,9 @@ func (e *Env) GetConfigPath(path ...string) string {
 }
 
 // ShouldUseTestDb returns true if the UseTestDbKey environment variable is set to true.
-func (e *Env) ShouldUseTestDb() bool { return os.Getenv(e.UseTestDbKey) == "true" }
+func (e *Env) ShouldUseTestDb() bool {
+	return os.Getenv(e.UseTestDbKey) == "true"
+}
 
 // GetEnvVar returns the value of the environment variable if it exists and
 // is not an empty string. If the env var does not exist, the func

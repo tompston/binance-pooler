@@ -1,7 +1,6 @@
 package db
 
 import (
-	"binance-pooler/pkg/app/settings"
 	"binance-pooler/pkg/lib/mongodb"
 	"binance-pooler/pkg/lib/validate"
 	"fmt"
@@ -9,31 +8,39 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	// Default names for the used databases
-	DEFAULT_NAME = "syro"
-	// Test db name (all of the collections will be under this db during tests)
-	TEST_DB = "test"
-)
+// const (
+// 	// Default names for the used databases
+// 	DEFAULT_NAME = "syro"
+// 	// Test db name (all of the collections will be under this db during tests)
+// 	TEST_DB = "test"
+// )
 
 // Db struct holds the mongodb collection and the schema for the database
 type Db struct {
-	conn   *mongo.Client
-	schema *DbSchema
+	conn        *mongo.Client
+	collections *Collections
+	DbName      string
 }
 
 // Conn returns the initialized mongodb connection
 func (m *Db) Conn() *mongo.Client { return m.conn }
 
 // NewDb returns a new Db struct with the connection to the database and the db schema
-func NewDb(uri string, schema *DbSchema) (*Db, error) {
-	if schema == nil {
-		return nil, fmt.Errorf("schema for the database is nil")
+func NewDb(uri, dbName string) (*Db, error) {
+
+	if uri == "" {
+		return nil, fmt.Errorf("uri for the database is empty")
 	}
+
+	if dbName == "" {
+		return nil, fmt.Errorf("dbName for the database is empty")
+	}
+
+	colls := NewCollections(dbName)
 
 	// Don't proceed if the variable which holds all of the information about the names
 	// of the databases and corresponding collections holds an empty string.
-	if err := validate.EmptyStringsInStructExist(*schema); err != nil {
+	if err := validate.EmptyStringsInStructExist(*colls); err != nil {
 		return nil, err
 	}
 
@@ -42,32 +49,7 @@ func NewDb(uri string, schema *DbSchema) (*Db, error) {
 		return nil, err
 	}
 
-	return &Db{conn, schema}, nil
-}
-
-func SetupMongdbTest(env *settings.Env, useProdDb ...bool) (*Db, error) {
-	if env == nil {
-		return nil, fmt.Errorf("env is nil")
-	}
-
-	dbSchema := TestsDbSchema()
-	if len(useProdDb) == 1 && useProdDb[0] {
-		dbSchema = DefaultDbSchema()
-	}
-
-	confPath := env.GetConfigPath()
-	conf, err := settings.NewConfig(confPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewDb(conf.MongoUri, dbSchema)
-}
-
-// DbSchema holds a map of all of the names for the dbs and their corresponding collections
-type DbSchema struct {
-	Name  string
-	colls Collections
+	return &Db{conn, colls, dbName}, nil
 }
 
 type Collections struct {
@@ -78,38 +60,13 @@ type Collections struct {
 	Logs string
 }
 
-// TestsDbSchema returns the db schema that is set while running tests to isolate
-// the test data from the production data
-func TestsDbSchema() *DbSchema { return NewDbSchema(TEST_DB) }
-
-// DefaultDbSchema sets the db names that are used when running the app locally or
-// in the production
-func DefaultDbSchema() *DbSchema { return NewDbSchema(DEFAULT_NAME) }
-
-func SetDbSchemaBasedOnDebugMode(env *settings.Env, debugMode ...bool) *DbSchema {
-	if env.ShouldUseTestDb() {
-		return TestsDbSchema()
-	}
-
-	if len(debugMode) == 1 && debugMode[0] {
-		return TestsDbSchema()
-	}
-
-	return DefaultDbSchema()
-}
-
 // NewDbSchema returns the DbSchema struct which holds the layout of the
 // mongodb server databases and collections.
-func NewDbSchema(name string) *DbSchema {
-	return &DbSchema{
-		Name: name,
-		colls: Collections{
-			CryptoSpotAsset: "crypto_spot_asset",
-			CryptoSpotOhlc:  "crypto_spot_ohlc",
-			// CryptoFuturesAsset: "crypto_futures_asset",
-			// CryptoFuturesOhlc:  "crypto_futures_ohlc",
-			Logs: "logs",
-		},
+func NewCollections(name string) *Collections {
+	return &Collections{
+		CryptoSpotAsset: "crypto_spot_asset",
+		CryptoSpotOhlc:  "crypto_spot_ohlc",
+		Logs:            "logs",
 	}
 }
 
@@ -119,27 +76,19 @@ func (m *Db) coll(dbName, collName string) *mongo.Collection {
 }
 
 func (m *Db) CryptoSpotAssetColl() *mongo.Collection {
-	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoSpotAsset)
+	return m.Conn().Database(m.DbName).Collection(m.collections.CryptoSpotAsset)
 }
 
 func (m *Db) CryptoSpotOhlcColl() *mongo.Collection {
-	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoSpotOhlc)
+	return m.Conn().Database(m.DbName).Collection(m.collections.CryptoSpotOhlc)
 }
-
-// func (m *Db) CryptoFuturesAssetColl() *mongo.Collection {
-// 	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesAsset)
-// }
-
-// func (m *Db) CryptoFuturesOhlcColl() *mongo.Collection {
-// 	return m.Conn().Database(m.schema.Name).Collection(m.schema.colls.CryptoFuturesOhlc)
-// }
 
 // Collection to which all logs are written
 func (m *Db) LogsCollection() *mongo.Collection {
-	return m.coll(m.schema.Name, m.schema.colls.Logs)
+	return m.coll(m.DbName, m.collections.Logs)
 }
 
 // Util function for creating a temporary test collection under the test db
 func (m *Db) TestCollection(collName string) *mongo.Collection {
-	return m.Conn().Database(TEST_DB).Collection(collName)
+	return m.Conn().Database(m.DbName).Collection(collName)
 }
