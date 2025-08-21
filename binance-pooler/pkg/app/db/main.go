@@ -88,7 +88,6 @@ func TestsDbSchema() *DbSchema { return NewDbSchema(TEST_DB) }
 // in the production
 func DefaultDbSchema() *DbSchema { return NewDbSchema(DEFAULT_NAME) }
 
-// Else the default db schema is used.
 func SetDbSchemaBasedOnDebugMode(env *settings.Env, debugMode ...bool) *DbSchema {
 	if env.ShouldUseTestDb() {
 		return TestsDbSchema()

@@ -154,7 +154,7 @@ func FindLatestStartTime(defaultStart time.Time, coll *mongo.Collection, filter 
 	sort := bson.M{START_TIME: -1}
 
 	var row TimeseriesFields
-	err := GetLastDocumentWithTypes(coll, sort, filter, &row)
+	err := coll.FindOne(context.Background(), filter, options.FindOne().SetSort(sort)).Decode(&row)
 	if err != nil {
 		// if the query fails because there are no documents in the result, return the
 		// default start date and no errors.

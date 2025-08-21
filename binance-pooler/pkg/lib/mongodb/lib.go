@@ -30,18 +30,6 @@ func TimeRangeFilter(fielName string, from, to time.Time) bson.M {
 	return bson.M{fielName: bson.M{"$gte": from.UTC(), "$lte": to.UTC()}}
 }
 
-// GetLastDocumentWithTypes queries for a document and returns it, if it exists.
-//
-// Example
-//
-//	var row MyType
-//	err := mongodb.GetLastDocumentWithTypes(coll, bson.M{"start_date": -1}, &row)
-//	return row, err
-func GetLastDocumentWithTypes(coll *mongo.Collection, sort primitive.M, filter, results any) error {
-	err := coll.FindOne(context.Background(), filter, options.FindOne().SetSort(sort)).Decode(results)
-	return err
-}
-
 // GetAllDocumentsWithTypes queries for all documents and returns them,
 // if they exist. Create an empty slice of the type you want to get
 // the results in and pass it as the last parameter.
