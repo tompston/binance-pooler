@@ -2,6 +2,7 @@ package market_dto
 
 import (
 	"binance-pooler/pkg/lib/mongodb"
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var ctx = context.Background()
 
 // OHLC represents the open, high, low, close, and volume of a market
 type OHLC struct {
@@ -53,14 +56,14 @@ func NewOhlcRow(symbol string, startTime, endTime time.Time, open, high, low, cl
 func (r *OhlcRow) SetBaseAssetVolume(vol float64) { r.BaseAssetVolume = &vol }
 func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 
-func (*Mongo) CreateOhlcIndexes(coll *mongo.Collection) error {
+func CreateOhlcIndexes(coll *mongo.Collection) error {
 	return mongodb.TimeseriesIndexes().
 		Add("symbol").
 		Add(mongodb.START_TIME, "symbol", "interval").
 		Create(coll)
 }
 
-func (*Mongo) UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
+func UpsertOhlcRows(data []OhlcRow, coll *mongo.Collection) (*mongodb.UpsertLog, error) {
 	start := time.Now()
 
 	if len(data) == 0 {

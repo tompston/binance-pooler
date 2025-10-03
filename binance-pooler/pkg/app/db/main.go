@@ -55,8 +55,8 @@ func NewDb(uri, dbName string) (*Db, error) {
 type Collections struct {
 	CryptoSpotAsset,
 	CryptoSpotOhlc,
-	// CryptoFuturesAsset,
-	// CryptoFuturesOhlc,
+	CryptoFuturesAsset,
+	CryptoFuturesOhlc,
 	Logs string
 }
 
@@ -64,9 +64,11 @@ type Collections struct {
 // mongodb server databases and collections.
 func NewCollections(name string) *Collections {
 	return &Collections{
-		CryptoSpotAsset: "crypto_spot_asset",
-		CryptoSpotOhlc:  "crypto_spot_ohlc",
-		Logs:            "logs",
+		CryptoSpotAsset:    "crypto_spot_asset",
+		CryptoSpotOhlc:     "crypto_spot_ohlc",
+		CryptoFuturesAsset: "crypto_futures_asset",
+		CryptoFuturesOhlc:  "crypto_futures_ohlc",
+		Logs:               "logs",
 	}
 }
 
@@ -81,6 +83,14 @@ func (m *Db) CryptoSpotAssetColl() *mongo.Collection {
 
 func (m *Db) CryptoSpotOhlcColl() *mongo.Collection {
 	return m.Conn().Database(m.DbName).Collection(m.collections.CryptoSpotOhlc)
+}
+
+func (m *Db) CryptoFuturesAssetColl() *mongo.Collection {
+	return m.Conn().Database(m.DbName).Collection(m.collections.CryptoFuturesAsset)
+}
+
+func (m *Db) CryptoFuturesOhlcColl() *mongo.Collection {
+	return m.Conn().Database(m.DbName).Collection(m.collections.CryptoFuturesOhlc)
 }
 
 // Collection to which all logs are written

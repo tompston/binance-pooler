@@ -9,24 +9,24 @@ import (
 )
 
 func SetupMongoIndexes(db *db.Db) error {
-
-	mongoInterface := market_dto.NewMongoInterface()
-
-	if err := mongoInterface.CreateAssetIndexes(db.CryptoSpotAssetColl()); err != nil {
-		return fmt.Errorf("failed to create indexes for %v: %v", db.CryptoSpotAssetColl().Name(), err)
+	assetColls := []*mongo.Collection{
+		db.CryptoSpotAssetColl(),
+		db.CryptoFuturesAssetColl(),
 	}
 
-	// if err := mongoInterface.CreateAssetIndexes(db.CryptoFuturesAssetColl()); err != nil {
-	// 	return fmt.Errorf("failed to create indexes for %v: %v", db.CryptoFuturesAssetColl().Name(), err)
-	// }
+	for _, coll := range assetColls {
+		if err := market_dto.CreateAssetIndexes(coll); err != nil {
+			return fmt.Errorf("failed to create indexes for %v: %v", coll.Name(), err)
+		}
+	}
 
 	olhcColls := []*mongo.Collection{
 		db.CryptoSpotOhlcColl(),
-		// db.CryptoFuturesOhlcColl(),
+		db.CryptoFuturesOhlcColl(),
 	}
 
 	for _, coll := range olhcColls {
-		if err := mongoInterface.CreateOhlcIndexes(coll); err != nil {
+		if err := market_dto.CreateOhlcIndexes(coll); err != nil {
 			return fmt.Errorf("failed to create indexes for %v: %v", coll.Name(), err)
 		}
 	}

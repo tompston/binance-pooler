@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"binance-pooler/pkg/app"
 	"binance-pooler/pkg/dto/market_dto"
@@ -21,17 +22,15 @@ import (
 type service struct {
 	app                  *app.App
 	api                  binance.API
-	maxParalellRequests  int
+	maxParallelRequests  int
 	timeframes           []binance.Timeframe
 	requestSleepDuration time.Duration
 	debug                bool
 }
 
-var marketdb = market_dto.NewMongoInterface()
-
-func New(app *app.App, maxParalellRequests int, timeframes []binance.Timeframe) *service {
+func New(app *app.App, maxParallelRequests int, timeframes []binance.Timeframe) *service {
 	return &service{
-		maxParalellRequests: maxParalellRequests,
+		maxParallelRequests: maxParallelRequests,
 		api:                 binance.New(),
 		timeframes:          timeframes,
 		debug:               false,
@@ -55,7 +54,11 @@ func (s *service) log() syro.Logger {
 
 func (s *service) AddJobs(sched *syro.CronScheduler) error {
 	if err := s.setupSpotAssets(); err != nil {
-		s.log().Fatal(err.Error())
+		return err
+	}
+
+	if err := s.setupFuturesAssets(); err != nil {
+		return err
 	}
 
 	if err := sched.Register(
@@ -63,10 +66,52 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 			Name:     "binance-spot-ohlc",
 			Schedule: "@every 30s",
 			Func: func() error {
-				if err := s.runOhlcScraper(false); err != nil {
+				assetsColl := s.app.Db().CryptoSpotAssetColl()
+				historyColl := s.app.Db().CryptoSpotOhlcColl()
+				getFunc := s.api.GetSpotKline
+
+				filter := bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}
+
+				assets, err := market_dto.GetAssets(assetsColl, filter, nil)
+				if err != nil {
 					s.log().Error(err.Error())
 					return err
 				}
+
+				if err := s.runOhlcScraper(assets, historyColl, getFunc, false); err != nil {
+					s.log().Error(err.Error())
+					return err
+				}
+
+				return nil
+			},
+		},
+	); err != nil {
+		return err
+	}
+
+	if err := sched.Register(
+		&syro.Job{
+			Name:     "binance-futures-ohlc",
+			Schedule: "@every 30s",
+			Func: func() error {
+				assetsColl := s.app.Db().CryptoFuturesAssetColl()
+				historyColl := s.app.Db().CryptoFuturesOhlcColl()
+				getFunc := s.api.GetFutureKline
+
+				filter := bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}
+
+				assets, err := market_dto.GetAssets(assetsColl, filter, nil)
+				if err != nil {
+					s.log().Error(err.Error())
+					return err
+				}
+
+				if err := s.runOhlcScraper(assets, historyColl, getFunc, false); err != nil {
+					s.log().Error(err.Error())
+					return err
+				}
+
 				return nil
 			},
 		},
@@ -77,65 +122,51 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 	return nil
 }
 
-func (s *service) Tmp(fill bool) {
-	if err := s.runOhlcScraper(fill); err != nil {
-		s.log().Error(err.Error())
-	}
-}
-
-func (s *service) getPairs() ([]market_dto.SpotAsset, error) {
-	// return marketdb.GetSpotAssets(
-	// 	s.app.Db().CryptoSpotAssetColl(),
-	// 	bson.M{"source": binance.Source, "status": "TRADING"},
-	// 	options.Find().SetLimit(limit), // options.Find().SetSort(bson.D{{Key: "onboard_date", Value: -1}}),
-	// )
-
-	return marketdb.GetSpotAssets(
-		s.app.Db().CryptoSpotAssetColl(),
-		bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}, nil,
-	)
-}
-
 func (s *service) setupSpotAssets() error {
-	coll := s.app.Db().CryptoSpotAssetColl()
+	assetsColl := s.app.Db().CryptoSpotAssetColl()
+	getFunc := s.api.GetAllSpotAssets
+	return initializeAssets(s, assetsColl, getFunc)
+}
 
+func (s *service) setupFuturesAssets() error {
+	assetsColl := s.app.Db().CryptoFuturesAssetColl()
+	getFunc := s.api.GetAllFutureSymbols
+	return initializeAssets(s, assetsColl, getFunc)
+}
+
+func initializeAssets[T any](s *service, assetsColl *mongo.Collection, getAssets binance.GetAssetsFunc[T]) error {
 	filter := bson.M{"source": binance.Source}
-	count, err := coll.CountDocuments(context.Background(), filter)
+	count, err := assetsColl.CountDocuments(context.Background(), filter)
 	if err != nil {
 		return err
 	}
 
 	if count == 0 {
-		s.log().Info("no spot assets found, scraping data")
-		docs, err := s.api.GetAllSpotAssets()
+		s.log().Info("no assets found, scraping data", syro.LogFields{"collection": assetsColl.Name()})
+		docs, err := getAssets()
 		if err != nil {
 			return err
 		}
 
-		log, err := marketdb.UpsertSpotAssets(docs, coll)
+		upsertLog, err := market_dto.UpsertAssets(docs, assetsColl)
 		if err != nil {
 			return err
 		}
 
-		s.log().Info("upserted binance spot info", syro.LogFields{"log": log})
-
+		s.log().Info("upserted binance asset info", syro.LogFields{"upsertLog": upsertLog})
 		return nil
 	}
 
-	s.log().Info(fmt.Sprintf("spot assets already exist in %v collection, skipping setup", coll.Name()))
+	s.log().Info(fmt.Sprintf("assets already exist in %v collection, skipping setup", assetsColl.Name()))
 	return nil
 }
 
-func (s *service) runOhlcScraper(fillgaps bool) error {
-	assets, err := s.getPairs()
-	if err != nil {
-		return err
-	}
+func (s *service) runOhlcScraper(assets []market_dto.AssetBase, coll *mongo.Collection, getHistoryFunc binance.GetHistoryFunc, fillgaps bool) error {
 
-	sem := make(chan struct{}, s.maxParalellRequests)
+	sem := make(chan struct{}, s.maxParallelRequests)
 	var wg sync.WaitGroup
 
-	s.log().Debug("running ohlc scraper", syro.LogFields{"num_assets": len(assets)})
+	s.log().Debug("running ohlc scraper", syro.LogFields{"num_assets": len(assets), "coll": coll.Name()})
 
 	for _, asset := range assets {
 		sem <- struct{}{}
@@ -148,12 +179,12 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 			for _, tf := range s.timeframes {
 				time.Sleep(s.requestSleepDuration)
 				if fillgaps {
-					if err := s.fillGapsForSymbol(symbol, tf); err != nil {
+					if err := s.fillGapsForSymbol(coll, getHistoryFunc, symbol, tf); err != nil {
 						s.log().Error(err.Error())
 					}
 
 				} else {
-					if err := s.scrapeOhlcForSymbol(symbol, tf); err != nil {
+					if err := s.scrapeOhlcForSymbol(coll, getHistoryFunc, symbol, tf); err != nil {
 						s.log().Error(err.Error())
 					}
 				}
@@ -167,17 +198,15 @@ func (s *service) runOhlcScraper(fillgaps bool) error {
 	return nil
 }
 
-func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
-
-	coll := s.app.Db().CryptoSpotOhlcColl()
+func (s *service) fillGapsForSymbol(historyColl *mongo.Collection, getHistoryFunc binance.GetHistoryFunc, symbol string, tf binance.Timeframe) error {
 	filter := bson.M{"symbol": symbol, "interval": tf.Milis}
-	gaps, err := mongodb.FindGaps(coll, filter)
+	gaps, err := mongodb.FindGaps(historyColl, filter)
 	if err != nil {
 		return err
 	}
 
 	if len(gaps) == 0 {
-		s.log().Debug("no gaps found for futures ohlc", syro.LogFields{"symbol": symbol, "interval": tf.Milis})
+		s.log().Debug("no gaps found for ohlc", syro.LogFields{"symbol": symbol, "interval": tf.Milis})
 		return nil
 	}
 
@@ -208,17 +237,17 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 					"interval":   tf.Milis,
 				})
 
-				docs, err := s.api.GetSpotKline(symbol, chunk.From, chunk.To, tf)
+				docs, err := getHistoryFunc(symbol, chunk.From, chunk.To, tf)
 				if err != nil {
 					return fmt.Errorf("%v:%v [%v -> %v] failed to get ohlc rows: %v", symbol, tf.UrlParam, chunk.From, chunk.To, err)
 				}
 
-				upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
+				upsertLog, err := market_dto.UpsertOhlcRows(docs, historyColl)
 				if err != nil {
 					return err
 				}
 
-				s.log().Info("upserted ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog.String()})
+				s.log().Info("upserted ohlc", syro.LogFields{"symbol": symbol, "log": upsertLog})
 			}
 		}
 	}
@@ -226,23 +255,21 @@ func (s *service) fillGapsForSymbol(symbol string, tf binance.Timeframe) error {
 	return nil
 }
 
-func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error {
-
+func (s *service) scrapeOhlcForSymbol(historyColl *mongo.Collection, getHistoryFunc binance.GetHistoryFunc, symbol string, tf binance.Timeframe) error {
 	defaultStart := time.Now().AddDate(-6, 0, 0)
-	coll := s.app.Db().CryptoSpotOhlcColl()
 
 	filter := bson.M{
 		"interval": tf.Milis,
 		"symbol":   symbol,
 	}
 
-	latestTime, err := mongodb.FindLatestStartTime(defaultStart, coll, filter)
+	latestTime, err := mongodb.FindLatestStartTime(defaultStart, historyColl, filter)
 	if err != nil {
 		return err
 	}
 
 	if s.debug {
-		// if the latest start time is from the last 3 days, return nil
+		// if the latest start time is from the last x days, return nil
 		breakpoint := time.Now().AddDate(0, 0, -1)
 		if latestTime.After(breakpoint) {
 			s.log().Info("latest ohlc is up to date", syro.LogFields{"symbol": symbol, "interval": tf.Milis})
@@ -271,18 +298,18 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 
 			s.log().Debug("init request ohlc", meta)
 
-			docs, err := s.api.GetSpotKline(symbol, from, to, tf)
+			docs, err := getHistoryFunc(symbol, from, to, tf)
 			if err != nil {
 				return fmt.Errorf("%v:%v failed to get ohlc rows: %v", symbol, tf.UrlParam, err)
 			}
 
 			if len(docs) != 0 {
-				upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
+				upsertLog, err := market_dto.UpsertOhlcRows(docs, historyColl)
 				if err != nil {
 					return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
 				}
 
-				s.log().Info("upserted binance spot ohlc",
+				s.log().Info("upserted binance ohlc",
 					syro.LogFields{
 						"symbol":     symbol,
 						"resolution": tf.Milis / 60000,
@@ -300,21 +327,22 @@ func (s *service) scrapeOhlcForSymbol(symbol string, tf binance.Timeframe) error
 		from := latestTime.Add(-overlay)
 		to := from.Add(maxPeriod)
 
-		docs, err := s.api.GetSpotKline(symbol, from, to, tf)
+		docs, err := getHistoryFunc(symbol, from, to, tf)
 		if err != nil {
 			return err
 		}
 
-		upsertLog, err := marketdb.UpsertOhlcRows(docs, coll)
+		upsertLog, err := market_dto.UpsertOhlcRows(docs, historyColl)
 		if err != nil {
 			return fmt.Errorf("%v:%v failed to upsert ohlc rows: %v", symbol, tf.UrlParam, err)
 		}
 
-		s.log().Info("upserted binance spot ohlc",
+		s.log().Info("upserted binance ohlc",
 			syro.LogFields{
 				"symbol":     symbol,
 				"resolution": tf.Milis / 60000,
 				"upsertLog":  upsertLog.String(),
+				"coll":       historyColl.Name(),
 			})
 	}
 

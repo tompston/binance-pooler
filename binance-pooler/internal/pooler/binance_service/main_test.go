@@ -2,6 +2,7 @@ package binance_service
 
 import (
 	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
 	"fmt"
 	"testing"
@@ -46,7 +47,7 @@ func TestService(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		log, err := marketdb.UpsertOhlcRows(docs, coll)
+		log, err := market_dto.UpsertOhlcRows(docs, coll)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -56,14 +57,19 @@ func TestService(t *testing.T) {
 
 	t.Run("scrapeOhlcForSymbolTest", func(t *testing.T) {
 
-		s := New(app, 1, []binance.Timeframe{})
+		s := New(app, 1, []binance.Timeframe{
+			binance.Timeframe15M,
+		})
+
+		historyColl := app.Db().CryptoSpotAssetColl()
+		getFunc := s.api.GetSpotKline
 
 		// need to setup assets first, so that they can be found in the db
 		if err := s.setupSpotAssets(); err != nil {
 			s.log().Error(err.Error())
 		}
 
-		if err := s.scrapeOhlcForSymbol("BTCUSDT", binance.Timeframe15M); err != nil {
+		if err := s.scrapeOhlcForSymbol(historyColl, getFunc, "BTCUSDT", binance.Timeframe15M); err != nil {
 			t.Fatal(err)
 		}
 	})

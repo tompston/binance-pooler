@@ -2,11 +2,14 @@ package binance
 
 import (
 	"binance-pooler/pkg/dto/market_dto"
+	"binance-pooler/pkg/lib/timeset"
 	"encoding/json"
 	"time"
 
 	"github.com/tompston/syro"
 )
+
+type GetAssetsFunc[T any] func() ([]market_dto.Asset[T], error)
 
 func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 	type apiResponse struct {
@@ -87,27 +90,33 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 			continue
 		}
 
+		base := market_dto.AssetBase{
+			UpdatedAt:  time.Now().UTC(),
+			Source:     Source,
+			Symbol:     symb,
+			Status:     symbol.Status,
+			BaseAsset:  symbol.BaseAsset,
+			QuoteAsset: symbol.QuoteAsset,
+			OrderTypes: symbol.OrderTypes,
+		}
+
 		asset := market_dto.SpotAsset{
-			UpdatedAt:                  time.Now().UTC(),
-			Source:                     Source,
-			Symbol:                     symb,
-			Status:                     symbol.Status,
-			BaseAsset:                  symbol.BaseAsset,
-			QuoteAsset:                 symbol.QuoteAsset,
-			BaseAssetPrecision:         symbol.BaseAssetPrecision,
-			QuotePrecision:             symbol.QuotePrecision,
-			QuoteAssetPrecision:        symbol.QuoteAssetPrecision,
-			BaseCommissionPrecision:    symbol.BaseCommissionPrecision,
-			QuoteCommissionPrecision:   symbol.QuoteCommissionPrecision,
-			OrderTypes:                 symbol.OrderTypes,
-			IcebergAllowed:             symbol.IcebergAllowed,
-			OcoAllowed:                 symbol.OcoAllowed,
-			OtoAllowed:                 symbol.OtoAllowed,
-			QuoteOrderQtyMarketAllowed: symbol.QuoteOrderQtyMarketAllowed,
-			AllowTrailingStop:          symbol.AllowTrailingStop,
-			CancelReplaceAllowed:       symbol.CancelReplaceAllowed,
-			IsSpotTradingAllowed:       symbol.IsSpotTradingAllowed,
-			IsMarginTradingAllowed:     symbol.IsMarginTradingAllowed,
+			AssetBase: base,
+			Data: market_dto.SpotAssetData{
+				BaseAssetPrecision:         symbol.BaseAssetPrecision,
+				QuotePrecision:             symbol.QuotePrecision,
+				QuoteAssetPrecision:        symbol.QuoteAssetPrecision,
+				BaseCommissionPrecision:    symbol.BaseCommissionPrecision,
+				QuoteCommissionPrecision:   symbol.QuoteCommissionPrecision,
+				IcebergAllowed:             symbol.IcebergAllowed,
+				OcoAllowed:                 symbol.OcoAllowed,
+				OtoAllowed:                 symbol.OtoAllowed,
+				QuoteOrderQtyMarketAllowed: symbol.QuoteOrderQtyMarketAllowed,
+				AllowTrailingStop:          symbol.AllowTrailingStop,
+				CancelReplaceAllowed:       symbol.CancelReplaceAllowed,
+				IsSpotTradingAllowed:       symbol.IsSpotTradingAllowed,
+				IsMarginTradingAllowed:     symbol.IsMarginTradingAllowed,
+			},
 		}
 
 		docs = append(docs, asset)
@@ -116,7 +125,6 @@ func (api API) GetAllSpotAssets() ([]market_dto.SpotAsset, error) {
 	return docs, nil
 }
 
-/*
 func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 	type apiResponse struct {
 		Timezone    string `json:"timezone"`
@@ -222,25 +230,31 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 			continue
 		}
 
+		base := market_dto.AssetBase{
+			UpdatedAt:  time.Now().UTC(),
+			Source:     Source,
+			Symbol:     symb,
+			Status:     symbol.Status,
+			BaseAsset:  symbol.BaseAsset,
+			QuoteAsset: symbol.QuoteAsset,
+			OrderTypes: symbol.OrderTypes,
+		}
+
 		asset := market_dto.FuturesAsset{
-			UpdatedAt:             time.Now().UTC(),
-			Symbol:                symb,
-			Source:                Source,
-			ContractType:          symbol.ContractType,
-			DeliveryDate:          deliveryDate,
-			OnboardDate:           onboardDate,
-			Status:                symbol.Status,
-			MaintMarginPercent:    maintMarginPercent,
-			RequiredMarginPercent: requiredMargin,
-			BaseAsset:             symbol.BaseAsset,
-			QuoteAsset:            symbol.QuoteAsset,
-			MarginAsset:           symbol.MarginAsset,
-			UnderlyingType:        symbol.UnderlyingType,
-			TriggerProtect:        triggerProtect,
-			LiquidationFee:        liquidationFee,
-			MarketTakeBound:       marketTakeBound,
-			MaxMoveOrderLimit:     symbol.MaxMoveOrderLimit,
-			OrderTypes:            symbol.OrderTypes,
+			AssetBase: base,
+			Data: market_dto.FuturesAssetData{
+				ContractType:          symbol.ContractType,
+				DeliveryDate:          deliveryDate,
+				OnboardDate:           onboardDate,
+				MaintMarginPercent:    maintMarginPercent,
+				RequiredMarginPercent: requiredMargin,
+				MarginAsset:           symbol.MarginAsset,
+				UnderlyingType:        symbol.UnderlyingType,
+				TriggerProtect:        triggerProtect,
+				LiquidationFee:        liquidationFee,
+				MarketTakeBound:       marketTakeBound,
+				MaxMoveOrderLimit:     symbol.MaxMoveOrderLimit,
+			},
 		}
 
 		assets = append(assets, asset)
@@ -248,4 +262,3 @@ func (api API) GetAllFutureSymbols() ([]market_dto.FuturesAsset, error) {
 
 	return assets, nil
 }
-*/
