@@ -8,13 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// const (
-// 	// Default names for the used databases
-// 	DEFAULT_NAME = "syro"
-// 	// Test db name (all of the collections will be under this db during tests)
-// 	TEST_DB = "test"
-// )
-
 // Db struct holds the mongodb collection and the schema for the database
 type Db struct {
 	conn        *mongo.Client

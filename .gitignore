@@ -70,3 +70,5 @@ exchangeInfo.json
 
 py
 .venv
+
+tmp
