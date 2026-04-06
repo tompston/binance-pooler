@@ -90,34 +90,34 @@ func (s *service) AddJobs(sched *syro.CronScheduler) error {
 		return err
 	}
 
-	if err := sched.Register(
-		&syro.Job{
-			Name:     "binance-futures-ohlc",
-			Schedule: "@every 30s",
-			Func: func() error {
-				assetsColl := s.app.Db().CryptoFuturesAssetColl()
-				historyColl := s.app.Db().CryptoFuturesOhlcColl()
-				getFunc := s.api.GetFutureKline
+	// if err := sched.Register(
+	// 	&syro.Job{
+	// 		Name:     "binance-futures-ohlc",
+	// 		Schedule: "@every 30s",
+	// 		Func: func() error {
+	// 			assetsColl := s.app.Db().CryptoFuturesAssetColl()
+	// 			historyColl := s.app.Db().CryptoFuturesOhlcColl()
+	// 			getFunc := s.api.GetFutureKline
 
-				filter := bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}
+	// 			filter := bson.M{"source": binance.Source, "symbol": bson.M{"$in": binance.TopPairs}}
 
-				assets, err := market_dto.GetAssets(assetsColl, filter, nil)
-				if err != nil {
-					s.log().Error(err.Error())
-					return err
-				}
+	// 			assets, err := market_dto.GetAssets(assetsColl, filter, nil)
+	// 			if err != nil {
+	// 				s.log().Error(err.Error())
+	// 				return err
+	// 			}
 
-				if err := s.runOhlcScraper(assets, historyColl, getFunc, false); err != nil {
-					s.log().Error(err.Error())
-					return err
-				}
+	// 			if err := s.runOhlcScraper(assets, historyColl, getFunc, false); err != nil {
+	// 				s.log().Error(err.Error())
+	// 				return err
+	// 			}
 
-				return nil
-			},
-		},
-	); err != nil {
-		return err
-	}
+	// 			return nil
+	// 		},
+	// 	},
+	// ); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -256,17 +256,22 @@ func (s *service) fillGapsForSymbol(historyColl *mongo.Collection, getHistoryFun
 }
 
 func (s *service) scrapeOhlcForSymbol(historyColl *mongo.Collection, getHistoryFunc binance.GetHistoryFunc, symbol string, tf binance.Timeframe) error {
-	defaultStart := time.Now().AddDate(-6, 0, 0)
+	// defaultStart := time.Now().AddDate(-6, 0, 0)
+
+	defaultStart := time.Now().AddDate(-3, 0, 0)
 
 	filter := bson.M{
 		"interval": tf.Milis,
 		"symbol":   symbol,
 	}
 
+	now := time.Now()
 	latestTime, err := mongodb.FindLatestStartTime(defaultStart, historyColl, filter)
 	if err != nil {
 		return err
 	}
+
+	s.log().Debug("queried latest time", syro.LogFields{"dur_ms": time.Since(now).Milliseconds(), "filter": filter})
 
 	if s.debug {
 		// if the latest start time is from the last x days, return nil

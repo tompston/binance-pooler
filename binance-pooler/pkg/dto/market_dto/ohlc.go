@@ -59,7 +59,8 @@ func (r *OhlcRow) SetNumberOfTrades(num int64)    { r.NumberOfTrades = &num }
 func CreateOhlcIndexes(coll *mongo.Collection) error {
 	return mongodb.TimeseriesIndexes().
 		Add("symbol").
-		Add(mongodb.START_TIME, "symbol", "interval").
+		// Add(mongodb.START_TIME, "symbol", "interval").
+		Add("symbol", "interval", mongodb.START_TIME).
 		Create(coll)
 }
 

@@ -12,13 +12,6 @@ import (
 	"github.com/tompston/syro"
 )
 
-const (
-	VERSION = "0.0.1"
-	// Environment variables keys which store the default telegram bot info
-	ENV_TELEGRAM_TOKEN_KEY   = "binance-pooler_TG_BOT_TOKEN"
-	ENV_TELEGRAM_CHAT_ID_KEY = "binance-pooler_TG_BOT_CHAT_ID"
-)
-
 // App holds the state that is needed by the internal packages of the app.
 type App struct {
 	conf        *settings.TomlConfig
@@ -49,7 +42,6 @@ func New(ctx context.Context, testing ...bool) (*App, error) {
 
 	fmt.Printf(" * initializing app with the %v config...\n", confPath)
 	fmt.Printf(" * Is production: %v\n", Env.IsProduction())
-	fmt.Printf(" * version: %v\n", VERSION)
 
 	conf, err := settings.NewConfig(confPath)
 	if err != nil {
@@ -76,8 +68,7 @@ func New(ctx context.Context, testing ...bool) (*App, error) {
 	}
 
 	cronStorage, err := syro.NewMongoCronStorage(
-		mongodb.Coll(db.Conn(), dbName, "cron_list"),
-		mongodb.Coll(db.Conn(), dbName, "cron_history"))
+		mongodb.Coll(db.Conn(), dbName, "cron_list"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cron storage: %v", err)
 	}

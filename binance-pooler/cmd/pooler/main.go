@@ -50,7 +50,8 @@ func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler,
 		WithStorage(app.CronStorage())
 
 	timeframes := []binance.Timeframe{
-		binance.Timeframe5M,
+		binance.Timeframe1M,
+		// binance.Timeframe5M,
 		binance.Timeframe15M,
 	}
 
