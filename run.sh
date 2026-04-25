@@ -26,10 +26,6 @@ case $FIRST_ARG in
 #     cd binance-pooler && reflex -r '\.go' -s -- sh -c "go run cmd/api/main.go"
 #     ;;
 
-"exec")
-    cd binance-pooler && go run cmd/exec/main.go
-    ;;
-
 "flamegraph")
     cd binance-pooler
     go build -o out cmd/flamegraph/main.go

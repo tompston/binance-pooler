@@ -1,14 +1,14 @@
 package main
 
 import (
-	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/core"
 	"context"
 	"log"
 )
 
 // go run cmd/exec/main.go
 func main() {
-	app, err := app.New(context.Background())
+	app, err := core.NewApp(context.Background())
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

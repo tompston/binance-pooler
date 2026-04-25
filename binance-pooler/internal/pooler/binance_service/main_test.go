@@ -1,7 +1,7 @@
 package binance_service
 
 import (
-	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/core"
 	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/providers/binance"
 	"fmt"
@@ -32,7 +32,7 @@ func TestApi(t *testing.T) {
 }
 
 func TestService(t *testing.T) {
-	app, cleanup := app.SetupTestEnvironment(t)
+	app, cleanup := core.SetupTestEnvironment(t)
 	defer cleanup()
 
 	t.Run("get-spot-kline-flow", func(t *testing.T) {

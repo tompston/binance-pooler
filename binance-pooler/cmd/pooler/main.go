@@ -2,7 +2,7 @@ package main
 
 import (
 	"binance-pooler/internal/pooler/binance_service"
-	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/core"
 	"binance-pooler/pkg/providers/binance"
 	"context"
 	"fmt"
@@ -21,12 +21,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app, err := app.New(context.Background())
+	ctx := context.Background()
+
+	app, err := core.NewApp(ctx)
 	if err != nil {
 		msg := fmt.Sprintf("failed to create app in go pooler: %v", err.Error())
 		log.Fatal(msg)
 	}
-	defer app.Exit(context.Background())
+	defer app.Exit(ctx)
 
 	scheduler, err := InitializeScheduler(app, loc)
 	if err != nil {
@@ -43,7 +45,7 @@ func main() {
 	// }
 }
 
-func InitializeScheduler(app *app.App, loc *time.Location) (*syro.CronScheduler, error) {
+func InitializeScheduler(app *core.App, loc *time.Location) (*syro.CronScheduler, error) {
 	cron := cron.New(cron.WithLocation(loc))
 
 	scheduler := syro.NewCronScheduler(cron, "go-pooler").

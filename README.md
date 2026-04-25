@@ -2,11 +2,6 @@ Timeseries data scraper example, implementing the ideas mentioned in [this tutor
 
 Scrapes spot data from binance api and stores it in a mongodb database.
 
-Additional features:
-
-- Logging
-- Tracking of cron job state and executions (wrapper around the `robfig/cron/v3` package)
-
 ## Dependencies
 
 - Go (min version 1.23)
@@ -22,18 +17,4 @@ chmod +x run.sh
 ./run.sh pooler
 # run tests for the project (will be written under mongodb database called `test`)
 ./run.sh test
-```
-
-### Project structure
-
-```bash
-├── binance-pooler
-│   ├── cmd               # entry points for the apps
-│   ├── conf              # config files
-│   ├── internal
-│   │   ├── api           # api implementation
-│   │   └── pooler        # data pooler implementations
-│   └── pkg
-│       ├── app           # main app struct and config
-│       └── dto           # shared types of the parsed data
 ```

@@ -1,14 +1,13 @@
-package dto
+package core
 
 import (
-	"binance-pooler/pkg/app/db"
 	"binance-pooler/pkg/dto/market_dto"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupMongoIndexes(db *db.Db) error {
+func SetupMongoIndexes(db *Db) error {
 	assetColls := []*mongo.Collection{
 		db.CryptoSpotAssetColl(),
 		db.CryptoFuturesAssetColl(),

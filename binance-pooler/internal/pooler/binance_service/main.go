@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"binance-pooler/pkg/app"
+	"binance-pooler/pkg/core"
 	"binance-pooler/pkg/dto/market_dto"
 	"binance-pooler/pkg/lib/mongodb"
 	"binance-pooler/pkg/providers/binance"
@@ -20,7 +20,7 @@ import (
 )
 
 type service struct {
-	app                  *app.App
+	app                  *core.App
 	api                  binance.API
 	maxParallelRequests  int
 	timeframes           []binance.Timeframe
@@ -28,7 +28,7 @@ type service struct {
 	debug                bool
 }
 
-func New(app *app.App, maxParallelRequests int, timeframes []binance.Timeframe) *service {
+func New(app *core.App, maxParallelRequests int, timeframes []binance.Timeframe) *service {
 	return &service{
 		maxParallelRequests: maxParallelRequests,
 		api:                 binance.New(),
